@@ -1,4 +1,4 @@
-package de.tum.bgu.msm.longDistance.sp;
+package de.tum.bgu.msm.longDistance.data.sp;
  import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
  import org.apache.log4j.Logger;
 

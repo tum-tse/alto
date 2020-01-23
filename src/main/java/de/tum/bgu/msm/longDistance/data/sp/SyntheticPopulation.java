@@ -1,9 +1,8 @@
-package de.tum.bgu.msm.longDistance.sp;
+package de.tum.bgu.msm.longDistance.data.sp;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.ModelComponent;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.Util;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;

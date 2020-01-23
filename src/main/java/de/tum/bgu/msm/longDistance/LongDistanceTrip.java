@@ -6,8 +6,7 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import de.tum.bgu.msm.longDistance.sp.Person;
-import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
+import de.tum.bgu.msm.longDistance.data.sp.Person;
 
 import java.util.List;
 import java.util.Map;

@@ -8,8 +8,8 @@ import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoic
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.McModel;
-import de.tum.bgu.msm.longDistance.sp.Household;
-import de.tum.bgu.msm.longDistance.sp.Person;
+import de.tum.bgu.msm.longDistance.data.sp.Household;
+import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import org.apache.log4j.Logger;
 

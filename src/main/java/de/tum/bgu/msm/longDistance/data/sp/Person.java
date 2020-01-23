@@ -1,4 +1,4 @@
-package de.tum.bgu.msm.longDistance.sp;
+package de.tum.bgu.msm.longDistance.data.sp;
 
 
 import static java.lang.Integer.parseInt;

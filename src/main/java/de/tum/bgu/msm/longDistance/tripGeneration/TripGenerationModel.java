@@ -3,9 +3,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
-import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
-import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
+import de.tum.bgu.msm.longDistance.data.sp.SyntheticPopulation;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 

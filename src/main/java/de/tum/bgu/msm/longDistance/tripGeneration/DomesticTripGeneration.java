@@ -7,9 +7,8 @@ import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;
-import de.tum.bgu.msm.longDistance.sp.Household;
-import de.tum.bgu.msm.longDistance.sp.Person;
-import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
+import de.tum.bgu.msm.longDistance.data.sp.Household;
+import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -155,7 +154,7 @@ public class DomesticTripGeneration {
 
         double accessibility = pers.getHousehold().getZone().getAccessibility();
 
-        int winter = Mto.getWinter()? 1:0;
+        int winter = JsonUtilMto.getBooleanProp(prop, "winter" )? 1:0;
 
 
 
@@ -197,7 +196,7 @@ public class DomesticTripGeneration {
     }
 
     //this method is no longer used
-    public static float[] readPersonSocioDemographics(Person pers) {
+    public float[] readPersonSocioDemographics(Person pers) {
         float personDescription[] = new float[15];
         //change size to 15 if "winter" is added
         //intercept always = 1
@@ -271,7 +270,7 @@ public class DomesticTripGeneration {
         personDescription[13] = (float) pers.getHousehold().getZone().getAccessibility();
 
         //variable is winter
-        if (Mto.getWinter()) {
+        if (JsonUtilMto.getBooleanProp(prop, "winter" )) {
             personDescription[14] = 1;
         } else {
             personDescription[14] = 0;

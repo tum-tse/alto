@@ -1,27 +1,18 @@
 package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.datafile.TableDataSet;
-import com.pb.common.util.ResourceUtil;
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.destinationChoice.DcModel;
-import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
-import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
-import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneDisaggregator;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import de.tum.bgu.msm.longDistance.sp.SyntheticPopulation;
+import de.tum.bgu.msm.longDistance.data.sp.SyntheticPopulation;
 import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import javax.xml.crypto.Data;
 import java.io.PrintWriter;
 import java.util.*;
 

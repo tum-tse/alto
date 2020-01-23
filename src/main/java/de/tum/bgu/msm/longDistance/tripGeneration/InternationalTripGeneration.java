@@ -6,7 +6,7 @@ import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
-import de.tum.bgu.msm.longDistance.sp.Person;
+import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
