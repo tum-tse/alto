@@ -6,7 +6,7 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * Created by carlloga on 4/12/2017.
  */
-public class IntOutboundDestinationChoice {
+public class IntOutboundDestinationChoice implements DestinationChoiceModule {
 
     private ResourceBundle rb;
     private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
@@ -78,7 +78,7 @@ public class IntOutboundDestinationChoice {
 
     }
 
-    public void loadIntOutboundDestinationChoiceModel(DataSet dataSet) {
+    public void load(DataSet dataSet) {
 
         tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
         tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
@@ -111,7 +111,7 @@ public class IntOutboundDestinationChoice {
         int destination;
         //0 visit, 1 business and 2 leisure
 
-        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
+        Purpose tripPurpose =trip.getTripPurpose();
 
         if (selectUs(trip, tripPurpose)) {
 
@@ -167,27 +167,27 @@ public class IntOutboundDestinationChoice {
         autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
     }
 
-    public boolean selectUs(LongDistanceTrip trip, String tripPurpose) {
+    public boolean selectUs(LongDistanceTrip trip, Purpose tripPurpose) {
 
         double utility;
         //binary choice model for US/OS (per purpose)
         if (trip.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
             //trips from Ontario = use accessibility to get the probability
-            double b_intercept = coefficients.getStringIndexedValueAt("isUs", tripPurpose);
-            double b_usAccess = coefficients.getStringIndexedValueAt("isUsAcc", tripPurpose);
+            double b_intercept = coefficients.getStringIndexedValueAt("isUs", tripPurpose.toString());
+            double b_usAccess = coefficients.getStringIndexedValueAt("isUsAcc", tripPurpose.toString());
 
             double usAccess = origCombinedZones.getIndexedValueAt(trip.getOrigZone().getCombinedZoneId(), "usAccess");
 
             utility = Math.exp(b_intercept + b_usAccess * usAccess);
         } else {
             //if from external canada do not have accessibility to us in the choice model
-            double b_intercept = coefficients.getStringIndexedValueAt("isUsExternal", tripPurpose);
+            double b_intercept = coefficients.getStringIndexedValueAt("isUsExternal", tripPurpose.toString().toLowerCase());
             utility = Math.exp(b_intercept);
         }
 
         double probability = utility / (1 + utility);
 
-        if (trip.getTripState() == 1) {
+        if (trip.getTripState().equals(TypesOntario.DAYTRIP))  {
             //daytrips are always to US
             return true;
         } else {
@@ -200,33 +200,33 @@ public class IntOutboundDestinationChoice {
     }
 
 
-    public double calculateUsZoneUtility(LongDistanceTrip trip, String tripPurpose, int destination) {
+    public double calculateUsZoneUtility(LongDistanceTrip trip, Purpose tripPurpose, int destination) {
 
         //read coefficients
 
-        String tripState = tripStateArray[trip.getTripState()];
+        Type tripState = trip.getTripState();
 
-        double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose);
-        double b_log_population = coefficients.getStringIndexedValueAt("log_population", tripPurpose);
-        double dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose);
-        double onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose);
+        double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose.toString());
+        double b_log_population = coefficients.getStringIndexedValueAt("log_population", tripPurpose.toString());
+        double dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose.toString());
+        double onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose.toString());
 
-        double k_dtLogsum = coefficients.getStringIndexedValueAt("k_dtLogsum", tripPurpose);
-        double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose);
+        double k_dtLogsum = coefficients.getStringIndexedValueAt("k_dtLogsum", tripPurpose.toString());
+        double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose.toString());
 
         if (calibration) {
-            switch (trip.getTripPurpose()) {
-                case 2:
+            switch ((PurposesOntario) trip.getTripPurpose()) {
+                case LEISURE:
                     //tripPurpose = "leisure";
                     k_dtLogsum = calibrationV[2];
                     k_onLogsum = k_dtLogsum;
                     break;
-                case 0:
+                case VISIT:
                     //tripPurpose = "visit";
                     k_dtLogsum = calibrationV[0];
                     k_onLogsum = k_dtLogsum;
                     break;
-                case 1:
+                case BUSINESS:
                     //tripPurpose = "business";
                     k_dtLogsum = calibrationV[1];
                     k_onLogsum = k_dtLogsum;

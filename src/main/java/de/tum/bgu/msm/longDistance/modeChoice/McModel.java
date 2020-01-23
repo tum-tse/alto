@@ -1,9 +1,8 @@
 package de.tum.bgu.msm.longDistance.modeChoice;
 
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
-import de.tum.bgu.msm.longDistance.destinationChoice.DcModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;

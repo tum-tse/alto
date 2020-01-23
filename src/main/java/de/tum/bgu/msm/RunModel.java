@@ -31,15 +31,9 @@ public class RunModel {
         // main model run method
 
         logger.info("MITO Long distance model");
-        // Check how many arguments were passed in
-        if (args.length != 3) {
-            logger.error("Error: Please provide three arguments, 1. the model resources as rb, 2. the model resources as json, 3. the start year");
-            System.exit(0);
-        }
         long startTime = System.currentTimeMillis();
-        JsonUtilMto jsonUtilMto = new JsonUtilMto(args[1]);
+        JsonUtilMto jsonUtilMto = new JsonUtilMto(args[0]);
         JSONObject prop = jsonUtilMto.getJsonProperties();
-
 
         RunModel model = new RunModel(prop);
         model.runLongDistModel();

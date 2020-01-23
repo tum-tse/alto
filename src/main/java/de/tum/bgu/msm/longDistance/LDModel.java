@@ -2,10 +2,11 @@ package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
-import de.tum.bgu.msm.longDistance.destinationChoice.DcModel;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.destinationChoice.Distribution;
 import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoice;
-import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationModel;
+import de.tum.bgu.msm.longDistance.tripGeneration.Generation;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneDisaggregator;
 import de.tum.bgu.msm.longDistance.data.sp.SyntheticPopulation;
@@ -32,8 +33,8 @@ public class LDModel implements ModelComponent {
     //modules
     private ZonalData zonalData;
     private SyntheticPopulation syntheticPopulationReader;
-    private TripGenerationModel tripGenModel;
-    private DcModel dcModel;
+    private Generation tripGenModel;
+    private Distribution distribution;
     private McModel mcModel;
     private Calibration calib;
     private ZoneDisaggregator zd;
@@ -53,8 +54,8 @@ public class LDModel implements ModelComponent {
     public LDModel() {
         syntheticPopulationReader = new SyntheticPopulation();
         zonalData = new ZonalData();
-        tripGenModel = new TripGenerationModel();
-        dcModel = new DcModel();
+        tripGenModel = new Generation();
+        distribution = new Distribution();
         mcModel  = new McModel();
         zd = new ZoneDisaggregator();
         calib = new Calibration();
@@ -76,7 +77,7 @@ public class LDModel implements ModelComponent {
         zonalData.setup(prop, inputFolder, outputFolder);
         syntheticPopulationReader.setup(prop, inputFolder, outputFolder);
         tripGenModel.setup(prop, inputFolder, outputFolder);
-        dcModel.setup(prop, inputFolder, outputFolder);
+        distribution.setup(prop, inputFolder, outputFolder);
         mcModel.setup(prop, inputFolder, outputFolder);
         calib.setup(prop, inputFolder, outputFolder);
         zd.setup(prop, inputFolder, outputFolder);
@@ -87,13 +88,13 @@ public class LDModel implements ModelComponent {
 
     public void load(DataSet dataSet) {
         dataSet.setModeChoiceModel(mcModel);
-        dataSet.setDestinationChoiceModel(dcModel);
+        dataSet.setDestinationChoiceModel(distribution);
 
         //LOAD the modules
         zonalData.load(dataSet);
         syntheticPopulationReader.load(dataSet);
         mcModel.load(dataSet);
-        dcModel.load(dataSet);
+        distribution.load(dataSet);
 
         tripGenModel.load(dataSet);
         calib.load(dataSet);
@@ -112,7 +113,7 @@ public class LDModel implements ModelComponent {
         if (runTG && runDC){
             //run the full model
             tripGenModel.run(dataSet, -1);
-            dcModel.run(dataSet, -1);
+            distribution.run(dataSet, -1);
         } else {
             //run the in-development model
             runDevelopingTgAndDcModels(dataSet);
@@ -152,7 +153,7 @@ public class LDModel implements ModelComponent {
                 dataSet.setAllTrips(allTrips);
 
                 //and then run destination choice
-                dcModel.run(dataSet, -1);
+                distribution.run(dataSet, -1);
 
             } else {
                 ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();

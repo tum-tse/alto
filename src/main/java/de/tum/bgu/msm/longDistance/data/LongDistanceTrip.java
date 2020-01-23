@@ -1,15 +1,12 @@
-package de.tum.bgu.msm.longDistance;
+package de.tum.bgu.msm.longDistance.data;
 
 
 
-import com.pb.common.datafile.TableDataSet;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 
-import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
 
 /**
  * Created by Carlos Llorca  on 7/5/2016.
@@ -20,26 +17,19 @@ import java.util.Map;
  */
 public class LongDistanceTrip {
 
-    private static int tripCounter = 0;
-    private static final List<String> tripStates = ZonalData.getTripStates();
-    private static final List<String> tripPurposes = ZonalData.getTripPurposes();
-
     private int tripId;
     private Person traveller;
     private boolean international;
-    private int tripPurpose;
-    private int tripState;
-    private boolean summer = true;
-    private int nights; //currently specified as 1 for overnight and 0 for daytrip
-    private int hhAdultsTravelPartySize;
-    private int hhKidsTravelPartySize;
-    //private ArrayList<Person> hhTravelParty;
+    private Purpose tripPurpose;
+    private Type tripState;
+    private int nights;
+    private ArrayList<Person> hhTravelParty;
     private int nonHhTravelPartySize;
     private Zone origZone;
     private int destCombinedZoneId = -1;
     private ZoneType destZoneType;
     private Zone destZone;
-    private int travelMode=-1;
+    private Mode travelMode;
     private float travelDistanceLevel2 = -1;
     private float travelTimeLevel2 = -1;
     private float travelDistanceLevel1 = -1;
@@ -48,44 +38,20 @@ public class LongDistanceTrip {
     private boolean returnOvernightTrip = false;
 
 
+    public void setHhTravelParty(ArrayList<Person> hhTravelParty) {
+        this.hhTravelParty = hhTravelParty;
+    }
 
-    public LongDistanceTrip(Person traveller, boolean international, int tripPurpose, int tripState, Zone origZone, boolean summer, int nights,
-                            int hhAdultsTravelPartySize, int hhKidsTravelPartySize/**,ArrayList hhTravelParty**/, int nonHhTravelPartySize ) {
-        this.tripId = tripCounter;
+    public LongDistanceTrip(int tripId, Person traveller, boolean international, Purpose tripPurpose, Type tripState, Zone origZone, int nights, int nonHhTravelPartySize ) {
+        this.tripId = tripId;
         this.traveller = traveller;
         this.international = international;
         this.tripPurpose = tripPurpose;
         this.tripState = tripState;
         this.origZone = origZone;
-        this.summer = summer;
         this.nights = nights;
-        this.hhAdultsTravelPartySize = hhAdultsTravelPartySize;
-        this.hhKidsTravelPartySize = hhKidsTravelPartySize;
-        //this.hhTravelParty = hhTravelParty;
+        this.hhTravelParty = new ArrayList<>();
         this.nonHhTravelPartySize = nonHhTravelPartySize;
-        tripCounter++;
-    }
-
-    //contructor in developing phase - read trips from list instead of trip generation
-    public LongDistanceTrip(TableDataSet tripsDomesticTable, int row, Map<Integer, Zone> zoneLookup, DataSet dataSet, boolean assignDestination) {
-
-        this.tripId = (int) tripsDomesticTable.getValueAt(row, "tripId");
-        int personId = (int) tripsDomesticTable.getValueAt(row, "personId");
-        this.traveller = dataSet.getPersonFromId(personId);
-
-        this.international = tripsDomesticTable.getBooleanValueAt(row, "international");
-        this.tripPurpose = tripPurposes.indexOf(tripsDomesticTable.getStringValueAt(row, "tripPurpose"));
-        this.tripState = tripStates.indexOf(tripsDomesticTable.getStringValueAt(row, "tripState"));
-        int origZoneId = (int) tripsDomesticTable.getValueAt(row, "tripOriginZone");
-        origZone = zoneLookup.get(origZoneId);
-
-        this.nights = (int) tripsDomesticTable.getValueAt(row, "numberOfNights");
-        this.hhAdultsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhAdultsTravelParty");
-        this.hhKidsTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "hhKidsTravelParty");
-        this.nonHhTravelPartySize = (int) tripsDomesticTable.getValueAt(row, "nonHhTravelParty");
-
-        if (assignDestination) this.destCombinedZoneId = (int) tripsDomesticTable.getValueAt(row, "tripDestCombinedZone");
-        if (assignDestination) this.destZoneType = ZoneType.getZoneType(tripsDomesticTable.getStringValueAt(row, "destZoneType"));
     }
 
     public int getTripId() {
@@ -93,8 +59,7 @@ public class LongDistanceTrip {
     }
 
     public int getTravellerId() {
-        if (traveller == null) return 99999999;
-        else return traveller.getPersonId();
+        return traveller.getPersonId();
     }
 
     public Person getTraveller() {
@@ -105,11 +70,11 @@ public class LongDistanceTrip {
         return international;
     }
 
-    public int getTripState() {
+    public Type getTripState() {
         return tripState;
     }
 
-    public int getTripPurpose() {
+    public Purpose getTripPurpose() {
         return tripPurpose;
     }
 
@@ -117,9 +82,9 @@ public class LongDistanceTrip {
         return nights;
     }
 
-    public int getAdultsHhTravelPartySize() { return hhAdultsTravelPartySize; }
+    public int getAdultsHhTravelPartySize() { return 0; }
 
-    public int getKidsHhTravelPartySize() { return hhKidsTravelPartySize; }
+    public int getKidsHhTravelPartySize() { return 0; }
 
     public int getNonHhTravelPartySize() {
         return nonHhTravelPartySize;
@@ -133,11 +98,11 @@ public class LongDistanceTrip {
         this.destCombinedZoneId = destinationZoneId;
     }
 
-    public void setMode(int travelMode) {
+    public void setMode(Mode travelMode) {
         this.travelMode = travelMode;
     }
 
-    public int getMode() {
+    public Mode getMode() {
         return travelMode;
     }
 
@@ -224,8 +189,8 @@ public class LongDistanceTrip {
             str = (tr.getTripId()
                     + "," + tr.getTravellerId()
                     + "," + tr.isInternational()
-                    + "," + tripPurposes.get(tr.getTripPurpose())
-                    + "," + tripStates.get(tr.getTripState())
+                    + "," + tr.tripPurpose.toString()
+                    + "," + tr.tripState.toString()
                     + "," + tr.getOrigZone().getId()
                     + "," + tr.getOrigZone().getCombinedZoneId()
                     + "," + tr.getOrigZone().getZoneType()
@@ -255,8 +220,8 @@ public class LongDistanceTrip {
             str =  (tr.getTripId()
                     + "," + tr.getTravellerId()
                     + "," + tr.isInternational()
-                    + "," + tripPurposes.get(tr.getTripPurpose())
-                    + "," + tripStates.get(tr.getTripState())
+                    + "," + tr.tripPurpose.toString()
+                    + "," + tr.tripState.toString()
                     + "," + tr.getOrigZone().getId()
                     + "," + tr.getOrigZone().getCombinedZoneId()
                     + "," + tr.getOrigZone().getZoneType()
@@ -279,10 +244,6 @@ public class LongDistanceTrip {
 
         }
         return str;
-    }
-
-    public boolean isSummer() {
-        return summer;
     }
 
 }

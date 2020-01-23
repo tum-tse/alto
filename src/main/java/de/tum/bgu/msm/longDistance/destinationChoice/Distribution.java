@@ -1,8 +1,7 @@
 package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
@@ -13,9 +12,9 @@ import java.util.ArrayList;
 /**
  * Created by carlloga on 8/2/2017.
  */
-public class DcModel implements ModelComponent {
+public class Distribution implements ModelComponent {
 
-    static Logger logger = Logger.getLogger(DcModel.class);
+    static Logger logger = Logger.getLogger(Distribution.class);
 
     private DomesticDestinationChoice dcModel;
     private IntOutboundDestinationChoice dcOutboundModel;
@@ -38,9 +37,9 @@ public class DcModel implements ModelComponent {
         dataSet.setDcIntInbound(dcInBoundModel);
 
         //load submodels
-        dcModel.loadDomesticDestinationChoice(dataSet);
-        dcInBoundModel.loadIntInboundDestinationChoice(dataSet);
-        dcOutboundModel.loadIntOutboundDestinationChoiceModel(dataSet);
+        dcModel.load(dataSet);
+        dcInBoundModel.load(dataSet);
+        dcOutboundModel.load(dataSet);
 
     }
 
@@ -69,13 +68,13 @@ public class DcModel implements ModelComponent {
 
                 } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS) {
                     // us visitors with destination in CANADA
-                    int destZoneId = dcInBoundModel.selectDestinationFromUs(t);
+                    int destZoneId = dcInBoundModel.selectDestination(t);
                     t.setCombinedDestZoneId(destZoneId);
                     t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                     t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
                 } else {
                     //os visitors to Canada
-                    int destZoneId = dcInBoundModel.selectDestinationFromOs(t);
+                    int destZoneId = dcInBoundModel.selectDestination(t);
                     t.setCombinedDestZoneId(destZoneId);
                     t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                 }

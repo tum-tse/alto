@@ -1,6 +1,11 @@
 package de.tum.bgu.msm.longDistance.data.sp;
 
 
+import de.tum.bgu.msm.longDistance.data.Purpose;
+import de.tum.bgu.msm.longDistance.data.Type;
+
+import java.util.Map;
+
 import static java.lang.Integer.parseInt;
 
 /**
@@ -28,7 +33,7 @@ public class Person {
     private boolean  isDaytrip = false ;
     private boolean  isInOutTrip = false;
 
-    private float[][] travelProbabilities = null;
+    private Map<Purpose, Map<Type, Double>> travelProbabilities = null;
 // rows 1 to 3: away, daytrip, inOutTrip, home
 // columns 1 to 3: visit, business, leisure
 
@@ -131,11 +136,11 @@ public class Person {
         isInOutTrip = inOutTrip;
     }
 
-    public float[][] getTravelProbabilities() {
+    public Map<Purpose, Map<Type, Double>> getTravelProbabilities() {
         return travelProbabilities;
     }
 
-    public void setTravelProbabilities(float[][] travelProbabilities) {
+    public void setTravelProbabilities(Map<Purpose, Map<Type, Double>> travelProbabilities) {
         this.travelProbabilities = travelProbabilities;
     }
 

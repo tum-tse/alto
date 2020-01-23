@@ -3,7 +3,7 @@ package de.tum.bgu.msm.longDistance.zoneSystem;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;

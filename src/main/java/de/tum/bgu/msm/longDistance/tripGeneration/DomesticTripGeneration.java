@@ -5,15 +5,17 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
+import org.apache.commons.math3.stat.descriptive.summary.Sum;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Carlos Llorca on 7/4/2016.
@@ -24,10 +26,7 @@ import java.util.*;
  * works for domestic trips
  */
 
-public class DomesticTripGeneration {
-
-    private List<String> tripPurposes = ZonalData.getTripPurposes();
-    private List<String> tripStates = ZonalData.getTripStates();
+public class DomesticTripGeneration implements TripGenerationModule {
 
     private DataSet dataSet;
 
@@ -42,6 +41,7 @@ public class DomesticTripGeneration {
 
     private float alphaAccess;
     private float betaAccess;
+    private AtomicInteger atomicInteger = new AtomicInteger(0);
 
 
 
@@ -71,7 +71,8 @@ public class DomesticTripGeneration {
     }
 
 
-    public void loadTripGeneration(DataSet dataSet){
+    @Override
+    public void load(DataSet dataSet){
 
         this.dataSet = dataSet;
 
@@ -84,12 +85,13 @@ public class DomesticTripGeneration {
     }
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> runTripGeneration() {
+    @Override
+    public ArrayList<LongDistanceTrip> run() {
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
         //initialize utility vectors
-        double[] expUtilities = new double[4];
-        expUtilities[3] = 1; //base case - or do not travel
+        Map<Type, Double> expUtilities = new HashMap<>();
+        double doNotTravelExpUtility = 1; //base case - or do not travel
 
         //this option may give randomness to the results
         //synPop.getHouseholds().forEach(hhold -> {
@@ -101,40 +103,46 @@ public class DomesticTripGeneration {
 
             for (Person pers : membersList) {
                 //array to store 3 x 3 trip probabilities for later use in international
-                float[][] tgProbabilities = new float[3][3];
+
+                Map<Purpose, Map<Type ,Double>> tgProbabilities = new HashMap<>();
+
                 if (!pers.isAway() && !pers.isDaytrip() && !pers.isInOutTrip() && pers.getAge() > 17) {
 
-                    for (String tripPurpose : tripPurposes) {
+                    for (Purpose tripPurpose : PurposesOntario.values()) {
+                        tgProbabilities.put(tripPurpose, new HashMap<>());
 
-                        for (String tripState : tripStates) {
+                        for (Type tripState : TypesOntario.values()) {
                             //expUtilities[tripStates.indexOf(tripState)] = Math.exp(estimateMlogitUtility(personDescription, tripPurpose, tripState, tripGenerationCoefficients));
-                            expUtilities[tripStates.indexOf(tripState)] = Math.exp(calculateUtility(pers, tripPurpose, tripState));
+                            expUtilities.put(tripState, Math.exp(calculateUtility(pers, tripPurpose.toString(), tripState.toString())));
                         }
 
-                        double denominator = Arrays.stream(expUtilities).sum();
-                        double[] probabilities = Arrays.stream(expUtilities).map(u -> u / denominator).toArray();
+                        double denominator = expUtilities.values().stream().mapToDouble(Double::doubleValue).sum() + doNotTravelExpUtility;
+                        Map<Type, Double> probabilities = new HashMap<>();
+                        expUtilities.forEach((x,y)-> probabilities.put(x,y/denominator));
+
 
                         //store the probability for later int trips
-                        for (String tripState : tripStates) {
-                            tgProbabilities[tripStates.indexOf(tripState)][tripPurposes.indexOf(tripPurpose)] = (float) probabilities[tripStates.indexOf(tripState)];
+                        for (Type tripState : TypesOntario.values()) {
+                            tgProbabilities.get(tripPurpose).put(tripState, probabilities.get(tripState));
                         }
                         //select the trip state
                         double randomNumber1 = LDModel.rand.nextDouble();
                         int tripStateChoice = 3;
+                        Type tripState = null;
 
-                        if (randomNumber1 < probabilities[0]) {
-                            tripStateChoice = 0;
+                        if (randomNumber1 < probabilities.get(TypesOntario.AWAY)) {
+                            tripState = TypesOntario.AWAY;
                             pers.setAway(true);
-                        } else if (randomNumber1 < probabilities[1] + probabilities[0]) {
-                            tripStateChoice = 1;
+                        } else if (randomNumber1 < probabilities.get(TypesOntario.AWAY) + probabilities.get(TypesOntario.DAYTRIP)) {
+                            tripState = TypesOntario.DAYTRIP;
                             pers.setDaytrip(true);
-                        } else if (randomNumber1 < probabilities[2] + probabilities[1] + probabilities[0]) {
-                            tripStateChoice = 2;
+                        } else if (randomNumber1 < probabilities.get(TypesOntario.AWAY) + probabilities.get(TypesOntario.DAYTRIP) + probabilities.get(TypesOntario.INOUT)) {
+                            tripState = TypesOntario.INOUT;
                             pers.setInOutTrip(true);
                         }
 
-                        if (tripStateChoice < 3) {
-                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose, tripStates.get(tripStateChoice), probabilities,  travelPartyProbabilities);
+                        if (tripState != null) {
+                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose, tripState, probabilities,  travelPartyProbabilities);
                             trips.add(trip);
                             //tripCount++;
                         }
@@ -299,24 +307,29 @@ public class DomesticTripGeneration {
     }
 
 
-    private LongDistanceTrip createLongDistanceTrip(Person pers, String tripPurpose, String tripState, double probability[], TableDataSet travelPartyProbabilities) {
+    private LongDistanceTrip createLongDistanceTrip(Person pers, Purpose tripPurpose, Type tripState, Map<Type, Double> probability, TableDataSet travelPartyProbabilities) {
 
-        ArrayList<Person> adultsHhTravelParty = addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
-        ArrayList<Person> kidsHhTravelParty = addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
+        ArrayList<Person> adultsHhTravelParty = addAdultsHhTravelParty(pers, tripPurpose.toString(), travelPartyProbabilities);
+        ArrayList<Person> kidsHhTravelParty = addKidsHhTravelParty(pers, tripPurpose.toString(), travelPartyProbabilities);
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         hhTravelParty.addAll(adultsHhTravelParty);
         hhTravelParty.addAll(kidsHhTravelParty);
-        int nonHhTravelPartySize = addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
+        int nonHhTravelPartySize = addNonHhTravelPartySize(tripPurpose.toString(), travelPartyProbabilities);
         int tripDuration;
         if (pers.isDaytrip()) tripDuration = 0;
         else {
             tripDuration = estimateSimpleTripDuration(tripState);
         }
-        return new LongDistanceTrip(pers, false, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState),
-                pers.getHousehold().getZone(), true, tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
+
+        LongDistanceTrip trip = new LongDistanceTrip(atomicInteger.getAndIncrement(), pers, false, tripPurpose, tripState,
+                pers.getHousehold().getZone(), tripDuration, nonHhTravelPartySize);
+        trip.setHhTravelParty(hhTravelParty);
+
+        return trip;
 
     }
 
+    @Deprecated
     public static int estimateTripDuration(double[] probability) {
         int tripDuration = 1;
         double randomChoice4 = LDModel.rand.nextDouble();
@@ -327,9 +340,8 @@ public class DomesticTripGeneration {
         return tripDuration;
     }
 
-    public static int estimateSimpleTripDuration(String tripState) {
-        int tripDuration = tripState == "daytrip"? 0 : 1;
-
+    public static int estimateSimpleTripDuration(Type tripState) {
+        int tripDuration = tripState.equals(TypesOntario.DAYTRIP) ? 0 : 1;
         return tripDuration;
     }
 

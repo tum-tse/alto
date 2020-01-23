@@ -1,8 +1,8 @@
 package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.JsonUtilMto;
-import de.tum.bgu.msm.Util;
-import de.tum.bgu.msm.longDistance.destinationChoice.DcModel;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.destinationChoice.Distribution;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
@@ -13,7 +13,6 @@ import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 
 /**
@@ -30,7 +29,7 @@ public class Calibration implements ModelComponent {
     private DomesticDestinationChoice dcModel;
     private IntOutboundDestinationChoice dcOutboundModel;
     private IntInboundDestinationChoice dcInBoundModel;
-    private DcModel dcM;
+    private Distribution dcM;
 
     private DomesticModeChoice mcDomesticModel;
     private IntModeChoice intModeChoice;

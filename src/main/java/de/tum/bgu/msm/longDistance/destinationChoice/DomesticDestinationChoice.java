@@ -4,15 +4,14 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.data.Purpose;
+import de.tum.bgu.msm.longDistance.data.PurposesOntario;
+import de.tum.bgu.msm.longDistance.data.TypesOntario;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import omx.OmxFile;
-import omx.OmxLookup;
-import omx.OmxMatrix;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -22,7 +21,7 @@ import java.util.*;
 /**
  * Created by Joe on 26/10/2016.
  */
-public class DomesticDestinationChoice {
+public class DomesticDestinationChoice implements DestinationChoiceModule {
     private ResourceBundle rb;
     private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
     public static final int CHOICE_SET_SIZE = 117;
@@ -34,7 +33,7 @@ public class DomesticDestinationChoice {
     private DomesticModeChoice domesticModeChoice;
     private boolean calibration;
     private double[] domDcCalibrationV;
-    private RandomGenerator rng;
+    private boolean isSummer;
 
     //private String[] fileMatrixLooup = new String[3];
 
@@ -64,6 +63,8 @@ public class DomesticDestinationChoice {
         calibration = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration");
         this.domDcCalibrationV = new double[] {1,1,1};
 
+        isSummer = JsonUtilMto.getBooleanProp(prop, "summer" );
+
 
         logger.info("Domestic DC set up");
         //enum integer distribution does not accept Random but Random Generator
@@ -71,7 +72,7 @@ public class DomesticDestinationChoice {
 
     }
 
-    public void loadDomesticDestinationChoice(DataSet dataSet){
+    public void load(DataSet dataSet){
 
         tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
         this.domesticModeChoice = dataSet.getMcDomestic();
@@ -120,7 +121,7 @@ public class DomesticDestinationChoice {
 //                tripPurpose = "business";
 //                break;
 //        }
-        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
+        Purpose tripPurpose =trip.getTripPurpose();
 
         double[] expUtilities = Arrays.stream(alternatives)
                 //calculate exp(Ui) for each destination
@@ -148,7 +149,7 @@ public class DomesticDestinationChoice {
 
     }
 
-    private double calculateUtility(LongDistanceTrip trip, String tripPurpose, int destination) {
+    private double calculateUtility(LongDistanceTrip trip, Purpose tripPurpose, int destination) {
         // Method to calculate utility of all possible destinations for LongDistanceTrip trip
 
         int origin = trip.getOrigZone().getCombinedZoneId();
@@ -191,31 +192,31 @@ public class DomesticDestinationChoice {
             logsum = Math.log(logsum);
         }
 
-        double dtLogsum = trip.getTripState()==1? logsum: 0;
-        double onLogsum = trip.getTripState()!=1? logsum: 0;
+        double dtLogsum = trip.getTripState().equals(TypesOntario.DAYTRIP)? logsum: 0;
+        double onLogsum = !trip.getTripState().equals(TypesOntario.DAYTRIP)? logsum: 0;
 
         //Coefficients
-        double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose);
+        double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose.toString());
 
 
 
-        double b_calibration_dt = coefficients.getStringIndexedValueAt("b_calibration_dt", tripPurpose);
-        double b_calibration_on = coefficients.getStringIndexedValueAt("b_calibration_on", tripPurpose);
+        double b_calibration_dt = coefficients.getStringIndexedValueAt("b_calibration_dt", tripPurpose.toString());
+        double b_calibration_on = coefficients.getStringIndexedValueAt("b_calibration_on", tripPurpose.toString());
 
 
         if (calibration) {
-            switch (trip.getTripPurpose()) {
-                case 2:
+            switch ((PurposesOntario) trip.getTripPurpose()) {
+                case LEISURE:
                     //tripPurpose = "leisure";
                     b_calibration_dt = domDcCalibrationV[2];
                     b_calibration_on = domDcCalibrationV[2];
                     break;
-                case 0:
+                case VISIT:
                     //tripPurpose = "visit";
                     b_calibration_dt = domDcCalibrationV[0];
                     b_calibration_on = domDcCalibrationV[0];
                     break;
-                case 1:
+                case BUSINESS:
                     //tripPurpose = "business";
                     b_calibration_dt = domDcCalibrationV[1];
                     b_calibration_on = domDcCalibrationV[1];
@@ -223,24 +224,24 @@ public class DomesticDestinationChoice {
             }
         }
 
-        double b_distance_log = coefficients.getStringIndexedValueAt("dist_log", tripPurpose);
+        double b_distance_log = coefficients.getStringIndexedValueAt("dist_log", tripPurpose.toString());
 
-        double b_civic = coefficients.getStringIndexedValueAt("log_civic", tripPurpose);
+        double b_civic = coefficients.getStringIndexedValueAt("log_civic", tripPurpose.toString());
 
-        double b_m_intra = coefficients.getStringIndexedValueAt("intrametro", tripPurpose);
-        double b_mm_inter = coefficients.getStringIndexedValueAt("intermetro", tripPurpose);
-        double b_r_intra = coefficients.getStringIndexedValueAt("intrarural", tripPurpose);
-        double b_niagara = coefficients.getStringIndexedValueAt("niagara", tripPurpose);
+        double b_m_intra = coefficients.getStringIndexedValueAt("intrametro", tripPurpose.toString());
+        double b_mm_inter = coefficients.getStringIndexedValueAt("intermetro", tripPurpose.toString());
+        double b_r_intra = coefficients.getStringIndexedValueAt("intrarural", tripPurpose.toString());
+        double b_niagara = coefficients.getStringIndexedValueAt("niagara", tripPurpose.toString());
 
-        double b_outdoors = coefficients.getStringIndexedValueAt("log_outdoors", tripPurpose);
-        double b_skiing = coefficients.getStringIndexedValueAt("log_skiing", tripPurpose);
+        double b_outdoors = coefficients.getStringIndexedValueAt("log_outdoors", tripPurpose.toString());
+        double b_skiing = coefficients.getStringIndexedValueAt("log_skiing", tripPurpose.toString());
 
-        double b_medical = coefficients.getStringIndexedValueAt("log_medical", tripPurpose);
-        double b_hotel = coefficients.getStringIndexedValueAt("log_hotel", tripPurpose);
-        double b_sightseeing = coefficients.getStringIndexedValueAt("log_sightseeing", tripPurpose);
+        double b_medical = coefficients.getStringIndexedValueAt("log_medical", tripPurpose.toString());
+        double b_hotel = coefficients.getStringIndexedValueAt("log_hotel", tripPurpose.toString());
+        double b_sightseeing = coefficients.getStringIndexedValueAt("log_sightseeing", tripPurpose.toString());
 
-        double b_dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose);
-        double b_onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose);
+        double b_dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose.toString());
+        double b_onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose.toString());
 
 
         //log conversions
@@ -253,6 +254,9 @@ public class DomesticDestinationChoice {
         fs_sightseeing = fs_sightseeing > 0 ? Math.log(fs_sightseeing) : 0;
         fs_hotel = fs_hotel > 0 ? Math.log(fs_hotel) : 0;
 
+
+
+
         double u =
                 //b_distance * Math.exp(-alpha * distance)
                  b_distance_log * log_distance
@@ -263,8 +267,8 @@ public class DomesticDestinationChoice {
                 + b_m_intra * m_intra
                 + b_r_intra * r_intra
                 + b_niagara * fs_niagara
-                + b_outdoors * (trip.isSummer() ? 1 : 0)* fs_outdoors
-                + b_skiing * (!trip.isSummer() ? 1 : 0) *  fs_skiing
+                + b_outdoors * (isSummer ? 1 : 0)* fs_outdoors
+                + b_skiing * (!isSummer ? 1 : 0) *  fs_skiing
                        // + b_outdoors * fs_outdoors
                        // + b_skiing * fs_skiing
                 + b_medical * fs_medical

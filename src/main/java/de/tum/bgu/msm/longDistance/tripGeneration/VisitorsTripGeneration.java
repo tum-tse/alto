@@ -4,7 +4,7 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
 /**
  * Created by carlloga on 8/31/2016.
  */
-public class VisitorsTripGeneration {
+public class VisitorsTripGeneration implements TripGenerationModule {
 
     private TableDataSet visitorPartyProbabilities;
     //private TableDataSet visitorRateCoefficients;
@@ -65,14 +65,14 @@ public class VisitorsTripGeneration {
     }
 
 
-    public void loadVisitorsTripGeneration(DataSet dataSet){
+    public void load(DataSet dataSet){
         this.dataSet  = dataSet;
         externalZoneList = dataSet.getExternalZones();
     }
 
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> runVisitorsTripGeneration() {
+    public ArrayList<LongDistanceTrip> run() {
 
 
         ArrayList<LongDistanceTrip> visitorTrips = new ArrayList<>();

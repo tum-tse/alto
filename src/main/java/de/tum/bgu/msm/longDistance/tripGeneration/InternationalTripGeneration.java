@@ -4,7 +4,7 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.Util;
@@ -18,7 +18,7 @@ import java.util.*;
  * Created by Carlos on 7/19/2016.
  * Based on number of trips and increased later with travel parties.
  */
-public class InternationalTripGeneration {
+public class InternationalTripGeneration implements TripGenerationModule {
 
     static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     static final List<String> tripStates = ZonalData.getTripStates();
@@ -58,7 +58,7 @@ public class InternationalTripGeneration {
     }
 
 
-    public void loadInternationalTripGeneration(DataSet dataSet){
+    public void load(DataSet dataSet){
 
         this.dataSet = dataSet;
         //method to calculate the accessibility to US as a measure of the probability of starting and international trip
@@ -76,7 +76,7 @@ public class InternationalTripGeneration {
     }
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> runInternationalTripGeneration() {
+    public ArrayList<LongDistanceTrip> run() {
 
 
 

@@ -5,9 +5,12 @@ import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.Purpose;
+import de.tum.bgu.msm.longDistance.data.PurposesOntario;
+import de.tum.bgu.msm.longDistance.data.Type;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -20,7 +23,7 @@ import java.util.ResourceBundle;
 /**
  * Created by carlloga on 4/12/2017.
  */
-public class IntInboundDestinationChoice {
+public class IntInboundDestinationChoice implements DestinationChoiceModule {
 
     private ResourceBundle rb;
     private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
@@ -61,7 +64,8 @@ public class IntInboundDestinationChoice {
 
     }
 
-    public void loadIntInboundDestinationChoice(DataSet dataSet){
+    @Override
+    public void load(DataSet dataSet){
 
         tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
         tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
@@ -75,10 +79,21 @@ public class IntInboundDestinationChoice {
     }
 
 
+    @Override
+    public int selectDestination(LongDistanceTrip trip){
+        if(trip.getOrigZone().getZoneType().equals(ZoneType.EXTUS)){
+            return selectDestinationFromUs(trip);
+        } else {
+            return selectDestinationFromOs(trip);
+        }
+    }
 
-    public int selectDestinationFromUs(LongDistanceTrip trip) {
 
-        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
+    private int selectDestinationFromUs(LongDistanceTrip trip) {
+
+
+
+        Purpose tripPurpose = trip.getTripPurpose();
 
         double[] expUtilities = Arrays.stream(alternatives).mapToDouble(a -> Math.exp(calculateCanZoneUtilityFromUs(trip, tripPurpose, a))).toArray();
 
@@ -91,7 +106,7 @@ public class IntInboundDestinationChoice {
     }
 
 
-    public int selectDestinationFromOs(LongDistanceTrip trip) {
+    private int selectDestinationFromOs(LongDistanceTrip trip) {
 
         //String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
 
@@ -126,40 +141,40 @@ public class IntInboundDestinationChoice {
     }
 
 
-    public double calculateCanZoneUtilityFromUs(LongDistanceTrip trip, String tripPurpose, int destination) {
+    public double calculateCanZoneUtilityFromUs(LongDistanceTrip trip, Purpose tripPurpose, int destination) {
 
 //read coefficients
-        String tripState = tripStateArray[trip.getTripState()];
+        Type tripState = trip.getTripState();
 
-        double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose);
-        double b_dist = coefficients.getStringIndexedValueAt("b_dist", tripPurpose);
-        double alpha_dist = coefficients.getStringIndexedValueAt("alpha_dist", tripPurpose);
-        double b_dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose);
-        double b_onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose);
-        double b_civic = coefficients.getStringIndexedValueAt("civic", tripPurpose);
-        double b_log_civic = coefficients.getStringIndexedValueAt("log_civic", tripPurpose);
-        double b_skiing = coefficients.getStringIndexedValueAt("skiing", tripPurpose);
-        double b_altIsMetro = coefficients.getStringIndexedValueAt("altIsMetro", tripPurpose);
-        double b_hotel = coefficients.getStringIndexedValueAt("hotel", tripPurpose);
-        double b_log_hotel = coefficients.getStringIndexedValueAt("log_hotel", tripPurpose);
-        double b_niagara = coefficients.getStringIndexedValueAt("niagara", tripPurpose);
+        double b_population = coefficients.getStringIndexedValueAt("population", tripPurpose.toString());
+        double b_dist = coefficients.getStringIndexedValueAt("b_dist", tripPurpose.toString());
+        double alpha_dist = coefficients.getStringIndexedValueAt("alpha_dist", tripPurpose.toString());
+        double b_dtLogsum = coefficients.getStringIndexedValueAt("dtLogsum", tripPurpose.toString());
+        double b_onLogsum = coefficients.getStringIndexedValueAt("onLogsum", tripPurpose.toString());
+        double b_civic = coefficients.getStringIndexedValueAt("civic", tripPurpose.toString());
+        double b_log_civic = coefficients.getStringIndexedValueAt("log_civic", tripPurpose.toString());
+        double b_skiing = coefficients.getStringIndexedValueAt("skiing", tripPurpose.toString());
+        double b_altIsMetro = coefficients.getStringIndexedValueAt("altIsMetro", tripPurpose.toString());
+        double b_hotel = coefficients.getStringIndexedValueAt("hotel", tripPurpose.toString());
+        double b_log_hotel = coefficients.getStringIndexedValueAt("log_hotel", tripPurpose.toString());
+        double b_niagara = coefficients.getStringIndexedValueAt("niagara", tripPurpose.toString());
 
-        double k_dtLogsum = coefficients.getStringIndexedValueAt("k_dtLogsum", tripPurpose);
-        double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose);
+        double k_dtLogsum = coefficients.getStringIndexedValueAt("k_dtLogsum", tripPurpose.toString());
+        double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose.toString());
 
         if (calibration) {
-            switch (trip.getTripPurpose()) {
-                case 2:
+            switch ((PurposesOntario) trip.getTripPurpose()) {
+                case LEISURE:
                     //tripPurpose = "leisure";
                     k_dtLogsum = calibrationV[2];
                     k_onLogsum = k_dtLogsum;
                     break;
-                case 0:
+                case VISIT:
                     //tripPurpose = "visit";
                     k_dtLogsum = calibrationV[0];
                     k_onLogsum = k_dtLogsum;
                     break;
-                case 1:
+                case BUSINESS:
                     //tripPurpose = "business";
                     k_dtLogsum = calibrationV[1];
                     k_onLogsum = k_dtLogsum;

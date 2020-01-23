@@ -1,7 +1,8 @@
 package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.matrix.Matrix;
-import de.tum.bgu.msm.longDistance.destinationChoice.DcModel;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.destinationChoice.Distribution;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
@@ -44,7 +45,7 @@ public class DataSet {
 
     //MODELS
     //todo probably the data to be interchanged between models should be here instead
-    private DcModel destinationChoiceModel;
+    private Distribution destinationChoiceModel;
     private DomesticDestinationChoice dcDomestic;
     private IntOutboundDestinationChoice dcIntOutbound;
     private IntInboundDestinationChoice dcIntInbound;
@@ -168,11 +169,11 @@ public class DataSet {
         this.allTrips = allTrips;
     }
 
-    public DcModel getDestinationChoiceModel() {
+    public Distribution getDestinationChoiceModel() {
         return destinationChoiceModel;
     }
 
-    public void setDestinationChoiceModel(DcModel destinationChoiceModel) {
+    public void setDestinationChoiceModel(Distribution destinationChoiceModel) {
         this.destinationChoiceModel = destinationChoiceModel;
     }
 

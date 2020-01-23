@@ -1,7 +1,7 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.data.sp.SyntheticPopulation;
 import org.apache.log4j.Logger;
@@ -15,20 +15,20 @@ import java.util.ResourceBundle;
 /**
  * Created by Joe on 28/10/2016.
  */
-public class TripGenerationModel implements ModelComponent {
+public class Generation implements ModelComponent {
     private ResourceBundle rb;
     private JSONObject prop;
     private DataSet dataSet;
-    static Logger logger = Logger.getLogger(TripGenerationModel.class);
+    static Logger logger = Logger.getLogger(Generation.class);
     private SyntheticPopulation synPop;
 
     //trip gen models
-    private DomesticTripGeneration domesticTripGeneration;
-    private InternationalTripGeneration internationalTripGeneration;
-    private VisitorsTripGeneration visitorsTripGeneration;
+    private TripGenerationModule domesticTripGeneration;
+    private TripGenerationModule internationalTripGeneration;
+    private TripGenerationModule visitorsTripGeneration;
     //private ExtCanToIntTripGeneration extCanToIntTripGeneration;
 
-    public TripGenerationModel() {
+    public Generation() {
     }
 
 
@@ -49,17 +49,15 @@ public class TripGenerationModel implements ModelComponent {
     public void load(DataSet dataSet){
         this.dataSet = dataSet;
 
-        domesticTripGeneration.loadTripGeneration(dataSet);
-        internationalTripGeneration.loadInternationalTripGeneration(dataSet);
-        visitorsTripGeneration.loadVisitorsTripGeneration(dataSet);
+        domesticTripGeneration.load(dataSet);
+        internationalTripGeneration.load(dataSet);
+        visitorsTripGeneration.load(dataSet);
 
         logger.info("Trip generation loaded");
     }
 
     public void run(DataSet dataSet, int nThreads){
-
         dataSet.setAllTrips(generateTrips());
-
     }
 
 
@@ -73,15 +71,15 @@ public class TripGenerationModel implements ModelComponent {
         ArrayList<LongDistanceTrip> trips_visitors; //trips from non-Ontario to all Canada, and trips from other country to Canada
 
         //generate domestic trips
-        trips_dom_ontarian = domesticTripGeneration.runTripGeneration();
+        trips_dom_ontarian = domesticTripGeneration.run();
         logger.info("  " + trips_dom_ontarian.size() + " domestic trips from Ontario generated");
 
         //generate international trips (must be done after domestic)
-        trips_int_ontarian = internationalTripGeneration.runInternationalTripGeneration();
+        trips_int_ontarian = internationalTripGeneration.run();
         logger.info("  " + trips_int_ontarian.size() + " international trips from Ontario generated");
 
         //generate visitors
-        trips_visitors = visitorsTripGeneration.runVisitorsTripGeneration();
+        trips_visitors = visitorsTripGeneration.run();
         //logger.info("  Visitor trips to Canada generated");
 
         //trips_int_canadian = extCanToIntTripGeneration.runExtCanInternationalTripGeneration(zonalData.getExternalZoneList());
