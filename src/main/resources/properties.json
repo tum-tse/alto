@@ -5,7 +5,8 @@
     "winter": false,
     "synthetic_population": {
       "households_file": "sp/Final_Households_TRESO_2.csv",
-      "persons_file": "sp/Final_Persons_TRESO.csv"
+      "persons_file": "sp/Final_Persons_TRESO.csv",
+      "scale_factor": 0.01
     },
     "run": {
       "random_seed": 27011986,
