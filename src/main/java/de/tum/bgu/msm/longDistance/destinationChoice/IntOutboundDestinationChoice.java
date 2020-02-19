@@ -14,8 +14,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.*;
@@ -26,7 +25,7 @@ import java.util.*;
 public class IntOutboundDestinationChoice implements DestinationChoiceModule {
 
     private ResourceBundle rb;
-    private static Logger logger = LogManager.getLogger(DomesticDestinationChoice.class);
+    private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
     private TableDataSet destCombinedZones;
     private TableDataSet coefficients;
     private Matrix autoTravelTime;

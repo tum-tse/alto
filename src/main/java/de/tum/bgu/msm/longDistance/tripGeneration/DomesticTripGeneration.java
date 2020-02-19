@@ -14,8 +14,7 @@ import org.json.simple.JSONObject;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 /**
  * Created by Carlos Llorca on 7/4/2016.
@@ -30,7 +29,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
 
     private DataSet dataSet;
 
-    static Logger logger = LogManager.getLogger(DomesticTripGeneration.class);
+    static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
     private ResourceBundle rb;
     private JSONObject prop;
 
@@ -45,20 +44,20 @@ public class DomesticTripGeneration implements TripGenerationModule {
 
 
 
-    public DomesticTripGeneration(JSONObject prop) {
+    public DomesticTripGeneration(JSONObject prop, String inputFolder, String outputFolder) {
         this.rb = rb;
         this.prop = prop;
 
         //this.synPop = synPop;
 
         //String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
-        tripGenerationCoefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.domestic.coef_file"));
+        tripGenerationCoefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"trip_generation.domestic.coef_file"));
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
         tripGenerationCoefficients.buildStringIndex(tripGenerationCoefficients.getColumnPosition("factorName"));
 
         //String travelPartyProbabilitiesFilename = rb.getString("domestic.parties");
 
-        travelPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.domestic.party_file"));
+        travelPartyProbabilities = Util.readCSVfile(inputFolder +JsonUtilMto.getStringProp(prop,"trip_generation.domestic.party_file"));
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
 
@@ -162,7 +161,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
 
         double accessibility = pers.getHousehold().getZone().getAccessibility();
 
-        int winter = JsonUtilMto.getBooleanProp(prop, "winter" )? 1:0;
+        int winter = JsonUtilMto.getBooleanProp(prop, "summer" )? 0:1;
 
 
 

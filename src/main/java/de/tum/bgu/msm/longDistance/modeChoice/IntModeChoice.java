@@ -12,15 +12,14 @@ import org.json.simple.JSONObject;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 /**
  * Created by carlloga on 4/26/2017.
  */
 public class IntModeChoice {
 
-    private static Logger logger = LogManager.getLogger(IntModeChoice.class);
+    private static Logger logger = Logger.getLogger(IntModeChoice.class);
 
     private DataSet dataSet;
 

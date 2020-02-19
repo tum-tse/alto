@@ -5,6 +5,7 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.data.*;
+import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
@@ -14,8 +15,7 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 /**
  * Created by carlloga on 8/31/2016.
@@ -31,28 +31,28 @@ public class VisitorsTripGeneration implements TripGenerationModule {
     private DataSet dataSet;
     private ArrayList<Zone> externalZoneList;
 
-    static Logger logger = LogManager.getLogger(VisitorsTripGeneration.class);
+    static Logger logger = Logger.getLogger(VisitorsTripGeneration.class);
     private AtomicInteger atomicInteger;
     private AtomicInteger atomicIntegerVisitors;
 
     private JSONObject prop;
 
-    public VisitorsTripGeneration(JSONObject prop) {
+    public VisitorsTripGeneration(JSONObject prop, String inputFolder, String outputFolder) {
 
         this.prop = prop;
 
         //this.rb = rb;
 
         //String visitorPartyProbabilitiesFilename = rb.getString("visitor.parties");
-        visitorPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.visitors.party_file"));
+        visitorPartyProbabilities = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"trip_generation.visitors.party_file"));
         visitorPartyProbabilities.buildIndex(visitorPartyProbabilities.getColumnPosition("travelParty"));
 
         //String visitorsRatePerZoneFilename = rb.getString("visitor.zone.rates");
-        visitorsRatePerZone = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.visitors.rates_file"));
+        visitorsRatePerZone = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"trip_generation.visitors.rates_file"));
         visitorsRatePerZone.buildIndex(visitorsRatePerZone.getColumnPosition("zone"));
 
         //String externalCanIntRatesName = rb.getString("ext.can.int.zone.rates");
-        externalCanIntRates = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.visitors.external_can_int_rates_file"));
+        externalCanIntRates = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"trip_generation.visitors.external_can_int_rates_file"));
         externalCanIntRates.buildIndex(externalCanIntRates.getColumnPosition("zone"));
 
 
@@ -146,12 +146,13 @@ public class VisitorsTripGeneration implements TripGenerationModule {
 
         int duration = tripState.equals("daytrip")? 0:1;
 
-        Person visitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, null );
+        Household visitorsHh = new Household(atomicIntegerVisitors.get(), 0, 0, 0, null);
+        Person visitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
 
         LongDistanceTrip trip = new LongDistanceTrip(atomicInteger.get(),visitor, international, tripPurpose, tripState, zone, duration, nonHh);
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         for (int v = 0; v < adultsHh + kidsHh - 1; v++){
-            Person newVisitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, null );
+            Person newVisitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
             hhTravelParty.add(newVisitor);
         }
         trip.setHhTravelParty(hhTravelParty);
@@ -188,11 +189,12 @@ public class VisitorsTripGeneration implements TripGenerationModule {
 
         int duration = tripState.equals("daytrip")? 0:1;
 
-        Person visitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, null );
+        Household visitorsHh = new Household(atomicIntegerVisitors.get(), 0, 0, 0, null);
+        Person visitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
         LongDistanceTrip trip = new LongDistanceTrip(atomicInteger.get(),visitor, true, tripPurpose, tripState, zone, duration, nonHh);
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         for (int v = 0; v < adultsHh + kidsHh - 1; v++){
-            Person newVisitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, null );
+            Person newVisitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
             hhTravelParty.add(newVisitor);
         }
         trip.setHhTravelParty(hhTravelParty);

@@ -15,12 +15,11 @@ import org.json.simple.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 public class TimeOfDayChoice implements ModelComponent {
 
-    private static Logger logger = LogManager.getLogger(TimeOfDayChoice.class);
+    private static Logger logger = Logger.getLogger(TimeOfDayChoice.class);
     private int[] departureTimesInHours; //float to use fractions of hour if needed
     private double[] correctionFactorDayTripOutbound;
     private double[] correctionFactorDayTripInbound;

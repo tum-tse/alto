@@ -15,8 +15,7 @@ import omx.hdf5.OmxConstants;
 
 import org.json.simple.JSONObject;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,10 +29,13 @@ import java.util.stream.Collectors;
  */
 
 public class ZonalData implements ModelComponent {
-    private static Logger logger = LogManager.getLogger(ZonalData.class);
+    private static Logger logger = Logger.getLogger(ZonalData.class);
     private JSONObject prop;
 
     private DataSet dataSet;
+    private String inputFolder;
+    private String outputFolder;
+
 
     private Map<Integer, Zone> zoneLookup;
 
@@ -54,39 +56,38 @@ public class ZonalData implements ModelComponent {
     public ZonalData() {
     }
 
-    public void setup(JSONObject prop, String inputFolder, String outputFolder){
-
+    public void setup(JSONObject prop, String inputFolder, String outputFolder) {
+        this.inputFolder = inputFolder;
+        this.outputFolder = outputFolder;
         this.prop = prop;
         //autoFileMatrixLookup = new String[]{rb.getString("auto.skim.file"), rb.getString("auto.skim.matrix"), rb.getString("auto.skim.lookup")};
         //distanceFileMatrixLookup = new String[]{rb.getString("dist.skim.file"), rb.getString("dist.skim.matrix"), rb.getString("dist.skim.lookup")};
-
-        autoFileMatrixLookup = new String[]{JsonUtilMto.getStringProp(prop,"zone_system.skim.time.file"),
+        autoFileMatrixLookup = new String[]{inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.skim.time.file"),
                 JsonUtilMto.getStringProp(prop, "zone_system.skim.time.matrix"),
-                JsonUtilMto.getStringProp(prop,"zone_system.skim.time.lookup")};
-        distanceFileMatrixLookup = new String[]{JsonUtilMto.getStringProp(prop,"zone_system.skim.distance.file"),
-                JsonUtilMto.getStringProp(prop,"zone_system.skim.distance.matrix"),
-                JsonUtilMto.getStringProp(prop,"zone_system.skim.distance.lookup")};
+                JsonUtilMto.getStringProp(prop, "zone_system.skim.time.lookup")};
+        distanceFileMatrixLookup = new String[]{inputFolder +  JsonUtilMto.getStringProp(prop, "zone_system.skim.distance.file"),
+                JsonUtilMto.getStringProp(prop, "zone_system.skim.distance.matrix"),
+                JsonUtilMto.getStringProp(prop, "zone_system.skim.distance.lookup")};
 
         //externalCanadaTable = Util.readCSVfile(rb.getString("ext.can.file"));
-        externalCanadaTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone_system.external.canada_file"));
-        externalCanadaTable.buildIndex(externalCanadaTable.getColumnPosition("ID"));
+        externalCanadaTable = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.external.canada_file"));
+        externalCanadaTable.buildIndex(externalCanadaTable.getColumnPosition("treso_zone"));
 
         //externalUsTable = Util.readCSVfile(rb.getString("ext.us.file"));
-        externalUsTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone_system.external.us_file"));
-        externalUsTable.buildIndex(externalUsTable.getColumnPosition("ID"));
+        externalUsTable = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.external.us_file"));
+        externalUsTable.buildIndex(externalUsTable.getColumnPosition("treso_zone"));
 
         //externalOverseasTable = Util.readCSVfile(rb.getString("ext.os.file"));
-        externalOverseasTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone_system.external.overseas_file"));
-        externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("ID"));
+        externalOverseasTable = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.external.overseas_file"));
+        externalOverseasTable.buildIndex(externalOverseasTable.getColumnPosition("treso_zone"));
 
         //zoneTable = Util.readCSVfile(rb.getString("int.can"));
-        zoneTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone_system.internal_file"));
+        zoneTable = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.internal_file"));
         zoneTable.buildIndex(1);
 
         scaleFactor = JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
 
         logger.info("Zonal data manager set up");
-
 
 
     }
@@ -109,13 +110,13 @@ public class ZonalData implements ModelComponent {
         //convert the arraylist of zones into a map of zones accessible by id:
         this.zoneLookup = zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x));
 
-        readSkims();
+        readSkims(inputFolder);
 
-        readSkimByMode(dataSet, prop);
+        readSkimByMode(dataSet, prop, inputFolder);
         logger.info("Zonal data loaded");
     }
 
-    public void run(DataSet dataSet, int nThreads){
+    public void run(DataSet dataSet, int nThreads) {
 
     }
 
@@ -127,7 +128,7 @@ public class ZonalData implements ModelComponent {
         return tripStates;
     }
 
-    public void readSkims() {
+    public void readSkims(String inputFolder) {
         Matrix autoTravelTime = convertSkimToMatrix(autoFileMatrixLookup);
         //dataSet.setAutoTravelTime(autoTravelTime);
         dataSet.setAutoTravelTime(assignIntrazonalValues(autoTravelTime));
@@ -158,7 +159,7 @@ public class ZonalData implements ModelComponent {
 
     public void convertMatrixToSkim(String[] fileMatrixLookupName, Matrix matrix) {
 
-        String fileName = "output/" +  fileMatrixLookupName[0];
+        String fileName = "output/" + fileMatrixLookupName[0];
 
         try (OmxFile omxFile = new OmxFile(fileName)) {
 
@@ -166,18 +167,18 @@ public class ZonalData implements ModelComponent {
 
             int dim1 = dim0;
 
-            int[] shape = {dim0,dim1};
+            int[] shape = {dim0, dim1};
             float mat1NA = -1;
 
-            OmxMatrix.OmxFloatMatrix mat1 = new OmxMatrix.OmxFloatMatrix(fileMatrixLookupName[1], matrix.getValues(),mat1NA);
-            mat1.setAttribute(OmxConstants.OmxNames.OMX_DATASET_TITLE_KEY.getKey(),"values");
+            OmxMatrix.OmxFloatMatrix mat1 = new OmxMatrix.OmxFloatMatrix(fileMatrixLookupName[1], matrix.getValues(), mat1NA);
+            mat1.setAttribute(OmxConstants.OmxNames.OMX_DATASET_TITLE_KEY.getKey(), "values");
 
             int lookup1NA = -1;
             int[] lookup1Data;
 
             lookup1Data = matrix.getExternalRowNumbersZeroBased();
 
-            OmxLookup.OmxIntLookup lookup1 = new OmxLookup.OmxIntLookup(fileMatrixLookupName[2],lookup1Data,lookup1NA);
+            OmxLookup.OmxIntLookup lookup1 = new OmxLookup.OmxIntLookup(fileMatrixLookupName[2], lookup1Data, lookup1NA);
 
             omxFile.openNew(shape);
             omxFile.addMatrix(mat1);
@@ -194,17 +195,16 @@ public class ZonalData implements ModelComponent {
     }
 
 
-
     public ArrayList<Zone> readInternalZones() {
         //create zones objects (empty) and a map to find them in hh zone assignment
 
         int[] zones;
         ArrayList<Zone> internalZoneList = new ArrayList<>();
 
-        zones = zoneTable.getColumnAsInt("ID");
+        zones = zoneTable.getColumnAsInt("treso_zone");
         for (int zone : zones) {
-            int combinedZone = (int) zoneTable.getIndexedValueAt(zone, "CombinedZone");
-            int employment = (int) zoneTable.getIndexedValueAt(zone, "Employment");
+            int combinedZone = (int) zoneTable.getIndexedValueAt(zone, "ldpm_zone");
+            int employment = (int) zoneTable.getIndexedValueAt(zone, "employment");
             //zones are created as empty as they are filled out using sp
             Zone internalZone = new Zone(zone, 0, employment, ZoneType.ONTARIO, combinedZone);
             internalZoneList.add(internalZone);
@@ -224,37 +224,37 @@ public class ZonalData implements ModelComponent {
 
         //read the external zones from files
 
-        externalZonesCanada = externalCanadaTable.getColumnAsInt("ID");
+        externalZonesCanada = externalCanadaTable.getColumnAsInt("treso_zone");
         for (int externalZone : externalZonesCanada) {
-            int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
-            int population = (int) (externalCanadaTable.getIndexedValueAt(externalZone, "Population") * scaleFactor);
-            int employment = (int) (externalCanadaTable.getIndexedValueAt(externalZone, "Employment") * scaleFactor);
+            int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "ldpm_zone");
+            int population = (int) (externalCanadaTable.getIndexedValueAt(externalZone, "population") * scaleFactor);
+            int employment = (int) (externalCanadaTable.getIndexedValueAt(externalZone, "employment") * scaleFactor);
             Zone zone = new Zone(externalZone, population,
                     employment, ZoneType.EXTCANADA, combinedZone);
             externalZonesArray.add(zone);
         }
 
 
-        externalZonesUs = externalUsTable.getColumnAsInt("ID");
+        externalZonesUs = externalUsTable.getColumnAsInt("treso_zone");
         for (int externalZone : externalZonesUs) {
             //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
-            int population = (int) (externalUsTable.getIndexedValueAt(externalZone, "Population") * scaleFactor);
-            int employment = (int) (externalUsTable.getIndexedValueAt(externalZone, "Employment") * scaleFactor);
+            int population = (int) (externalUsTable.getIndexedValueAt(externalZone, "population") * scaleFactor);
+            int employment = (int) (externalUsTable.getIndexedValueAt(externalZone, "employment") * scaleFactor);
             Zone zone = new Zone(externalZone, population,
-                    employment, ZoneType.EXTUS, (int) externalUsTable.getIndexedValueAt(externalZone, "CombinedZone"));
+                    employment, ZoneType.EXTUS, (int) externalUsTable.getIndexedValueAt(externalZone, "ldpm_zone"));
 
             externalZonesArray.add(zone);
         }
 
 
-        externalZonesOverseas = externalOverseasTable.getColumnAsInt("ID");
+        externalZonesOverseas = externalOverseasTable.getColumnAsInt("treso_zone");
         for (int externalZone : externalZonesOverseas) {
             //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
-            long staticAttraction = (long) externalOverseasTable.getIndexedValueAt(externalZone, "staticAttraction");
-            int population = (int) (externalOverseasTable.getIndexedValueAt(externalZone, "Population") * scaleFactor);
-            int employment = (int) (externalOverseasTable.getIndexedValueAt(externalZone, "Employment") * scaleFactor);
+            long staticAttraction = (long) externalOverseasTable.getIndexedValueAt(externalZone, "static_attraction");
+            int population = (int) (externalOverseasTable.getIndexedValueAt(externalZone, "population") * scaleFactor);
+            int employment = (int) (externalOverseasTable.getIndexedValueAt(externalZone, "employment") * scaleFactor);
             Zone zone = new Zone(externalZone, population,
-                    employment, ZoneType.EXTOVERSEAS, (int) externalOverseasTable.getIndexedValueAt(externalZone, "CombinedZone"));
+                    employment, ZoneType.EXTOVERSEAS, (int) externalOverseasTable.getIndexedValueAt(externalZone, "ldpm_zone"));
             zone.setStaticAttraction(staticAttraction);
             externalZonesArray.add(zone);
         }
@@ -262,22 +262,22 @@ public class ZonalData implements ModelComponent {
         return externalZonesArray;
     }
 
-    public Matrix assignIntrazonalValues(Matrix matrix){
-        for (int i : matrix.getExternalRowNumbers()){
+    public Matrix assignIntrazonalValues(Matrix matrix) {
+        for (int i : matrix.getExternalRowNumbers()) {
             float minDistance = 999;
-            for (int j : matrix.getExternalRowNumbers()){
-                if (i != j && minDistance > matrix.getValueAt(i,j) && matrix.getValueAt(i,j)!=0){
-                    minDistance = matrix.getValueAt(i,j);
+            for (int j : matrix.getExternalRowNumbers()) {
+                if (i != j && minDistance > matrix.getValueAt(i, j) && matrix.getValueAt(i, j) != 0) {
+                    minDistance = matrix.getValueAt(i, j);
                 }
             }
-            matrix.setValueAt(i,i,minDistance/2);
+            matrix.setValueAt(i, i, minDistance / 2);
         }
         logger.info("Calculated intrazonal values - nearest neighbour");
         return matrix;
     }
 
 
-    private void readSkimByMode(DataSet dataSet, JSONObject prop ) {
+    private void readSkimByMode(DataSet dataSet, JSONObject prop, String inputFolder) {
 
         Map<Mode, Matrix> travelTimeMatrix = new HashMap<>();
         Map<Mode, Matrix> priceMatrix = new HashMap<>();
@@ -285,10 +285,10 @@ public class ZonalData implements ModelComponent {
         Map<Mode, Matrix> frequencyMatrix = new HashMap<>();
 
 
-        String travelTimeFileName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file");
-        String priceFileName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.price_file");
-        String transfersFileName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.transfer_file");
-        String freqFileName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.frequency_file");
+        String travelTimeFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file");
+        String priceFileName =  inputFolder +  JsonUtilMto.getStringProp(prop, "mode_choice.skim.price_file");
+        String transfersFileName =  inputFolder +  JsonUtilMto.getStringProp(prop, "mode_choice.skim.transfer_file");
+        String freqFileName =  inputFolder +  JsonUtilMto.getStringProp(prop, "mode_choice.skim.frequency_file");
         String lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
 
         // read skim file

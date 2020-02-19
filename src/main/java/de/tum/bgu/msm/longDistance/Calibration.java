@@ -8,8 +8,7 @@ import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -36,7 +35,7 @@ public class Calibration implements ModelComponent {
     private IntModeChoice intModeChoice;
     private McModel mcM;
 
-    static Logger logger = LogManager.getLogger(Calibration.class);
+    static Logger logger = Logger.getLogger(Calibration.class);
 
     private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
 

@@ -13,14 +13,13 @@ import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.json.simple.JSONObject;
 
 import java.util.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 /**
  * Created by Joe on 26/10/2016.
  */
 public class DomesticDestinationChoice implements DestinationChoiceModule {
     private ResourceBundle rb;
-    private static Logger logger = LogManager.getLogger(DomesticDestinationChoice.class);
+    private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
     public static final int CHOICE_SET_SIZE = 117;
     private TableDataSet combinedZones;
     private TableDataSet coefficients;

@@ -10,8 +10,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 
 import org.json.simple.JSONObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import java.util.*;
 
 import java.util.ResourceBundle;
@@ -20,7 +19,7 @@ import java.util.ResourceBundle;
  * Created by carlloga on 15.03.2017.
  */
 public class DomesticModeChoice {
-    private static Logger logger = LogManager.getLogger(DomesticDestinationChoice.class);
+    private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
 
     ResourceBundle rb;
 

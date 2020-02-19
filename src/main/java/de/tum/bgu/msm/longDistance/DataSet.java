@@ -13,8 +13,7 @@ import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 
 import java.util.*;
@@ -24,8 +23,7 @@ import java.util.*;
  */
 public class DataSet {
 
-    private static Logger logger = LogManager.getLogger(DataSet.class);
-
+    private static Logger logger = Logger.getLogger(DataSet.class);
 
 
     //ZONAL DATA
@@ -81,7 +79,7 @@ public class DataSet {
     private Map<Integer, Household> households = new HashMap<>();
 
     //TRIPS
-    private ArrayList<LongDistanceTrip> allTrips;
+    private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
 
     //MODELS
     //todo probably the data to be interchanged between models should be here instead

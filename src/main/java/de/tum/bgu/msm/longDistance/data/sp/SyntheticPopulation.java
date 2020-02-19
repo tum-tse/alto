@@ -8,8 +8,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.Util;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 
@@ -31,7 +30,7 @@ import java.util.*;
 
 public class SyntheticPopulation implements ModelComponent {
 
-    private static Logger logger = LogManager.getLogger(SyntheticPopulation.class);
+    private static Logger logger = Logger.getLogger(SyntheticPopulation.class);
     private ResourceBundle rb;
     private JSONObject prop;
 
@@ -56,9 +55,10 @@ public class SyntheticPopulation implements ModelComponent {
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
         this.prop = prop;
-        hhFilename = JsonUtilMto.getStringProp(prop, "synthetic_population.households_file");
-        ppFilename = JsonUtilMto.getStringProp(prop, "synthetic_population.persons_file");
-        travellersFilename = JsonUtilMto.getStringProp(prop, "output.travellers_file");
+        hhFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.households_file");
+        ppFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.persons_file");
+        travellersFilename = outputFolder +  JsonUtilMto.getStringProp(prop, "output.travellers_file");
+        scaleFactor =  JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
 
         logger.info("Synthetic population reader set up");
 
@@ -142,9 +142,8 @@ public class SyntheticPopulation implements ModelComponent {
 
                 Zone zone = zoneLookup.get(taz);
 
-                Household hh = new Household(id, hhInc, ddType, taz, zone);
-
                 if (LDModel.rand.nextDouble() < scaleFactor) {
+                    Household hh = new Household(id, hhInc, ddType, taz, zone);
                     householdMap.put(id, hh);
                 }
 
@@ -208,6 +207,7 @@ public class SyntheticPopulation implements ModelComponent {
             logger.fatal("recCount = " + recCount + ", recString = <" + recString + ">");
         }
         logger.info("  Finished reading " + recCount + " persons.");
+        logger.info("  The popualtion has " + personMap.size() + " persons in " + householdMap.size() + " households");
 
     }
 

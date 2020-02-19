@@ -18,15 +18,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 /**
  * Created by carlloga on 4/12/2017.
  */
 public class IntInboundDestinationChoice implements DestinationChoiceModule {
 
     private ResourceBundle rb;
-    private static Logger logger = LogManager.getLogger(DomesticDestinationChoice.class);
+    private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
     private TableDataSet destCombinedZones;
     private TableDataSet coefficients;
     private Matrix autoTravelTime;
