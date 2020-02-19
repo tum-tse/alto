@@ -25,7 +25,6 @@ public class InternationalTripGeneration implements TripGenerationModule {
     //private ResourceBundle rb;
     private JSONObject prop;
     private Map<Purpose, Map<Type, Double>> sumProbabilities;
-    private int[] personIds;
     private Map<Purpose, Map<Type, Map<Integer, Double>>> probabilityMatrix;
     //private SyntheticPopulation synPop;
     private TableDataSet travelPartyProbabilities;
@@ -93,7 +92,6 @@ public class InternationalTripGeneration implements TripGenerationModule {
                 probabilityMatrix.get(purpose).put(type, new HashMap<>());
             }
         }
-        personIds = new int[dataSet.getPersons().size()];
 
         //normalize p(travel) per purpose/state by sum of the probability for each person
         sumProbs();
@@ -103,7 +101,7 @@ public class InternationalTripGeneration implements TripGenerationModule {
             for (TypeOntario tripState : TypeOntario.values()) {
                 int tripCount = 0;
                 //get the total number of trips to generate
-                int numberOfTrips = (int)(internationalTripRates.getIndexedValueAt(TypeOntario.getIndex(tripState), tripPurpose.toString().toLowerCase())*personIds.length);
+                int numberOfTrips = (int)(internationalTripRates.getIndexedValueAt(TypeOntario.getIndex(tripState), tripPurpose.toString().toLowerCase())*probabilityMatrix.get(tripPurpose).get(tripState).size());
                 //select the travellers - repeat more than once because the two random numbers can be in the interval of 1 person
                 for (int iteration = 0; iteration < 5; iteration++){
                     int n = numberOfTrips - tripCount;
@@ -120,7 +118,7 @@ public class InternationalTripGeneration implements TripGenerationModule {
                     double cumulative = next.getValue();
 
                     for (double randomNumber : randomChoice){
-                        while (randomNumber > cumulative && p < personIds.length - 1) {
+                        while (randomNumber > cumulative && p < probabilityMatrix.get(tripPurpose).get(tripState).size() - 1) {
                             p++;
                             next = iterator.next();
                             cumulative += next.getValue();
@@ -142,6 +140,9 @@ public class InternationalTripGeneration implements TripGenerationModule {
                 //logger.info(tripCount + " international trips generated in Ontario, with purpose " + tripPurpose + " and state " + tripState);
             }
         }
+
+        probabilityMatrix.clear();
+        sumProbabilities.clear();
         return trips;
     }
 
@@ -176,6 +177,10 @@ public class InternationalTripGeneration implements TripGenerationModule {
                 nonHhTravelPartySize);
         trip.setHhTravelParty(hhTravelParty);
 
+        if ( Util.isPowerOfFour(atomicInteger.get())){
+            logger.info("Domestic trips: " + atomicInteger.get());
+        }
+
         return trip;
 
 
@@ -193,7 +198,6 @@ public class InternationalTripGeneration implements TripGenerationModule {
         for (Person pers : persons) {
             //IntStream.range(0, synPop.getPersons().size()).parallel().forEach(p -> {
             //Person pers = synPop.getPersonFromId(p);
-            personIds[p] = pers.getPersonId();
             if (pers.getTravelProbabilities() != null) {
                 for (Purpose tripPurpose : PurposeOntario.values()) {
                     for (Type tripState : TypeOntario.values()) {

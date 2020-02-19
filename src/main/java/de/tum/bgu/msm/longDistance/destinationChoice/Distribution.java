@@ -1,5 +1,6 @@
 package de.tum.bgu.msm.longDistance.destinationChoice;
 
+import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
@@ -8,6 +9,7 @@ import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.json.simple.JSONObject;
 import org.apache.log4j.Logger;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by carlloga on 8/2/2017.
@@ -51,7 +53,9 @@ public class Distribution implements ModelComponent {
 
     public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
-        trips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
+        //AtomicInteger counter = new AtomicInteger(0);
+
+        trips.parallelStream().forEach(t -> {
             if (!t.isInternational()) {
                 int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
                 t.setCombinedDestZoneId(destZoneId);
@@ -79,6 +83,10 @@ public class Distribution implements ModelComponent {
                     t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                 }
             }
+
+//            if (Util.isPowerOfFour(counter.getAndIncrement())){
+//                logger.info("dc done for: " + counter.get());
+//            }
 
         });
     }

@@ -198,6 +198,17 @@ public class Util {
     }
 
 
+    public static boolean isPowerOfFour(int number){
+        double pow = Math.pow(number, 0.25);
+        if (pow - Math.floor(pow) == 0){
+            return  true;
+        } else {
+            return false;
+        }
+
+    }
+
+
 
 
 

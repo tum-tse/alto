@@ -323,7 +323,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
                 pers.getHousehold().getZone(), tripDuration, nonHhTravelPartySize);
         trip.setHhTravelParty(hhTravelParty);
 
-        if ( atomicInteger.get() % 10000 == 0){
+        if (  Util.isPowerOfFour(atomicInteger.get())){
             logger.info("Domestic trips: " + atomicInteger.get());
         }
 
