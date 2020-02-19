@@ -164,7 +164,6 @@ public class DomesticTripGeneration implements TripGenerationModule {
         int winter = JsonUtilMto.getBooleanProp(prop, "summer" )? 0:1;
 
 
-
         //read coefficients
         String coefficientColumn = tripState + "." + tripPurpose;
 
@@ -323,6 +322,11 @@ public class DomesticTripGeneration implements TripGenerationModule {
         LongDistanceTrip trip = new LongDistanceTrip(atomicInteger.getAndIncrement(), pers, false, tripPurpose, tripState,
                 pers.getHousehold().getZone(), tripDuration, nonHhTravelPartySize);
         trip.setHhTravelParty(hhTravelParty);
+
+        if ( atomicInteger.get() % 10000 == 0){
+            logger.info("Domestic trips: " + atomicInteger.get());
+        }
+
 
         return trip;
 
