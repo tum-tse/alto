@@ -2,15 +2,12 @@ package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.data.*;
-import de.tum.bgu.msm.longDistance.destinationChoice.Distribution;
-import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
-import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
-import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
+import de.tum.bgu.msm.longDistance.destinationChoice.*;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -45,7 +42,9 @@ public class Calibration implements ModelComponent {
     }
 
     enum DcModelName {
+
         domesticDc, internationalOutboundDc, internationalInboundDc;
+
     }
 
     enum McModelName {
@@ -90,8 +89,8 @@ public class Calibration implements ModelComponent {
 
     public void calibrateModel(boolean dc, boolean mc, DataSet dataSet) {
 
-        for (LongDistanceTrip t : dataSet.getAllTrips()){
-            if (!t.getTripState().equals(TypeOntario.AWAY)){
+        for (LongDistanceTrip t : dataSet.getAllTrips()) {
+            if (!t.getTripState().equals(TypeOntario.AWAY)) {
                 allTrips.add(t);
             }
         }
@@ -99,8 +98,6 @@ public class Calibration implements ModelComponent {
 
         Map<DcModelName, Map<Purpose, Double>> calibrationMatrixDc = new HashMap<>();
         Map<McModelName, Map<Purpose, Map<Mode, Double>>> calibrationMatrixMc = new HashMap<>();
-
-
 
 
         for (int iteration = 0; iteration < maxIter; iteration++) {
@@ -129,7 +126,6 @@ public class Calibration implements ModelComponent {
             //getAverageModalShares(allTrips);
 
 
-
         }
 
 
@@ -151,10 +147,10 @@ public class Calibration implements ModelComponent {
         Map<DcModelName, Map<Purpose, Double>> averageDistances = new HashMap<>();
         Map<DcModelName, Map<Purpose, Double>> counts = new HashMap<>();
 
-        for (DcModelName name : DcModelName.values()){
+        for (DcModelName name : DcModelName.values()) {
             averageDistances.putIfAbsent(name, new HashMap<>());
             counts.putIfAbsent(name, new HashMap<>());
-            for (Purpose purpose : PurposeOntario.values()){
+            for (Purpose purpose : PurposeOntario.values()) {
                 averageDistances.get(name).putIfAbsent(purpose, 0.);
                 counts.get(name).putIfAbsent(purpose, 0.);
             }
@@ -187,15 +183,20 @@ public class Calibration implements ModelComponent {
             }
         }
 
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (counts[i][j] > 0) averageDistances[i][j] = averageDistances[i][j] / counts[i][j];
+        logger.info("Destination choice average distances");
+        logger.info("model" + "\t" + "purpose" + "\t" + "avgDistance");
+        for (DcModelName name : DcModelName.values()) {
+            for (Purpose purpose : PurposeOntario.values()) {
+                double sum = averageDistances.get(name).get(purpose);
+                double count = counts.get(name).get(purpose);
+
+                averageDistances.get(name).put(purpose, sum / count);
+                logger.info(name.toString() + "\t" + purpose + "\t" + sum / count);
+
             }
+
         }
 
-        logger.info("dc,type0,distance,visit," + averageDistances[0][0] + ",business," + averageDistances[0][1] + ",leisure," + averageDistances[0][2]);
-        logger.info("dc,type1,distance,visit," + averageDistances[1][0] + ",business," + averageDistances[1][1] + ",leisure," + averageDistances[1][2]);
-        logger.info("dc,type2,distance,visit," + averageDistances[2][0] + ",business," + averageDistances[2][1] + ",leisure," + averageDistances[2][2]);
         return averageDistances;
 
     }
@@ -208,36 +209,57 @@ public class Calibration implements ModelComponent {
         counts.get(name).put(t.getTripPurpose(), previousCount + getTripWeight(t));
     }
 
-    public double[][] calculateCalibrationMatrix(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<DcModelName, Map<Purpose, Double>> calculateCalibrationMatrix(ArrayList<LongDistanceTrip> allTrips) {
 
-        double[][] averageDistances = getAverageTripDistances(allTrips);
-
-        double[][] calibrationMatrix = new double[3][3];
+        Map<DcModelName, Map<Purpose, Double>> averageDistances = getAverageTripDistances(allTrips);
+        Map<DcModelName, Map<Purpose, Double>> calibrationMatrix = new HashMap<>();
 
         double expansionFactor = 1;
 
         //hard coded for calibration
-        calibrationMatrix[0][0] = (averageDistances[0][0] / 133 - 1) * expansionFactor + 1; //domestic visit
-        calibrationMatrix[0][1] = (averageDistances[0][1] / 175 - 1) * expansionFactor + 1; //domestic business
-        calibrationMatrix[0][2] = (averageDistances[0][2] / 134 - 1) * expansionFactor + 1; //domestic leisure
-        calibrationMatrix[1][0] = (averageDistances[1][0] / 642 - 1) * expansionFactor + 1;//to us visit
-        calibrationMatrix[1][1] = (averageDistances[1][1] / 579 - 1) * expansionFactor + 1;//to us business
-        calibrationMatrix[1][2] = (averageDistances[1][2] / 515 - 1) * expansionFactor + 1;//to us leisure
-        calibrationMatrix[2][0] = (averageDistances[2][0] / 697 - 1) * expansionFactor + 1;//from us visit
-        calibrationMatrix[2][1] = (averageDistances[2][1] / 899 - 1) * expansionFactor + 1;//from us business
-        calibrationMatrix[2][2] = (averageDistances[2][2] / 516 - 1) * expansionFactor + 1;//from us leisure
+        calibrationMatrix.putIfAbsent(DcModelName.domesticDc, new HashMap<>());
+        calibrationMatrix.get(DcModelName.domesticDc).put(PurposeOntario.VISIT, (averageDistances.get(DcModelName.domesticDc).get(PurposeOntario.VISIT) / 133 - 1) * expansionFactor + 1); //domestic visit
+        calibrationMatrix.get(DcModelName.domesticDc).put(PurposeOntario.BUSINESS, (averageDistances.get(DcModelName.domesticDc).get(PurposeOntario.BUSINESS) / 175 - 1) * expansionFactor + 1);//domestic business
+        calibrationMatrix.get(DcModelName.domesticDc).put(PurposeOntario.LEISURE, (averageDistances.get(DcModelName.domesticDc).get(PurposeOntario.LEISURE) / 134 - 1) * expansionFactor + 1);//domestic leisure
+
+        calibrationMatrix.putIfAbsent(DcModelName.internationalOutboundDc, new HashMap<>());
+        calibrationMatrix.get(DcModelName.internationalOutboundDc).put(PurposeOntario.VISIT, (averageDistances.get(DcModelName.internationalOutboundDc).get(PurposeOntario.VISIT) / 642 - 1) * expansionFactor + 1); //to us visit
+        calibrationMatrix.get(DcModelName.internationalOutboundDc).put(PurposeOntario.BUSINESS, (averageDistances.get(DcModelName.internationalOutboundDc).get(PurposeOntario.BUSINESS) / 579 - 1) * expansionFactor + 1);//to us business
+        calibrationMatrix.get(DcModelName.internationalOutboundDc).put(PurposeOntario.LEISURE, (averageDistances.get(DcModelName.internationalOutboundDc).get(PurposeOntario.LEISURE) / 515 - 1) * expansionFactor + 1);//to us leisure
+
+        calibrationMatrix.putIfAbsent(DcModelName.internationalInboundDc, new HashMap<>());
+        calibrationMatrix.get(DcModelName.internationalInboundDc).put(PurposeOntario.VISIT, (averageDistances.get(DcModelName.internationalInboundDc).get(PurposeOntario.VISIT) / 697 - 1) * expansionFactor + 1); //from us visit
+        calibrationMatrix.get(DcModelName.internationalInboundDc).put(PurposeOntario.BUSINESS, (averageDistances.get(DcModelName.internationalInboundDc).get(PurposeOntario.BUSINESS) / 899 - 1) * expansionFactor + 1);//from us business
+        calibrationMatrix.get(DcModelName.internationalInboundDc).put(PurposeOntario.LEISURE, (averageDistances.get(DcModelName.internationalInboundDc).get(PurposeOntario.LEISURE) / 516 - 1) * expansionFactor + 1);//from us leisure
 
 
-        logger.info("dc,type0,k,visit," + calibrationMatrix[0][0] + ",business," + calibrationMatrix[0][1] + ",leisure," + calibrationMatrix[0][2]);
-        logger.info("dc,type1,k,visit," + calibrationMatrix[1][0] + ",business," + calibrationMatrix[1][1] + ",leisure," + calibrationMatrix[1][2]);
-        logger.info("dc,type2,k,visit," + calibrationMatrix[2][0] + ",business," + calibrationMatrix[2][1] + ",leisure," + calibrationMatrix[2][2]);
+        logger.info("Destination choice average calibration coefficients");
+        logger.info("model" + "\t" + "purpose" + "\t" + "coefficient");
+        for (DcModelName name : DcModelName.values()) {
+            for (Purpose purpose : PurposeOntario.values()) {
+                logger.info(name.toString() + "\t" + purpose + "\t" + calibrationMatrix.get(name).get(purpose));
+            }
+
+        }
 
         return calibrationMatrix;
 
     }
 
-    public double[][][] getAverageModalShares(ArrayList<LongDistanceTrip> allTrips) {
-        double[][][] countsByMode = new double[4][3][4];
+    public Map<McModelName, Map<Purpose, Map<Mode, Double>>> getAverageModalShares(ArrayList<LongDistanceTrip> allTrips) {
+
+        Map<McModelName, Map<Purpose, Map<Mode, Double>>> countsByMode = new HashMap<>();
+
+        for (McModelName name : McModelName.values()) {
+            countsByMode.putIfAbsent(name, new HashMap<>());
+            for (Purpose purpose : PurposeOntario.values()) {
+                countsByMode.get(name).put(purpose, new HashMap<>());
+                for (Mode mode : ModeOntario.values()) {
+                    countsByMode.get(name).get(purpose).put(mode, 0.);
+                }
+            }
+        }
+
 
         //int tripCounter = 0;
 
@@ -246,134 +268,174 @@ public class Calibration implements ModelComponent {
                 if (!t.isInternational()) {
                     //domestic to or from ontario
                     if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
+                        McModelName name = McModelName.domesticResidentsMc;
                         //domestic from Ontario - row 0
-                        countsByMode[0][t.getTripPurpose()][t.getMode()] += getTripWeight(t);
+                        addTripToModalShareCalculator(countsByMode, t, name);
+
                     } else {
                         //domestic to Ontario - row 3
-                        countsByMode[3][t.getTripPurpose()][t.getMode()] += getTripWeight(t);
+                        McModelName name = McModelName.domesticVisitorsMc;
+                        addTripToModalShareCalculator(countsByMode, t, name);
                     }
 
 
                 } else if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
+                    McModelName name = McModelName.internationalOutboundMc;
                     //international from ontario to US - row 1
-                    countsByMode[1][t.getTripPurpose()][t.getMode()] += getTripWeight(t);
+                    addTripToModalShareCalculator(countsByMode, t, name);
 
                 } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
                     //international from US to ontario - row 2
-                    countsByMode[2][t.getTripPurpose()][t.getMode()] += getTripWeight(t);
+                    McModelName name = McModelName.internationalInboundMc;
+                    addTripToModalShareCalculator(countsByMode, t, name);
                 }
             }
         }
 
+        logger.info("Simulated Modal Shares");
 
-        double[][][] modalShares = new double[4][3][4];
-
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
-                String log = "mc,shares,type," + i;
-                double total = countsByMode[i][j][0] + countsByMode[i][j][1] + countsByMode[i][j][2] + countsByMode[i][j][3];
-                if (total > 0) {
-                    for (int m = 0; m < 4; m++) {
-                        modalShares[i][j][m] = countsByMode[i][j][m] / total;
-                        log += ",purpose," + j + ",mode" + m + "," + modalShares[i][j][m];
-                    }
+        Map<McModelName, Map<Purpose, Map<Mode, Double>>> modalShares = new HashMap<>();
+        logger.info("model" + "\t" + "purpose" + " \t" + "mode" + "\t" + "share");
+        for (McModelName name : McModelName.values()) {
+            modalShares.putIfAbsent(name, new HashMap<>());
+            for (Purpose purpose : PurposeOntario.values()) {
+                modalShares.get(name).put(purpose, new HashMap<>());
+                double total = 0;
+                for (Mode mode : ModeOntario.values()) {
+                    total += countsByMode.get(name).get(purpose).get(mode);
                 }
-                logger.info(log);
-                //logger.info(total);
+                for (Mode mode : ModeOntario.values()) {
+                    double modalShare = countsByMode.get(name).get(purpose).get(mode) / total;
+                    modalShares.get(name).get(purpose).put(mode, modalShare);
+                    logger.info(name + "\t" + purpose + " \t" + mode + "\t" + modalShare);
+
+                }
             }
         }
 
         return modalShares;
     }
 
-    public double[][][] calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips) {
+    private void addTripToModalShareCalculator(Map<McModelName, Map<Purpose, Map<Mode, Double>>> countsByMode, LongDistanceTrip t, McModelName name) {
+        double currentCount = countsByMode.get(name).get(t.getTripPurpose()).get(t.getMode());
+        countsByMode.get(name).get(t.getTripPurpose()).put(t.getMode(), currentCount + getTripWeight(t));
+    }
 
-        double[][][] calibrationMatrix = new double[4][3][4];
+    public Map<McModelName, Map<Purpose, Map<Mode, Double>>> calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips) {
 
-        double[][][] modalShares = getAverageModalShares(allTrips);
+        Map<McModelName, Map<Purpose, Map<Mode, Double>>> calibrationMatrix = new HashMap<>();
 
-        double[][][] surveyShares = new double[4][3][4];
+        Map<McModelName, Map<Purpose, Map<Mode, Double>>> simulatedModalShares = getAverageModalShares(allTrips);
+
+        Map<McModelName, Map<Purpose, Map<Mode, Double>>> surveyShares = new HashMap<>();
 
         double expansionFactor = 1;
 
         //hard coded for calibration
         //domestic
-        int type = 0;
-        surveyShares[type][0][0] = 0.93; // visit - auto
-        surveyShares[type][0][1] = 0.01; // visit - air
-        surveyShares[type][0][2] = 0.03; // visit - rail
-        surveyShares[type][0][3] = 0.03; // visit - bus
+        McModelName type = McModelName.domesticResidentsMc;
+        surveyShares.putIfAbsent(type, new HashMap<>());
+        surveyShares.get(type).putIfAbsent(PurposeOntario.VISIT, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.AUTO, 0.93);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.AIR, 0.01);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.RAIL, 0.03);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.BUS, 0.03);
 
-        surveyShares[type][1][0] = 0.86; // business
-        surveyShares[type][1][1] = 0.06; // business
-        surveyShares[type][1][2] = 0.03; // business
-        surveyShares[type][1][3] = 0.05; // business
+        surveyShares.get(type).putIfAbsent(PurposeOntario.BUSINESS, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.AUTO, 0.86);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.AIR, 0.06);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.RAIL, 0.03);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.BUS, 0.05);
 
-        surveyShares[type][2][0] = 0.96; // leisure
-        surveyShares[type][2][1] = 0.00; // leisure
-        surveyShares[type][2][2] = 0.03; // leisure
-        surveyShares[type][2][3] = 0.01; // leisure
+        surveyShares.get(type).putIfAbsent(PurposeOntario.LEISURE, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.AUTO, 0.96);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.AIR, 0.00);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.RAIL, 0.03);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.BUS, 0.01);
 
         //int outbound
-        type = 1;
-        surveyShares[type][0][0] = 0.76; // visit - auto
-        surveyShares[type][0][1] = 0.23; // visit - air
-        surveyShares[type][0][2] = 0.00; // visit - rail
-        surveyShares[type][0][3] = 0.01; // visit - bus
+        type = McModelName.internationalOutboundMc;
+        surveyShares.putIfAbsent(type, new HashMap<>());
+        surveyShares.get(type).putIfAbsent(PurposeOntario.VISIT, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.AUTO, 0.76);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.AIR, 0.23);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.RAIL, 0.00);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.BUS, 0.01);
 
-        surveyShares[type][1][0] = 0.74; // business
-        surveyShares[type][1][1] = 0.25; // business
-        surveyShares[type][1][2] = 0.00; // business
-        surveyShares[type][1][3] = 0.01; // business
+        surveyShares.get(type).putIfAbsent(PurposeOntario.BUSINESS, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.AUTO, 0.74);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.AIR, 0.25);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.RAIL, 0.00);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.BUS, 0.01);
 
-        surveyShares[type][2][0] = 0.87; // leisure
-        surveyShares[type][2][1] = 0.10; // leisure
-        surveyShares[type][2][2] = 0.00; // leisure
-        surveyShares[type][2][3] = 0.01; // leisure
+        surveyShares.get(type).putIfAbsent(PurposeOntario.LEISURE, new HashMap<>());
+        //todo do not sum up 1?
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.AUTO, 0.87);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.AIR, 0.10);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.RAIL, 0.00);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.BUS, 0.01);
 
         //int inbound
-        type = 2;
-        surveyShares[type][0][0] = 0.75; // visit - auto
-        surveyShares[type][0][1] = 0.24; // visit - air
-        surveyShares[type][0][2] = 0.00; // visit - rail
-        surveyShares[type][0][3] = 0.01; // visit - bus
+        type = McModelName.internationalInboundMc;
+        surveyShares.putIfAbsent(type, new HashMap<>());
+        surveyShares.get(type).putIfAbsent(PurposeOntario.VISIT, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.AUTO, 0.75);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.AIR, 0.24);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.RAIL, 0.00);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.BUS, 0.01);
 
-        surveyShares[type][1][0] = 0.39; // business
-        surveyShares[type][1][1] = 0.60; // business
-        surveyShares[type][1][2] = 0.00; // business
-        surveyShares[type][1][3] = 0.01; // business
+        surveyShares.get(type).putIfAbsent(PurposeOntario.BUSINESS, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.AUTO, 0.39);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.AIR, 0.60);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.RAIL, 0.00);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.BUS, 0.01);
 
-        surveyShares[type][2][0] = 0.85; // leisure
-        surveyShares[type][2][1] = 0.06; // leisure
-        surveyShares[type][2][2] = 0.00; // leisure
-        surveyShares[type][2][3] = 0.09; // leisure
+        surveyShares.get(type).putIfAbsent(PurposeOntario.LEISURE, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.AUTO, 0.85);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.AIR, 0.06);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.RAIL, 0.00);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.BUS, 0.09);
 
-        type = 3;
-        surveyShares[type][0][0] = 0.67; // visit - auto
-        surveyShares[type][0][1] = 0.24; // visit - air
-        surveyShares[type][0][2] = 0.05; // visit - rail
-        surveyShares[type][0][3] = 0.04; // visit - bus
 
-        surveyShares[type][1][0] = 0.35; // business
-        surveyShares[type][1][1] = 0.59; // business
-        surveyShares[type][1][2] = 0.02; // business
-        surveyShares[type][1][3] = 0.04; // business
+        //domestio visitors to ontario
+        type = McModelName.domesticVisitorsMc;
+        surveyShares.get(type).putIfAbsent(PurposeOntario.VISIT, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.AUTO, 0.67);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.AIR, 0.24);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.RAIL, 0.05);
+        surveyShares.get(type).get(PurposeOntario.VISIT).putIfAbsent(ModeOntario.BUS, 0.04);
 
-        surveyShares[type][2][0] = 0.84; // leisure
-        surveyShares[type][2][1] = 0.08; // leisure
-        surveyShares[type][2][2] = 0.06; // leisure
-        surveyShares[type][2][3] = 0.02; // leisure
+        surveyShares.get(type).putIfAbsent(PurposeOntario.BUSINESS, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.AUTO, 0.35);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.AIR, 0.59);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.RAIL, 0.02);
+        surveyShares.get(type).get(PurposeOntario.BUSINESS).putIfAbsent(ModeOntario.BUS, 0.04);
 
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 3; j++) {
-                String log = "mc,k,type," + i;
-                for (int m = 0; m < 4; m++) {
-                    calibrationMatrix[i][j][m] = (surveyShares[i][j][m] - modalShares[i][j][m]) * expansionFactor;
-                    log += ",purpose," + j + ",mode" + m + "," + calibrationMatrix[i][j][m];
+        surveyShares.get(type).putIfAbsent(PurposeOntario.LEISURE, new HashMap<>());
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.AUTO, 0.84);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.AIR, 0.08);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.RAIL, 0.06);
+        surveyShares.get(type).get(PurposeOntario.LEISURE).putIfAbsent(ModeOntario.BUS, 0.02);
+
+        logger.info("Mode choice calibration factors");
+        logger.info("model" + "\t" + "purpose" + " \t" + "mode" + "\t" + "factor");
+
+        for (McModelName name : McModelName.values()) {
+            calibrationMatrix.put(name, new HashMap<>());
+            for (Purpose purpose : PurposeOntario.values()) {
+                calibrationMatrix.get(name).putIfAbsent(purpose, new HashMap<>());
+                for (Mode mode : ModeOntario.values()) {
+                    double observedShare = surveyShares.get(name).get(purpose).get(mode);
+                    double simulatedShare = simulatedModalShares.get(name).get(purpose).get(mode);
+                    double factor = expansionFactor * (simulatedShare - observedShare);
+                    calibrationMatrix.get(name).get(purpose).putIfAbsent(mode, factor);
+
+                    logger.info(name + "\t" + purpose + " \t" + mode + "\t" + factor);
+
                 }
-                logger.info(log);
             }
         }
+
 
         return calibrationMatrix;
 
@@ -404,14 +466,14 @@ public class Calibration implements ModelComponent {
 
     public double getTripWeight(LongDistanceTrip t) {
         double weight = 0;
-        switch (t.getTripState()) {
-            case 0:
+        switch ((TypeOntario) t.getTripState()) {
+            case AWAY:
                 weight = 0;
                 break;
-            case 1:
+            case DAYTRIP:
                 weight = 1;
                 break;
-            case 2:
+            case INOUT:
                 weight = 0.5;
                 break;
         }
@@ -423,109 +485,88 @@ public class Calibration implements ModelComponent {
     public void printOutCalibrationResults(DomesticDestinationChoice domDc, IntOutboundDestinationChoice intOutDc, IntInboundDestinationChoice intInDc,
                                            DomesticModeChoice domMc, IntModeChoice intMc) {
 
-        logger.info("---------------------------------------------------------");
-        logger.info("-----------------RESULTS DC------------------------------");
-        logger.info("k_domestic_dc visit = " + domDc.getDomDcCalibrationV()[0]);
-        logger.info("k_domestic_dc business = " + domDc.getDomDcCalibrationV()[1]);
-        logger.info("k_domestic_dc leisure = " + domDc.getDomDcCalibrationV()[2]);
-        logger.info("k_int_out_dc visit = " + intOutDc.getCalibrationV()[0]);
-        logger.info("k_int_out_dc business = " + intOutDc.getCalibrationV()[1]);
-        logger.info("k_int_out_dc leisure = " + intOutDc.getCalibrationV()[2]);
-        logger.info("k_int_in_dc visit = " + intInDc.getCalibrationV()[0]);
-        logger.info("k_int_in_dc business = " + intInDc.getCalibrationV()[1]);
-        logger.info("k_int_in_dc leisure = " + intInDc.getCalibrationV()[2]);
-        logger.info("---------------------------------------------------------");
+        logger.info("Destination choice calibration");
+        logger.info("model" + "\t" + "purpose" + "\t" + "factor");
+        Map<Purpose, Double> map;
+        for (Purpose purpose : PurposeOntario.values()) {
+            map = domDc.getDomDcCalibrationV();
+            logger.info(DcModelName.domesticDc + "\t" + purpose + "\t" + map.get(purpose));
+        }
+        map = intOutDc.getCalibrationV();
+        for (Purpose purpose : PurposeOntario.values()) {
+            logger.info(DcModelName.internationalOutboundDc + "\t" + purpose + "\t" + map.get(purpose));
+        }
+        map = intInDc.getCalibrationV();
+        for (Purpose purpose : PurposeOntario.values()) {
+            logger.info(DcModelName.internationalInboundDc + "\t" + purpose + "\t" + map.get(purpose));
+        }
 
-        logger.info("---------------------------------------------------------");
-        logger.info("-----------------RESULTS MC------------------------------");
-        String type = "k_domestic_mc_";
-        logger.info(type + "visit: auto=" + domMc.getCalibrationMatrix()[0][0] +
-                ",air=" + domMc.getCalibrationMatrix()[0][1] +
-                ",rail=" + domMc.getCalibrationMatrix()[0][2] +
-                ",bus=" + domMc.getCalibrationMatrix()[0][3]);
-        logger.info(type + "business: auto=" + domMc.getCalibrationMatrix()[1][0] +
-                ",air=" + domMc.getCalibrationMatrix()[1][1] +
-                ",rail=" + domMc.getCalibrationMatrix()[1][2] +
-                ",bus=" + domMc.getCalibrationMatrix()[1][3]);
-        logger.info(type + "leisure: auto=" + domMc.getCalibrationMatrix()[2][0] +
-                ",air=" + domMc.getCalibrationMatrix()[2][1] +
-                ",rail=" + domMc.getCalibrationMatrix()[2][2] +
-                ",bus=" + domMc.getCalibrationMatrix()[2][3]);
-        type = "k_int_out_mc_";
-        logger.info(type + "visit: auto=" + intMc.getCalibrationMatrixOutbound()[0][0] +
-                ",air=" + intMc.getCalibrationMatrixOutbound()[0][1] +
-                ",rail=" + intMc.getCalibrationMatrixOutbound()[0][2] +
-                ",bus=" + intMc.getCalibrationMatrixOutbound()[0][3]);
-        logger.info(type + "business: auto=" + intMc.getCalibrationMatrixOutbound()[1][0] +
-                ",air=" + intMc.getCalibrationMatrixOutbound()[1][1] +
-                ",rail=" + intMc.getCalibrationMatrixOutbound()[1][2] +
-                ",bus=" + intMc.getCalibrationMatrixOutbound()[1][3]);
-        logger.info(type + "leisure: auto=" + intMc.getCalibrationMatrixOutbound()[2][0] +
-                ",air=" + intMc.getCalibrationMatrixOutbound()[2][1] +
-                ",rail=" + intMc.getCalibrationMatrixOutbound()[2][2] +
-                ",bus=" + intMc.getCalibrationMatrixOutbound()[2][3]);
-        type = "k_int_in_mc";
-        logger.info(type + "visit: auto=" + intMc.getCalibrationMatrixInbound()[0][0] +
-                ",air=" + intMc.getCalibrationMatrixInbound()[0][1] +
-                ",rail=" + intMc.getCalibrationMatrixInbound()[0][2] +
-                ",bus=" + intMc.getCalibrationMatrixInbound()[0][3]);
-        logger.info(type + "business: auto=" + intMc.getCalibrationMatrixInbound()[1][0] +
-                ",air=" + intMc.getCalibrationMatrixInbound()[1][1] +
-                ",rail=" + intMc.getCalibrationMatrixInbound()[1][2] +
-                ",bus=" + intMc.getCalibrationMatrixInbound()[1][3]);
-        logger.info(type + "leisure: auto=" + intMc.getCalibrationMatrixInbound()[2][0] +
-                ",air=" + intMc.getCalibrationMatrixInbound()[2][1] +
-                ",rail=" + intMc.getCalibrationMatrixInbound()[2][2] +
-                ",bus=" + intMc.getCalibrationMatrixInbound()[2][3]);
+        logger.info("Mode choice calibration");
+        logger.info("model" + "\t" + "purpose" + "\t" + "mode" + "\t" + "factor");
+        Map<Purpose, Map<Mode, Double>> map2;
+        map2 = domMc.getCalibrationMatrix();
+        for (Purpose purpose : PurposeOntario.values()) {
+            for (Mode mode : ModeOntario.values()){
+                logger.info(McModelName.domesticResidentsMc + "\t" + purpose + "\t" + mode + "\t" + map2.get(purpose).get(mode));
+            }
+
+        }
+        map2 = domMc.getCalibrationMatrixVisitors();
+        for (Purpose purpose : PurposeOntario.values()) {
+            for (Mode mode : ModeOntario.values()){
+                logger.info(McModelName.domesticVisitorsMc + "\t" + purpose + "\t" + mode + "\t" + map2.get(purpose).get(mode));
+            }
+
+        }
+        map2 = intMc.getCalibrationMatrixOutbound();
+        for (Purpose purpose : PurposeOntario.values()) {
+            for (Mode mode : ModeOntario.values()){
+                logger.info(McModelName.internationalOutboundMc + "\t" + purpose + "\t" + mode + "\t" + map2.get(purpose).get(mode));
+            }
+
+        }
+        map2 = intMc.getCalibrationMatrixInbound();
+        for (Purpose purpose : PurposeOntario.values()) {
+            for (Mode mode : ModeOntario.values()){
+                logger.info(McModelName.internationalInboundMc + "\t" + purpose + "\t" + mode + "\t" + map2.get(purpose).get(mode));
+            }
+
+        }
 
 
-        type = "k_domesticVisitors_mc_";
-        logger.info(type + "visit: auto=" + domMc.getCalibrationMatrixVisitors()[0][0] +
-                ",air=" + domMc.getCalibrationMatrixVisitors()[0][1] +
-                ",rail=" + domMc.getCalibrationMatrixVisitors()[0][2] +
-                ",bus=" + domMc.getCalibrationMatrixVisitors()[0][3]);
-        logger.info(type + "business: auto=" + domMc.getCalibrationMatrixVisitors()[1][0] +
-                ",air=" + domMc.getCalibrationMatrixVisitors()[1][1] +
-                ",rail=" + domMc.getCalibrationMatrixVisitors()[1][2] +
-                ",bus=" + domMc.getCalibrationMatrixVisitors()[1][3]);
-        logger.info(type + "leisure: auto=" + domMc.getCalibrationMatrixVisitors()[2][0] +
-                ",air=" + domMc.getCalibrationMatrixVisitors()[2][1] +
-                ",rail=" + domMc.getCalibrationMatrixVisitors()[2][2] +
-                ",bus=" + domMc.getCalibrationMatrixVisitors()[2][3]);
-        logger.info("---------------------------------------------------------");
+
+
 
     }
 
     public void runDc() {
-        logger.info("Running Destination Choice Model for " + allTrips.size() + " trips");
+        logger.info("Running Destination Choice Model for " + allTrips.size() + " trips during model calibration");
         allTrips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
-            if(t.getTripState()!= 0) {
-                if (!t.isInternational()) {
-                    int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
+            if (!t.isInternational()) {
+                int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
+                t.setCombinedDestZoneId(destZoneId);
+                t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
+                t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
+            } else {
+                if (t.getOrigZone().getZoneType() == ZoneType.ONTARIO || t.getOrigZone().getZoneType() == ZoneType.EXTCANADA) {
+                    // residents to international
+                    int destZoneId = dcOutboundModel.selectDestination(t);
+                    t.setCombinedDestZoneId(destZoneId);
+                    t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
+                    if (t.getDestZoneType().equals(ZoneType.EXTUS))
+                        t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
+
+                } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS) {
+                    // us visitors with destination in CANADA
+                    int destZoneId = dcInBoundModel.selectDestination(t);
                     t.setCombinedDestZoneId(destZoneId);
                     t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                     t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
                 } else {
-                    if (t.getOrigZone().getZoneType() == ZoneType.ONTARIO || t.getOrigZone().getZoneType() == ZoneType.EXTCANADA) {
-                        // residents to international
-                        int destZoneId = dcOutboundModel.selectDestination(t);
-                        t.setCombinedDestZoneId(destZoneId);
-                        t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
-                        if (t.getDestZoneType().equals(ZoneType.EXTUS))
-                            t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
-
-                    } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS) {
-                        // us visitors with destination in CANADA
-                        int destZoneId = dcInBoundModel.selectDestinationFromUs(t);
-                        t.setCombinedDestZoneId(destZoneId);
-                        t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
-                        t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
-                    } else {
-                        //os visitors to Canada
-                        int destZoneId = dcInBoundModel.selectDestinationFromOs(t);
-                        t.setCombinedDestZoneId(destZoneId);
-                        t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
-                    }
+                    //os visitors to Canada
+                    int destZoneId = dcInBoundModel.selectDestination(t);
+                    t.setCombinedDestZoneId(destZoneId);
+                    t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                 }
             }
 
@@ -533,41 +574,41 @@ public class Calibration implements ModelComponent {
 
     }
 
-    public void runMc() {
-        logger.info("Running Mode Choice Model for " + allTrips.size() + " trips");
+    private void runMc() {
+        logger.info("Running Mode Choice Model for " + allTrips.size() + " trips during model calibration");
         allTrips.parallelStream().forEach(t -> {
-            if(t.getTripState()!= 0) {
-                if (!t.isInternational()) {
-                    //domestic mode choice for synthetic persons in Ontario
-                    int mode = mcDomesticModel.selectModeDomestic(t);
+            if (!t.isInternational()) {
+                //domestic mode choice for synthetic persons in Ontario
+                Mode mode = mcDomesticModel.selectModeDomestic(t);
+                t.setMode(mode);
+                t.setTravelTimeLevel2(mcDomesticModel.getDomesticModalTravelTime(t));
+                // international mode choice
+            } else if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)) {
+                //residents
+                if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
+                    //international from Canada to US
+                    Mode mode = intModeChoice.selectMode(t);
                     t.setMode(mode);
-                    // international mode choice
-                } else if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)) {
-                    //residents
-                    if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
-                        //international from Canada to US
-                        int mode = intModeChoice.selectMode(t);
-                        t.setMode(mode);
-                    } else {
-                        //international from Canada to OS
-                        t.setMode(1); //always by air
-                    }
-                    //visitors
-                } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
-                    //international visitors from US
-                    int mode = intModeChoice.selectMode(t);
-                    t.setMode(mode);
-                } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)) {
-                    //international visitors from US
-                    t.setMode(1); //always by air
+                } else {
+                    //international from Canada to OS
+                    t.setMode(ModeOntario.AIR); //always by air
                 }
+                t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
+                //visitors
+            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
+                //international visitors from US
+                Mode mode = intModeChoice.selectMode(t);
+                t.setMode(mode);
+                t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
+
+            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)) {
+                //international visitors from US
+                t.setMode(ModeOntario.AIR); //always by air
+                t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
             }
 
         });
-
     }
-
-
 
 
 }

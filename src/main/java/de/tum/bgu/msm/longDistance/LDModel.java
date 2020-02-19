@@ -50,26 +50,25 @@ public class LDModel implements ModelComponent {
     private String outputTripFile;
 
 
-
     public LDModel() {
         syntheticPopulationReader = new SyntheticPopulation();
         zonalData = new ZonalData();
         tripGenModel = new Generation();
         distribution = new Distribution();
-        mcModel  = new McModel();
+        mcModel = new McModel();
         zd = new ZoneDisaggregator();
         calib = new Calibration();
         timeOfDayChoice = new TimeOfDayChoice();
     }
 
-    public void setup(JSONObject prop, String inputFolder, String outputFolder){
+    public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
         Util.initializeRandomNumber(prop);
 
         //options
-        runTG = JsonUtilMto.getBooleanProp(prop,"run.develop.trip_generation");
-        runDC = JsonUtilMto.getBooleanProp(prop,"run.develop.destination_choice");
-        inputTripFile = JsonUtilMto.getStringProp(prop,"run.develop.trip_input_file");
+        runTG = JsonUtilMto.getBooleanProp(prop, "run.develop.trip_generation");
+        runDC = JsonUtilMto.getBooleanProp(prop, "run.develop.destination_choice");
+        inputTripFile = JsonUtilMto.getStringProp(prop, "run.develop.trip_input_file");
         outputTripFile = JsonUtilMto.getStringProp(prop, "output.trip_file");
         writeTrips = JsonUtilMto.getBooleanProp(prop, "output.write_trips");
 
@@ -110,14 +109,9 @@ public class LDModel implements ModelComponent {
         //System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
 
         //run models
-        if (runTG && runDC){
-            //run the full model
-            tripGenModel.run(dataSet, -1);
-            distribution.run(dataSet, -1);
-        } else {
-            //run the in-development model
-            runDevelopingTgAndDcModels(dataSet);
-        }
+
+        tripGenModel.run(dataSet, -1);
+        distribution.run(dataSet, -1);
         mcModel.run(dataSet, -1);
 
         //calib.getAverageModalShares(dataSet.getAllTrips());
@@ -133,48 +127,7 @@ public class LDModel implements ModelComponent {
     }
 
 
-
-    public void runDevelopingTgAndDcModels(DataSet dataSet){
-
-
-
-        //developing tools to skip TG and/or DC if needed
-        if (!runTG) {
-            if (runDC) {
-
-                ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
-                //load saved trips without destination
-                logger.info("Loading generated trips");
-                TableDataSet tripsDomesticTable = Util.readCSVfile(inputTripFile);
-                for (int i = 0; i < tripsDomesticTable.getRowCount(); i++) {
-                    LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, dataSet.getZones(), dataSet, false);
-                    allTrips.add(ldt);
-                }
-                dataSet.setAllTrips(allTrips);
-
-                //and then run destination choice
-                distribution.run(dataSet, -1);
-
-            } else {
-                ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
-                //load saved trip with destinations
-                logger.info("Loading generated trips");
-                TableDataSet tripsDomesticTable = Util.readCSVfile(inputTripFile);
-
-                for (int i = 0; i < tripsDomesticTable.getRowCount(); i++) {
-                    LongDistanceTrip ldt = new LongDistanceTrip(tripsDomesticTable, i + 1, dataSet.getZones(), dataSet, true);
-                    allTrips.add(ldt);
-                }
-
-                dataSet.setAllTrips(allTrips);
-            }
-        }
-
-
-    }
-
-
-    public void writeLongDistanceOutputs(DataSet dataSet){
+    public void writeLongDistanceOutputs(DataSet dataSet) {
         if (writeTrips) {
 
             syntheticPopulationReader.writeSyntheticPopulation();
@@ -200,7 +153,6 @@ public class LDModel implements ModelComponent {
         }
         pw.close();
     }
-
 
 
 }
