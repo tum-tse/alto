@@ -9,8 +9,6 @@ import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
-import org.apache.commons.math3.stat.descriptive.summary.Sum;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -108,10 +106,10 @@ public class DomesticTripGeneration implements TripGenerationModule {
 
                 if (!pers.isAway() && !pers.isDaytrip() && !pers.isInOutTrip() && pers.getAge() > 17) {
 
-                    for (Purpose tripPurpose : PurposesOntario.values()) {
+                    for (Purpose tripPurpose : PurposeOntario.values()) {
                         tgProbabilities.put(tripPurpose, new HashMap<>());
 
-                        for (Type tripState : TypesOntario.values()) {
+                        for (Type tripState : TypeOntario.values()) {
                             //expUtilities[tripStates.indexOf(tripState)] = Math.exp(estimateMlogitUtility(personDescription, tripPurpose, tripState, tripGenerationCoefficients));
                             expUtilities.put(tripState, Math.exp(calculateUtility(pers, tripPurpose.toString(), tripState.toString())));
                         }
@@ -122,7 +120,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
 
 
                         //store the probability for later int trips
-                        for (Type tripState : TypesOntario.values()) {
+                        for (Type tripState : TypeOntario.values()) {
                             tgProbabilities.get(tripPurpose).put(tripState, probabilities.get(tripState));
                         }
                         //select the trip state
@@ -130,14 +128,14 @@ public class DomesticTripGeneration implements TripGenerationModule {
                         int tripStateChoice = 3;
                         Type tripState = null;
 
-                        if (randomNumber1 < probabilities.get(TypesOntario.AWAY)) {
-                            tripState = TypesOntario.AWAY;
+                        if (randomNumber1 < probabilities.get(TypeOntario.AWAY)) {
+                            tripState = TypeOntario.AWAY;
                             pers.setAway(true);
-                        } else if (randomNumber1 < probabilities.get(TypesOntario.AWAY) + probabilities.get(TypesOntario.DAYTRIP)) {
-                            tripState = TypesOntario.DAYTRIP;
+                        } else if (randomNumber1 < probabilities.get(TypeOntario.AWAY) + probabilities.get(TypeOntario.DAYTRIP)) {
+                            tripState = TypeOntario.DAYTRIP;
                             pers.setDaytrip(true);
-                        } else if (randomNumber1 < probabilities.get(TypesOntario.AWAY) + probabilities.get(TypesOntario.DAYTRIP) + probabilities.get(TypesOntario.INOUT)) {
-                            tripState = TypesOntario.INOUT;
+                        } else if (randomNumber1 < probabilities.get(TypeOntario.AWAY) + probabilities.get(TypeOntario.DAYTRIP) + probabilities.get(TypeOntario.INOUT)) {
+                            tripState = TypeOntario.INOUT;
                             pers.setInOutTrip(true);
                         }
 
@@ -341,7 +339,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
     }
 
     public static int estimateSimpleTripDuration(Type tripState) {
-        int tripDuration = tripState.equals(TypesOntario.DAYTRIP) ? 0 : 1;
+        int tripDuration = tripState.equals(TypeOntario.DAYTRIP) ? 0 : 1;
         return tripDuration;
     }
 

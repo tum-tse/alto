@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.Mode;
 import de.tum.bgu.msm.longDistance.destinationChoice.Distribution;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
@@ -23,9 +24,7 @@ public class DataSet {
 
     private static Logger logger = Logger.getLogger(DataSet.class);
 
-    //GENERAL
-    public static final List<String> tripPurposes = Arrays.asList("visit", "business", "leisure");
-    public static final List<String> tripStates = Arrays.asList("away", "daytrip", "inout");
+
 
     //ZONAL DATA
     private Map<Integer, Zone> zones = new HashMap<>();
@@ -35,6 +34,45 @@ public class DataSet {
     //SKIMS GA-zones
     private Matrix autoTravelTime;
     private Matrix autoTravelDistance;
+
+    //SKIMS level-2 zones
+    private Map<Mode, Matrix> travelTimeMatrix;;
+    private Map<Mode, Matrix> priceMatrix;
+    private Map<Mode, Matrix> transferMatrix;
+
+    public Map<Mode, Matrix> getTravelTimeMatrix() {
+        return travelTimeMatrix;
+    }
+
+    public void setTravelTimeMatrix(Map<Mode, Matrix> travelTimeMatrix) {
+        this.travelTimeMatrix = travelTimeMatrix;
+    }
+
+    public Map<Mode, Matrix> getPriceMatrix() {
+        return priceMatrix;
+    }
+
+    public void setPriceMatrix(Map<Mode, Matrix> priceMatrix) {
+        this.priceMatrix = priceMatrix;
+    }
+
+    public Map<Mode, Matrix> getTransferMatrix() {
+        return transferMatrix;
+    }
+
+    public void setTransferMatrix(Map<Mode, Matrix> transferMatrix) {
+        this.transferMatrix = transferMatrix;
+    }
+
+    public Map<Mode, Matrix> getFrequencyMatrix() {
+        return frequencyMatrix;
+    }
+
+    public void setFrequencyMatrix(Map<Mode, Matrix> frequencyMatrix) {
+        this.frequencyMatrix = frequencyMatrix;
+    }
+
+    private Map<Mode, Matrix> frequencyMatrix;
 
     //SYNYHETIC POPULATION
     private Map<Integer, Person> persons = new HashMap<>();
@@ -54,16 +92,6 @@ public class DataSet {
     private DomesticModeChoice mcDomestic;
     private IntModeChoice mcInt;
 
-
-    //geters and setters
-
-    public static List<String> getTripPurposes() {
-        return tripPurposes;
-    }
-
-    public static List<String> getTripStates() {
-        return tripStates;
-    }
 
     public Map<Integer, Zone> getZones() {
         return zones;

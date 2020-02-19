@@ -3,6 +3,8 @@ package de.tum.bgu.msm.longDistance.modeChoice;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
+import de.tum.bgu.msm.longDistance.data.Mode;
+import de.tum.bgu.msm.longDistance.data.ModeOntario;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -48,7 +50,7 @@ public class McModel implements ModelComponent {
         trips.parallelStream().forEach(t -> {
             if (!t.isInternational()) {
                 //domestic mode choice for synthetic persons in Ontario
-                int mode = mcDomesticModel.selectModeDomestic(t);
+                Mode mode = mcDomesticModel.selectModeDomestic(t);
                 t.setMode(mode);
                 t.setTravelTimeLevel2(mcDomesticModel.getDomesticModalTravelTime(t));
                 // international mode choice
@@ -56,23 +58,23 @@ public class McModel implements ModelComponent {
                 //residents
                 if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
                     //international from Canada to US
-                    int mode = intModeChoice.selectMode(t);
+                    Mode mode = intModeChoice.selectMode(t);
                     t.setMode(mode);
                 } else {
                     //international from Canada to OS
-                    t.setMode(1); //always by air
+                    t.setMode(ModeOntario.AIR); //always by air
                 }
                 t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
                 //visitors
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
                 //international visitors from US
-                int mode = intModeChoice.selectMode(t);
+                Mode mode = intModeChoice.selectMode(t);
                 t.setMode(mode);
                 t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
 
             } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)) {
                 //international visitors from US
-                t.setMode(1); //always by air
+                t.setMode(ModeOntario.AIR); //always by air
                 t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
             }
 

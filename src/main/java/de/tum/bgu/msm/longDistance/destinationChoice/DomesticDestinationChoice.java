@@ -4,15 +4,11 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.*;
 
 import de.tum.bgu.msm.Util;
-import de.tum.bgu.msm.longDistance.data.Purpose;
-import de.tum.bgu.msm.longDistance.data.PurposesOntario;
-import de.tum.bgu.msm.longDistance.data.TypesOntario;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -29,10 +25,9 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
     private TableDataSet coefficients;
     private Matrix autoDist;
     private int[] alternatives;
-    String[] tripPurposeArray;
     private DomesticModeChoice domesticModeChoice;
     private boolean calibration;
-    private double[] domDcCalibrationV;
+    private Map<Purpose, Double> domDcCalibrationV;
     private boolean isSummer;
 
     //private String[] fileMatrixLooup = new String[3];
@@ -48,22 +43,22 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
         //coef format
         // table format: coeff | visit | leisure | business
         //coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
-        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.domestic.coef_file"));
+        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.domestic.coef_file"));
         coefficients.buildStringIndex(1);
 
 
         //load alternatives
 
         //combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
-        combinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.domestic.alternatives_file"));
+        combinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.domestic.alternatives_file"));
         combinedZones.buildIndex(1);
         alternatives = combinedZones.getColumnAsInt("alt");
 
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
-        calibration = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration");
-        this.domDcCalibrationV = new double[] {1,1,1};
+        calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
+        this.domDcCalibrationV = new HashMap<>();
 
-        isSummer = JsonUtilMto.getBooleanProp(prop, "summer" );
+        isSummer = JsonUtilMto.getBooleanProp(prop, "summer");
 
 
         logger.info("Domestic DC set up");
@@ -72,15 +67,14 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
 
     }
 
-    public void load(DataSet dataSet){
+    public void load(DataSet dataSet) {
 
-        tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
         this.domesticModeChoice = dataSet.getMcDomestic();
 
         //load combined zones distance skim
         //readSkim();
 
-        autoDist = domesticModeChoice.getTravelTimeMatrix()[0];
+        autoDist = dataSet.getTravelTimeMatrix().get(ModeOntario.AUTO);
         logger.info("Domestic DC loaded");
 
     }
@@ -106,7 +100,6 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
 */
 
 
-
     //given a trip, calculate the utility of each destination
     public int selectDestination(LongDistanceTrip trip) {
 
@@ -121,7 +114,7 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
 //                tripPurpose = "business";
 //                break;
 //        }
-        Purpose tripPurpose =trip.getTripPurpose();
+        Purpose tripPurpose = trip.getTripPurpose();
 
         double[] expUtilities = Arrays.stream(alternatives)
                 //calculate exp(Ui) for each destination
@@ -130,18 +123,18 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
         double probability_denominator = Arrays.stream(expUtilities).sum();
 
         //calculate the probability for each trip, based on the destination utilities
-        double[] probabilities = Arrays.stream(expUtilities).map(u -> u/probability_denominator).toArray();
+        double[] probabilities = Arrays.stream(expUtilities).map(u -> u / probability_denominator).toArray();
 
         //choose one destination, weighted at random by the probabilities
-        return Util.select(probabilities,alternatives);
+        return Util.select(probabilities, alternatives);
         //return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
 
     }
 
-    public ZoneType getDestinationZoneType(int destinationZoneId){
+    public ZoneType getDestinationZoneType(int destinationZoneId) {
         //method to give the destination zone type from a destination
 
-        if (combinedZones.getIndexedStringValueAt(destinationZoneId,"loc").equals("ontario")){
+        if (combinedZones.getIndexedStringValueAt(destinationZoneId, "loc").equals("ontario")) {
             return ZoneType.ONTARIO;
         } else {
             return ZoneType.EXTCANADA;
@@ -162,42 +155,41 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
         //if (origin == destination && trip.getOrigZone().getZoneType() == ZoneType.EXTCANADA) return Double.NEGATIVE_INFINITY;
 
 //        String origin_east_west = combinedZones.getIndexedStringValueAt(origin,"loc");
-  //      String destination_east_west = combinedZones.getIndexedStringValueAt(destination,"loc");
+        //      String destination_east_west = combinedZones.getIndexedStringValueAt(destination,"loc");
         //if (origin_east_west.equals(destination_east_west) && !"ontario".equals(origin_east_west)) return Double.NEGATIVE_INFINITY;
 
-        double civic = combinedZones.getIndexedValueAt(destination,"population") + combinedZones.getIndexedValueAt(destination,"employment");
-        double m_intra = origin == destination ? combinedZones.getIndexedValueAt(origin,"alt_is_metro") : 0;
-        double mm_inter = origin != destination ? combinedZones.getIndexedValueAt(origin,"alt_is_metro")
-                * combinedZones.getIndexedValueAt(destination,"alt_is_metro") : 0;
-        double r_intra = origin == destination ? combinedZones.getIndexedValueAt(origin,"alt_is_metro") : 0;
+        double civic = combinedZones.getIndexedValueAt(destination, "population") + combinedZones.getIndexedValueAt(destination, "employment");
+        double m_intra = origin == destination ? combinedZones.getIndexedValueAt(origin, "alt_is_metro") : 0;
+        double mm_inter = origin != destination ? combinedZones.getIndexedValueAt(origin, "alt_is_metro")
+                * combinedZones.getIndexedValueAt(destination, "alt_is_metro") : 0;
+        double r_intra = origin == destination ? combinedZones.getIndexedValueAt(origin, "alt_is_metro") : 0;
         double fs_niagara = destination == 30 ? 1 : 0;
-        double fs_outdoors = combinedZones.getIndexedValueAt(destination,"outdoors");
-        double fs_skiing = combinedZones.getIndexedValueAt(destination,"skiing");
-        double fs_medical = combinedZones.getIndexedValueAt(destination,"medical");
-        double fs_sightseeing = combinedZones.getIndexedValueAt(destination,"sightseeing");
-        double fs_hotel = combinedZones.getIndexedValueAt(destination,"hotel");
+        double fs_outdoors = combinedZones.getIndexedValueAt(destination, "outdoors");
+        double fs_skiing = combinedZones.getIndexedValueAt(destination, "skiing");
+        double fs_medical = combinedZones.getIndexedValueAt(destination, "medical");
+        double fs_sightseeing = combinedZones.getIndexedValueAt(destination, "sightseeing");
+        double fs_hotel = combinedZones.getIndexedValueAt(destination, "hotel");
 
         //logsums
         //use non person based mode choice model
         //get the logsum
         double logsum = 0;
-        int[] modes = domesticModeChoice.getModes();
-        for (int m : modes) {
+        Mode[] modes = ModeOntario.values();
+        for (Mode m : modes) {
             logsum += Math.exp(domesticModeChoice.calculateUtilityFromExtCanada(trip, m, destination));
         }
-        if(logsum ==0){
+        if (logsum == 0) {
             return Double.NEGATIVE_INFINITY;
             //deals with trips that logsum == 0 --> means that no mode is available - no one is travelling there?
         } else {
             logsum = Math.log(logsum);
         }
 
-        double dtLogsum = trip.getTripState().equals(TypesOntario.DAYTRIP)? logsum: 0;
-        double onLogsum = !trip.getTripState().equals(TypesOntario.DAYTRIP)? logsum: 0;
+        double dtLogsum = trip.getTripState().equals(TypeOntario.DAYTRIP) ? logsum : 0;
+        double onLogsum = !trip.getTripState().equals(TypeOntario.DAYTRIP) ? logsum : 0;
 
         //Coefficients
         double alpha = coefficients.getStringIndexedValueAt("alpha", tripPurpose.toString());
-
 
 
         double b_calibration_dt = coefficients.getStringIndexedValueAt("b_calibration_dt", tripPurpose.toString());
@@ -205,23 +197,8 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
 
 
         if (calibration) {
-            switch ((PurposesOntario) trip.getTripPurpose()) {
-                case LEISURE:
-                    //tripPurpose = "leisure";
-                    b_calibration_dt = domDcCalibrationV[2];
-                    b_calibration_on = domDcCalibrationV[2];
-                    break;
-                case VISIT:
-                    //tripPurpose = "visit";
-                    b_calibration_dt = domDcCalibrationV[0];
-                    b_calibration_on = domDcCalibrationV[0];
-                    break;
-                case BUSINESS:
-                    //tripPurpose = "business";
-                    b_calibration_dt = domDcCalibrationV[1];
-                    b_calibration_on = domDcCalibrationV[1];
-                    break;
-            }
+            b_calibration_dt = domDcCalibrationV.getOrDefault(tripPurpose, 1.);
+            b_calibration_on = domDcCalibrationV.getOrDefault(tripPurpose, 1.);
         }
 
         double b_distance_log = coefficients.getStringIndexedValueAt("dist_log", tripPurpose.toString());
@@ -255,39 +232,40 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
         fs_hotel = fs_hotel > 0 ? Math.log(fs_hotel) : 0;
 
 
-
-
         double u =
                 //b_distance * Math.exp(-alpha * distance)
-                 b_distance_log * log_distance
-                + b_dtLogsum * dtLogsum * b_calibration_dt
-                + b_onLogsum * onLogsum * b_calibration_on
-                + b_civic * civic
-                + b_mm_inter * mm_inter
-                + b_m_intra * m_intra
-                + b_r_intra * r_intra
-                + b_niagara * fs_niagara
-                + b_outdoors * (isSummer ? 1 : 0)* fs_outdoors
-                + b_skiing * (!isSummer ? 1 : 0) *  fs_skiing
-                       // + b_outdoors * fs_outdoors
-                       // + b_skiing * fs_skiing
-                + b_medical * fs_medical
-                + b_hotel * fs_hotel
-                + b_sightseeing * fs_sightseeing;
+                b_distance_log * log_distance
+                        + b_dtLogsum * dtLogsum * b_calibration_dt
+                        + b_onLogsum * onLogsum * b_calibration_on
+                        + b_civic * civic
+                        + b_mm_inter * mm_inter
+                        + b_m_intra * m_intra
+                        + b_r_intra * r_intra
+                        + b_niagara * fs_niagara
+                        + b_outdoors * (isSummer ? 1 : 0) * fs_outdoors
+                        + b_skiing * (!isSummer ? 1 : 0) * fs_skiing
+                        // + b_outdoors * fs_outdoors
+                        // + b_skiing * fs_skiing
+                        + b_medical * fs_medical
+                        + b_hotel * fs_hotel
+                        + b_sightseeing * fs_sightseeing;
 
         return u;
     }
 
-    public double[] getDomDcCalibrationV() {
+    public Map<Purpose, Double> getDomDcCalibrationV() {
         return domDcCalibrationV;
     }
 
-    public void updatedomDcCalibrationV(double[] b_calibrationVector) {
-        this.domDcCalibrationV[0] = this.domDcCalibrationV[0]*b_calibrationVector[0];
-        this.domDcCalibrationV[1] = this.domDcCalibrationV[1]*b_calibrationVector[1];
-        this.domDcCalibrationV[2] = this.domDcCalibrationV[2]*b_calibrationVector[2];
+    public void updatedomDcCalibrationV(Map<Purpose, Double> b_calibrationVector) {
+
+        for (Purpose purpose : PurposeOntario.values()){
+            double newValue = domDcCalibrationV.get(purpose) * b_calibrationVector.get(purpose);
+            domDcCalibrationV.put(purpose, newValue);
+        }
     }
 
+    @Deprecated
     public Matrix getAutoDist() {
         return autoDist;
     }

@@ -1,17 +1,13 @@
 package de.tum.bgu.msm.longDistance.modeChoice;
 
 import com.pb.common.datafile.TableDataSet;
-import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
-import omx.OmxFile;
-import omx.OmxLookup;
-import omx.OmxMatrix;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -27,22 +23,7 @@ public class DomesticModeChoice {
 
     ResourceBundle rb;
 
-    private int[] modes = {0, 1, 2, 3};
-    private String[] modeNames = {"auto", "air", "rail", "bus"};
-    // 0 is auto, 1 is plane, 2 is train, 3 is rail
-
-    //the arrays of matrices are stored in the order of modes
-    String travelTimeFileName;
-    String priceFileName;
-    String transfersFileName;
-    String freqFileName;
-    String lookUpName;
-
-    private Matrix[] travelTimeMatrix = new Matrix[4];
-    private Matrix[] priceMatrix = new Matrix[4];
-    private Matrix[] transferMatrix = new Matrix[4];
-    private Matrix[] frequencyMatrix = new Matrix[4];
-
+    private DataSet dataSet;
 
     private TableDataSet mcOntarioCoefficients;
     private TableDataSet mcExtCanadaCoefficients;
@@ -51,8 +32,8 @@ public class DomesticModeChoice {
     private String[] tripStateArray;
 
     private boolean calibration;
-    private double[][] calibrationMatrix;
-    private double[][] calibrationMatrixVisitors;
+    private Map<Purpose, Map<Mode, Double>> calibrationMatrix;
+    private Map<Purpose, Map<Mode, Double>> calibrationMatrixVisitors;
 
 
     public DomesticModeChoice(JSONObject prop) {
@@ -79,11 +60,7 @@ public class DomesticModeChoice {
 //        freqFileName = rb.getString("freq.combined");
 //        lookUpName = rb.getString("skim.mode.choice.lookup");
 
-        travelTimeFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.time_file");
-        priceFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.price_file");
-        transfersFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.transfer_file");
-        freqFileName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.frequency_file");
-        lookUpName = JsonUtilMto.getStringProp(prop,"mode_choice.skim.lookup");
+
 
 
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration");
@@ -95,69 +72,32 @@ public class DomesticModeChoice {
 
 
     public void loadDomesticModeChoice(DataSet dataSet){
-
-        tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
-        tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
-
-        calibrationMatrix = new double[tripPurposeArray.length][modes.length];
-        calibrationMatrixVisitors = new double[tripPurposeArray.length][modes.length];
-
-        readSkimByMode(rb);
+        this.dataSet = dataSet;
+        calibrationMatrix = new HashMap<>();
+        calibrationMatrixVisitors = new HashMap<>();
+        //fill map
+        for(Purpose purpose : PurposeOntario.values()){
+            calibrationMatrixVisitors.put(purpose, new HashMap<>());
+            calibrationMatrix.put(purpose, new HashMap<>());
+            for (Mode mode : ModeOntario.values()){
+                calibrationMatrixVisitors.get(purpose).put(mode, 0.);
+                calibrationMatrix.put(purpose, new HashMap<>());
+            }
+        }
         logger.info("Domestic MC loaded");
     }
 
 
 
-
-    public void readSkimByMode(ResourceBundle rb) {
-        // read skim file
-
-
-
-        for (int m : modes) {
-
-            String matrixName = modeNames[m];
-
-            OmxFile skim = new OmxFile(travelTimeFileName);
-            skim.openReadOnly();
-            OmxMatrix omxMatrix = skim.getMatrix(matrixName);
-            travelTimeMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
-            OmxLookup omxLookUp = skim.getLookup(lookUpName);
-            int[] externalNumbers = (int[]) omxLookUp.getLookup();
-            travelTimeMatrix[m].setExternalNumbersZeroBased(externalNumbers);
-
-            skim = new OmxFile(priceFileName);
-            skim.openReadOnly();
-            omxMatrix = skim.getMatrix(matrixName);
-            priceMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
-            priceMatrix[m].setExternalNumbersZeroBased(externalNumbers);
-
-            skim = new OmxFile(transfersFileName);
-            skim.openReadOnly();
-            omxMatrix = skim.getMatrix(matrixName);
-            transferMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
-            transferMatrix[m].setExternalNumbersZeroBased(externalNumbers);
-
-            skim = new OmxFile(freqFileName);
-            skim.openReadOnly();
-            omxMatrix = skim.getMatrix(matrixName);
-            frequencyMatrix[m] = Util.convertOmxToMatrix(omxMatrix);
-            frequencyMatrix[m].setExternalNumbersZeroBased(externalNumbers);
-
-        }
-
-        logger.info("  skims files for mode choice read");
-    }
-
-    public int selectModeDomestic(LongDistanceTrip trip) {
+    public Mode selectModeDomestic(LongDistanceTrip trip) {
 
         double[] expUtilities;
         if (trip.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
             //calculate exp(Ui) for each destination
-            expUtilities = Arrays.stream(modes).mapToDouble(m -> Math.exp(calculateUtilityFromOntario(trip, m, trip.getDestCombinedZoneId()))).toArray();
+            expUtilities = Arrays.stream(ModeOntario.values()).mapToDouble(m -> Math.exp(calculateUtilityFromOntario(trip, m, trip.getDestCombinedZoneId()))).toArray();
         } else {
             //calculate exp(Ui) for each destination
-            expUtilities = Arrays.stream(modes).mapToDouble(m -> Math.exp(calculateUtilityFromExtCanada(trip, m, trip.getDestCombinedZoneId()))).toArray();
+            expUtilities = Arrays.stream(ModeOntario.values()).mapToDouble(m -> Math.exp(calculateUtilityFromExtCanada(trip, m, trip.getDestCombinedZoneId()))).toArray();
         }
         double probability_denominator = Arrays.stream(expUtilities).sum();
 
@@ -167,18 +107,18 @@ public class DomesticModeChoice {
         }
 
         //choose one destination, weighted at random by the probabilities
-        return Util.select(expUtilities, modes);
+        return (Mode) Util.select(expUtilities, ModeOntario.values());
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
 
     }
 
 
-    public double calculateUtilityFromExtCanada(LongDistanceTrip trip, int m, int destination) {
+    public double calculateUtilityFromExtCanada(LongDistanceTrip trip, Mode m, int destination) {
 
         double utility;
-        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
-        String column = modeNames[m] + "." + tripPurpose;
-        String tripState = tripStateArray[trip.getTripState()];
+        String tripPurpose = trip.getTripPurpose().toString().toLowerCase();
+        String column = m.toString().toLowerCase() + "." + tripPurpose;
+        String tripState = trip.getTripState().toString().toLowerCase();
 
         //trip-related variables
         int party = trip.getAdultsHhTravelPartySize() + trip.getKidsHhTravelPartySize() + trip.getNonHhTravelPartySize();
@@ -197,9 +137,9 @@ public class DomesticModeChoice {
             ruralRural = 1;
         }
 
-        double time = travelTimeMatrix[m].getValueAt(origin, destination);
-        double price = priceMatrix[m].getValueAt(origin, destination);
-        double frequency = frequencyMatrix[m].getValueAt(origin, destination);
+        double time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination);
+        double price = dataSet.getPriceMatrix().get(m).getValueAt(origin, destination);
+        double frequency = dataSet.getFrequencyMatrix().get(m).getValueAt(origin, destination);
 
         double vot = mcExtCanadaCoefficients.getStringIndexedValueAt("vot", column);
 
@@ -211,7 +151,7 @@ public class DomesticModeChoice {
 
         //todo solve intrazonal times
         if (origin == destination) {
-            if (m == 0) {
+            if (m.equals(ModeOntario.AUTO)) {
                 time = 60;
                 price = 20;
             }
@@ -232,7 +172,7 @@ public class DomesticModeChoice {
         double alpha_impedance = mcExtCanadaCoefficients.getStringIndexedValueAt("alpha", column);
 
 
-        if (calibration) k_calibration = calibrationMatrixVisitors[trip.getTripPurpose()][m];
+        if (calibration) k_calibration = calibrationMatrixVisitors.get(trip.getTripPurpose()).get(trip.getMode());
 
         utility = b_intercept + b_frequency * frequency +
                 k_calibration +
@@ -258,13 +198,13 @@ public class DomesticModeChoice {
     }
 
 
-    public double calculateUtilityFromOntario(LongDistanceTrip trip, int m, int destination) {
+    public double calculateUtilityFromOntario(LongDistanceTrip trip, Mode m, int destination) {
 
 
         double utility;
-        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
-        String column = modeNames[m] + "." + tripPurpose;
-        String tripState = tripStateArray[trip.getTripState()];
+        String tripPurpose = trip.getTripPurpose().toString().toLowerCase();
+        String column = m.toString() + "." + tripPurpose;
+        String tripState = trip.getTripState().toString().toLowerCase();
 
         //trip-related variables
         int party = trip.getAdultsHhTravelPartySize() + trip.getKidsHhTravelPartySize() + trip.getNonHhTravelPartySize();
@@ -287,9 +227,9 @@ public class DomesticModeChoice {
         }
 
 
-        double time = travelTimeMatrix[m].getValueAt(origin, destination);
-        double price = priceMatrix[m].getValueAt(origin, destination);
-        double frequency = frequencyMatrix[m].getValueAt(origin, destination);
+        double time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination);
+        double price = dataSet.getPriceMatrix().get(m).getValueAt(origin, destination);
+        double frequency = dataSet.getPriceMatrix().get(m).getValueAt(origin, destination);
 
         double vot = mcOntarioCoefficients.getStringIndexedValueAt("vot", column);
 
@@ -301,7 +241,7 @@ public class DomesticModeChoice {
 
         //todo solve intrazonal times
         if (origin == destination) {
-            if (m == 0) {
+            if (m.equals(ModeOntario.AUTO)) {
                 time = 60;
                 price = 20;
             }
@@ -337,7 +277,7 @@ public class DomesticModeChoice {
         double alpha_impedance = mcOntarioCoefficients.getStringIndexedValueAt("alpha", column);
 
         //this updates calibration factor from during-runtime calibration matrix
-        if (calibration) k_calibration = calibrationMatrix[trip.getTripPurpose()][m];
+        if (calibration) k_calibration = calibrationMatrix.get(trip.getTripPurpose()).get(trip.getMode());
 
         utility = b_intercept + k_calibration +
                 b_frequency * frequency +
@@ -361,47 +301,32 @@ public class DomesticModeChoice {
 
     }
 
-    public int[] getModes() {
-        return modes;
+    public void updateCalibrationDomestic(Map<Purpose, Map<Mode, Double>> updatedMatrix) {
+
+        for(Purpose purpose : PurposeOntario.values()){
+            for (Mode mode : ModeOntario.values()){
+                double newValue = this.calibrationMatrix.get(purpose).get(mode) + updatedMatrix.get(purpose).get(mode);
+                calibrationMatrix.get(purpose).put(mode, newValue);
+            }
+        }
+
     }
 
-    public Matrix[] getTravelTimeMatrix() {
-        return travelTimeMatrix;
-    }
+    public void updateCalibrationDomesticVisitors(Map<Purpose, Map<Mode, Double>> updatedMatrix) {
 
-    public Matrix[] getPriceMatrix() {
-        return priceMatrix;
-    }
-
-    public Matrix[] getTransferMatrix() {
-        return transferMatrix;
-    }
-
-    public Matrix[] getFrequencyMatrix() {
-        return frequencyMatrix;
-    }
-
-    public void updateCalibrationDomestic(double[][] calibrationMatrix) {
-        for (int purp = 0; purp < tripPurposeArray.length; purp++) {
-            for (int mode = 0; mode < modes.length; mode++) {
-                this.calibrationMatrix[purp][mode] += calibrationMatrix[purp][mode];
+        for(Purpose purpose : PurposeOntario.values()){
+            for (Mode mode : ModeOntario.values()){
+                double newValue = this.calibrationMatrixVisitors.get(purpose).get(mode) + updatedMatrix.get(purpose).get(mode);
+                calibrationMatrixVisitors.get(purpose).put(mode, newValue);
             }
         }
     }
 
-    public void updateCalibrationDomesticVisitors(double[][] calibrationMatrix) {
-        for (int purp = 0; purp < tripPurposeArray.length; purp++) {
-            for (int mode = 0; mode < modes.length; mode++) {
-                this.calibrationMatrixVisitors[purp][mode] += calibrationMatrix[purp][mode];
-            }
-        }
-    }
-
-    public double[][] getCalibrationMatrixVisitors() {
+    public Map<Purpose, Map<Mode, Double>> getCalibrationMatrixVisitors() {
         return calibrationMatrixVisitors;
     }
 
-    public double[][] getCalibrationMatrix() {
+    public Map<Purpose, Map<Mode, Double>> getCalibrationMatrix() {
         return calibrationMatrix;
     }
 
@@ -409,7 +334,7 @@ public class DomesticModeChoice {
         if (trip.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneType.EXTOVERSEAS) ){
             return -1.f;
         } else {
-            return travelTimeMatrix[trip.getMode()].getValueAt(trip.getOrigZone().getCombinedZoneId(), trip.getDestCombinedZoneId());
+            return dataSet.getTravelTimeMatrix().get(trip.getMode()).getValueAt(trip.getOrigZone().getCombinedZoneId(), trip.getDestCombinedZoneId());
         }
     }
 

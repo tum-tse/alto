@@ -5,6 +5,8 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
+import de.tum.bgu.msm.longDistance.data.ModeOntario;
+import de.tum.bgu.msm.longDistance.data.PurposeOntario;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -84,12 +86,12 @@ public class ZoneDisaggregator implements ModelComponent {
 
         Zone destZone;
 
-        if (trip.getDestCombinedZoneId() == 30 && trip.getTripPurpose() == 2) {
+        if (trip.getDestCombinedZoneId() == 30 && trip.getTripPurpose().equals(PurposeOntario.LEISURE)) {
             //the leisure trip ends in Niagara falls --> go to the falls
             destZone = selectDestinationInNiagara(trip);
 
         } else {
-            if (trip.getMode() != 0) {
+            if (!trip.getMode().equals(ModeOntario.AUTO)) {
                 //trips by public transport
                 destZone = selectDestinationZonePopBased(trip);
             } else {
@@ -176,16 +178,16 @@ public class ZoneDisaggregator implements ModelComponent {
 
         double civic = 0;
 
-        switch (trip.getTripPurpose()) {
-            case 0:
+        switch ((PurposeOntario) trip.getTripPurpose()) {
+            case VISIT:
                 //visit
                 civic = zone.getPopulation();
                 break;
-            case 1:
+            case BUSINESS:
                 //business
                 civic = zone.getPopulation() + zone.getEmployment();
                 break;
-            case 2:
+            case LEISURE:
                 //leisure
                 civic = zone.getPopulation() + zone.getEmployment();
                 break;

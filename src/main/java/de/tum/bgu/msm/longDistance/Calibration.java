@@ -1,7 +1,7 @@
 package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.JsonUtilMto;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.destinationChoice.Distribution;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
@@ -10,10 +10,12 @@ import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by carlloga on 12-07-17.
@@ -42,12 +44,20 @@ public class Calibration implements ModelComponent {
     public Calibration() {
     }
 
+    enum DcModelName {
+        domesticDc, internationalOutboundDc, internationalInboundDc;
+    }
+
+    enum McModelName {
+        domesticResidentsMc, domesticVisitorsMc, internationalOutboundMc, internationalInboundMc;
+    }
+
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
-
         calibrationDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
         calibrationMC = JsonUtilMto.getBooleanProp(prop, "mode_choice.calibration");
+
         maxIter = 50;
 
     }
@@ -81,33 +91,35 @@ public class Calibration implements ModelComponent {
     public void calibrateModel(boolean dc, boolean mc, DataSet dataSet) {
 
         for (LongDistanceTrip t : dataSet.getAllTrips()){
-            if (t.getTripState() !=0){
+            if (!t.getTripState().equals(TypeOntario.AWAY)){
                 allTrips.add(t);
             }
         }
 
 
-        double[][][] calibrationMatrixMc = new double[4][3][4];
-        double[][] calibrationMatrixDc = new double[3][3];
+        Map<DcModelName, Map<Purpose, Double>> calibrationMatrixDc = new HashMap<>();
+        Map<McModelName, Map<Purpose, Map<Mode, Double>>> calibrationMatrixMc = new HashMap<>();
+
+
 
 
         for (int iteration = 0; iteration < maxIter; iteration++) {
 
             logger.info("Calibration of destination choice: Iteration = " + iteration);
             calibrationMatrixDc = calculateCalibrationMatrix(allTrips);
-            dcModel.updatedomDcCalibrationV(calibrationMatrixDc[0]);
-            dcOutboundModel.updateIntOutboundCalibrationV(calibrationMatrixDc[1]);
-            dcInBoundModel.updateIntInboundCalibrationV(calibrationMatrixDc[2]);
+            dcModel.updatedomDcCalibrationV(calibrationMatrixDc.get(DcModelName.domesticDc));
+            dcOutboundModel.updateIntOutboundCalibrationV(calibrationMatrixDc.get(DcModelName.internationalOutboundDc));
+            dcInBoundModel.updateIntInboundCalibrationV(calibrationMatrixDc.get(DcModelName.internationalInboundDc));
 
             runDc();
             runMc();
 
             logger.info("Calibration of mode choice: Iteration = " + iteration);
             calibrationMatrixMc = calculateMCCalibrationFactors(allTrips);
-            mcDomesticModel.updateCalibrationDomestic(calibrationMatrixMc[0]);
-            mcDomesticModel.updateCalibrationDomesticVisitors(calibrationMatrixMc[3]);
-            intModeChoice.updateCalibrationOutbound(calibrationMatrixMc[1]);
-            intModeChoice.updateCalibrationInbound(calibrationMatrixMc[2]);
+            mcDomesticModel.updateCalibrationDomestic(calibrationMatrixMc.get(McModelName.domesticResidentsMc));
+            mcDomesticModel.updateCalibrationDomesticVisitors(calibrationMatrixMc.get(McModelName.domesticVisitorsMc));
+            intModeChoice.updateCalibrationOutbound(calibrationMatrixMc.get(McModelName.internationalOutboundMc));
+            intModeChoice.updateCalibrationInbound(calibrationMatrixMc.get(McModelName.internationalInboundMc));
 
             //runDestinationChoice(allTrips);
             runDc();
@@ -134,10 +146,20 @@ public class Calibration implements ModelComponent {
     }
 
 
-    public double[][] getAverageTripDistances(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<DcModelName, Map<Purpose, Double>> getAverageTripDistances(ArrayList<LongDistanceTrip> allTrips) {
 
-        double[][] averageDistances = new double[3][3];
-        double[][] counts = new double[3][3];
+        Map<DcModelName, Map<Purpose, Double>> averageDistances = new HashMap<>();
+        Map<DcModelName, Map<Purpose, Double>> counts = new HashMap<>();
+
+        for (DcModelName name : DcModelName.values()){
+            averageDistances.putIfAbsent(name, new HashMap<>());
+            counts.putIfAbsent(name, new HashMap<>());
+            for (Purpose purpose : PurposeOntario.values()){
+                averageDistances.get(name).putIfAbsent(purpose, 0.);
+                counts.get(name).putIfAbsent(purpose, 0.);
+            }
+
+        }
 
         for (LongDistanceTrip t : allTrips) {
             if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getDestZoneType().equals(ZoneType.ONTARIO)) {
@@ -145,21 +167,21 @@ public class Calibration implements ModelComponent {
                 if (!t.isInternational()) {
                     //domestic from Ontario - row 0
                     if (t.getTravelDistanceLevel2() < 2000) {
-                        averageDistances[0][t.getTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
-                        counts[0][t.getTripPurpose()] += getTripWeight(t);
+                        DcModelName name = DcModelName.domesticDc;
+                        addTripToAverageCalculator(averageDistances, counts, t, name);
                     }
 
                 } else if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
                     //international from ontario to us - row 1
                     if (t.getTravelDistanceLevel2() < 4000) {
-                        averageDistances[1][t.getTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
-                        counts[1][t.getTripPurpose()] += getTripWeight(t);
+                        DcModelName name = DcModelName.internationalOutboundDc;
+                        addTripToAverageCalculator(averageDistances, counts, t, name);
                     }
                 } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) /*&& t.getDestZoneType().equals(ZoneType.ONTARIO)*/) {
                     //international from US to ontario + row 2
                     if (t.getTravelDistanceLevel2() < 4000) {
-                        averageDistances[2][t.getTripPurpose()] += t.getTravelDistanceLevel2() * getTripWeight(t);
-                        counts[2][t.getTripPurpose()] += getTripWeight(t);
+                        DcModelName name = DcModelName.internationalInboundDc;
+                        addTripToAverageCalculator(averageDistances, counts, t, name);
                     }
                 }
             }
@@ -176,6 +198,14 @@ public class Calibration implements ModelComponent {
         logger.info("dc,type2,distance,visit," + averageDistances[2][0] + ",business," + averageDistances[2][1] + ",leisure," + averageDistances[2][2]);
         return averageDistances;
 
+    }
+
+    private void addTripToAverageCalculator(Map<DcModelName, Map<Purpose, Double>> averageDistances, Map<DcModelName, Map<Purpose, Double>> counts, LongDistanceTrip t, DcModelName name) {
+        double previousDistance = averageDistances.get(name).get(t.getTripPurpose());
+        double previousCount = counts.get(name).get(t.getTripPurpose());
+
+        averageDistances.get(name).put(t.getTripPurpose(), previousDistance + t.getTravelDistanceLevel2() * getTripWeight(t));
+        counts.get(name).put(t.getTripPurpose(), previousCount + getTripWeight(t));
     }
 
     public double[][] calculateCalibrationMatrix(ArrayList<LongDistanceTrip> allTrips) {

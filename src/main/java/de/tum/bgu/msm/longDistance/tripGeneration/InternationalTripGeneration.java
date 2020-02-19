@@ -4,14 +4,14 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
+import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.Util;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -20,14 +20,13 @@ import java.util.*;
  */
 public class InternationalTripGeneration implements TripGenerationModule {
 
-    static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
-    static final List<String> tripStates = ZonalData.getTripStates();
-    static final List<String> tripPurposes = ZonalData.getTripPurposes();
+    private static Logger logger = Logger.getLogger(InternationalTripGeneration.class);
+
     //private ResourceBundle rb;
     private JSONObject prop;
-    private double[][] sumProbabilities;
+    private Map<Purpose, Map<Type, Double>> sumProbabilities;
     private int[] personIds;
-    private double[][][] probabilityMatrix;
+    private Map<Purpose, Map<Type, Double[]>> probabilityMatrix;
     //private SyntheticPopulation synPop;
     private TableDataSet travelPartyProbabilities;
     private TableDataSet internationalTripRates;
@@ -36,6 +35,9 @@ public class InternationalTripGeneration implements TripGenerationModule {
     private TableDataSet originCombinedZones;
 
     private DataSet dataSet;
+
+    private AtomicInteger atomicInteger;
+
 
     public InternationalTripGeneration(JSONObject prop) {
 //        this.synPop = synPop;
@@ -51,9 +53,7 @@ public class InternationalTripGeneration implements TripGenerationModule {
         travelPartyProbabilities = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"trip_generation.international.party_file"));
         travelPartyProbabilities.buildIndex(travelPartyProbabilities.getColumnPosition("travelParty"));
 
-//        String tripGenCoefficientsFilename = rb.getString("domestic.coefs");
-//        tripGenerationCoefficients = Util.readCSVfile(tripGenCoefficientsFilename);
-//        tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
+
 
     }
 
@@ -78,41 +78,49 @@ public class InternationalTripGeneration implements TripGenerationModule {
     //method to run the trip generation
     public ArrayList<LongDistanceTrip> run() {
 
+      atomicInteger = new AtomicInteger(dataSet.getAllTrips().size() + 1);
+
 
 
         ArrayList<LongDistanceTrip> trips = new ArrayList<>();
 
         //initialize probMatrices
-        sumProbabilities = new double[tripPurposes.size()][tripStates.size()];
+        for (Purpose purpose : PurposeOntario.values()){
+            sumProbabilities.put(purpose, new HashMap<>());
+            probabilityMatrix.put(purpose, new HashMap<>());
+            for (Type type : TypeOntario.values()){
+                sumProbabilities.get(purpose).put(type, 0.);
+                probabilityMatrix.get(purpose).put(type, new Double[dataSet.getPersons().size()]);
+            }
+        }
         personIds = new int[dataSet.getPersons().size()];
-        probabilityMatrix = new double[tripPurposes.size()][tripStates.size()][dataSet.getPersons().size()];
 
         //normalize p(travel) per purpose/state by sum of the probability for each person
         sumProbs();
 
         //run trip generation
-        for (String tripPurpose : tripPurposes) {
-            for (String tripState : tripStates) {
+        for (Purpose tripPurpose : PurposeOntario.values()) {
+            for (TypeOntario tripState : TypeOntario.values()) {
                 int tripCount = 0;
                 //get the total number of trips to generate
-                int numberOfTrips = (int)(internationalTripRates.getIndexedValueAt(tripStates.indexOf(tripState), tripPurpose)*personIds.length);
+                int numberOfTrips = (int)(internationalTripRates.getIndexedValueAt(TypeOntario.getIndex(tripState), tripPurpose.toString().toLowerCase())*personIds.length);
                 //select the travellers - repeat more than once because the two random numbers can be in the interval of 1 person
                 for (int iteration = 0; iteration < 5; iteration++){
                     int n = numberOfTrips - tripCount;
                     double[] randomChoice = new double[n];
                     for (int k = 0; k < randomChoice.length; k++) {
-                        randomChoice[k] = LDModel.rand.nextDouble()*sumProbabilities[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)];;
+                        randomChoice[k] = LDModel.rand.nextDouble()*sumProbabilities.get(tripPurpose).get(tripState);
                     }
                     //sort the matrix for faster lookup
                     Arrays.sort(randomChoice);
                     //look up for the n travellers
                     int p = 0;
-                    double cumulative = probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p];
+                    double cumulative = probabilityMatrix.get(tripPurpose).get(tripState)[p];
 
                     for (double randomNumber : randomChoice){
                         while (randomNumber > cumulative && p < personIds.length - 1) {
                             p++;
-                            cumulative += probabilityMatrix[tripPurposes.indexOf(tripPurpose)][tripStates.indexOf(tripState)][p];
+                            cumulative += probabilityMatrix.get(tripPurpose).get(tripState)[p];
                         }
                         Person pers = dataSet.getPersonFromId(personIds[p]);
                         if (!pers.isDaytrip() && !pers.isAway() && !pers.isInOutTrip() && pers.getAge() > 17 && tripCount < numberOfTrips) {
@@ -134,23 +142,25 @@ public class InternationalTripGeneration implements TripGenerationModule {
     }
 
 
-    private LongDistanceTrip createIntLongDistanceTrip(Person pers, String tripPurpose, String tripState, TableDataSet travelPartyProbabilities ){
+    private LongDistanceTrip createIntLongDistanceTrip(Person pers, Purpose tripPurpose, Type tripState, TableDataSet travelPartyProbabilities ){
 
-        switch (tripState) {
-            case "away" :
+        TypeOntario type = (TypeOntario) tripState;
+
+        switch (type) {
+            case AWAY :
                 pers.setAway(true);
-            case "daytrip":
+            case DAYTRIP:
                 pers.setDaytrip(true);
-            case "inout":
+            case INOUT:
                 pers.setInOutTrip(true);
         }
 
-        ArrayList<Person> adultsHhTravelParty = DomesticTripGeneration.addAdultsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
-        ArrayList<Person> kidsHhTravelParty = DomesticTripGeneration.addKidsHhTravelParty(pers, tripPurpose, travelPartyProbabilities);
+        ArrayList<Person> adultsHhTravelParty = DomesticTripGeneration.addAdultsHhTravelParty(pers, tripPurpose.toString(), travelPartyProbabilities);
+        ArrayList<Person> kidsHhTravelParty = DomesticTripGeneration.addKidsHhTravelParty(pers, tripPurpose.toString(), travelPartyProbabilities);
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         hhTravelParty.addAll(adultsHhTravelParty);
         hhTravelParty.addAll(kidsHhTravelParty);
-        int nonHhTravelPartySize = DomesticTripGeneration.addNonHhTravelPartySize(tripPurpose, travelPartyProbabilities);
+        int nonHhTravelPartySize = DomesticTripGeneration.addNonHhTravelPartySize(tripPurpose.toString(), travelPartyProbabilities);
 
         int tripDuration;
         if (pers.isDaytrip()) tripDuration = 0;
@@ -158,8 +168,12 @@ public class InternationalTripGeneration implements TripGenerationModule {
             tripDuration = 1;
         }
 
-        return new LongDistanceTrip(pers, true, tripPurposes.indexOf(tripPurpose), tripStates.indexOf(tripState), pers.getHousehold().getZone(), true,
-                tripDuration, adultsHhTravelParty.size(), kidsHhTravelParty.size(), nonHhTravelPartySize);
+        LongDistanceTrip trip =  new LongDistanceTrip(atomicInteger.getAndIncrement(), pers, true, tripPurpose, tripState, pers.getHousehold().getZone(), tripDuration,
+                nonHhTravelPartySize);
+        trip.setHhTravelParty(hhTravelParty);
+
+        return trip;
+
 
     }
 
@@ -177,19 +191,19 @@ public class InternationalTripGeneration implements TripGenerationModule {
             //Person pers = synPop.getPersonFromId(p);
             personIds[p] = pers.getPersonId();
             if (pers.getTravelProbabilities() != null) {
-                for (String tripPurpose : tripPurposes) {
-                    for (String tripState : tripStates) {
-                        int j = tripStates.indexOf(tripState);
-                        int i = tripPurposes.indexOf(tripPurpose);
+                for (Purpose tripPurpose : PurposeOntario.values()) {
+                    for (Type tripState : TypeOntario.values()) {
+
                         if (pers.isAway() || pers.isDaytrip() || pers.isInOutTrip() || pers.getAge() < 18) {
-                            probabilityMatrix[i][j][p] = 0f;
+                            probabilityMatrix.get(tripPurpose).get(tripState)[p] = 0.;
                             //cannot be an adult travelling
                         } else {
                             //probabilityMatrix[i][j][p] = pers.getTravelProbabilities()[i][j];
                             //correct here the probability by the accessibility to US - using access at level 2 zone
-                            probabilityMatrix[i][j][p] = pers.getTravelProbabilities()[i][j] * Math.pow(originCombinedZones.getIndexedValueAt(pers.getHousehold().getZone().getCombinedZoneId(), "usAccess"),exponent);
+                            probabilityMatrix.get(tripPurpose).get(tripState)[p] = pers.getTravelProbabilities().get(tripPurpose).get(tripState) * Math.pow(originCombinedZones.getIndexedValueAt(pers.getHousehold().getZone().getCombinedZoneId(), "usAccess"),exponent);
                         }
-                        sumProbabilities[i][j] += probabilityMatrix[i][j][p];
+                        double newValue = sumProbabilities.get(tripPurpose).get(tripState) + probabilityMatrix.get(tripPurpose).get(tripState)[p];
+                        sumProbabilities.get(tripPurpose).put(tripState, newValue);
                     }
                 }
             }

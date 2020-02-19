@@ -5,10 +5,7 @@ import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.data.Purpose;
-import de.tum.bgu.msm.longDistance.data.PurposesOntario;
-import de.tum.bgu.msm.longDistance.data.Type;
+import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import omx.OmxFile;
@@ -18,6 +15,8 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -31,13 +30,10 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
     private TableDataSet coefficients;
     private Matrix autoTravelTime;
     private int[] alternatives;
-    private String[] tripPurposeArray;
-    private String[] tripStateArray;
     private DomesticDestinationChoice dcModel;
     private IntModeChoice intModeChoice;
     private boolean calibration;
-    private double[] calibrationV;
-
+    private Map<Purpose, Double> calibrationV;
 
 
     public IntInboundDestinationChoice(JSONObject prop) {
@@ -45,30 +41,28 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
         // table format: coeff | visit | leisure | business
         //this.rb = rb;
         //coefficients = Util.readCSVfile(rb.getString("dc.int.us.in.coefs"));
-        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.international.inbound.coef_file"));
+        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.international.inbound.coef_file"));
         coefficients.buildStringIndex(1);
 
 
         //load alternatives
         //destCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
-        destCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.domestic.alternatives_file"));
+        destCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.domestic.alternatives_file"));
         destCombinedZones.buildIndex(1);
         alternatives = destCombinedZones.getColumnAsInt("alt");
 
 
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
-        calibration = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration");
-        this.calibrationV = new double[] {1,1,1};
+        calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
+        this.calibrationV = new HashMap<>();
 
         logger.info("International DC (inbound) set up");
 
     }
 
     @Override
-    public void load(DataSet dataSet){
+    public void load(DataSet dataSet) {
 
-        tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
-        tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
         this.dcModel = dataSet.getDcDomestic();
         this.intModeChoice = dataSet.getMcInt();
         //load combined zones distance skim
@@ -80,8 +74,8 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
 
 
     @Override
-    public int selectDestination(LongDistanceTrip trip){
-        if(trip.getOrigZone().getZoneType().equals(ZoneType.EXTUS)){
+    public int selectDestination(LongDistanceTrip trip) {
+        if (trip.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
             return selectDestinationFromUs(trip);
         } else {
             return selectDestinationFromOs(trip);
@@ -90,7 +84,6 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
 
 
     private int selectDestinationFromUs(LongDistanceTrip trip) {
-
 
 
         Purpose tripPurpose = trip.getTripPurpose();
@@ -102,7 +95,7 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
         double[] probabilities = Arrays.stream(expUtilities).map(u -> u / probability_denominator).toArray();
 
         //return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
-        return Util.select(probabilities,alternatives);
+        return Util.select(probabilities, alternatives);
     }
 
 
@@ -119,7 +112,7 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
 
         //return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
 
-        return Util.select(probabilities,alternatives);
+        return Util.select(probabilities, alternatives);
     }
 
 
@@ -163,32 +156,17 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
         double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose.toString());
 
         if (calibration) {
-            switch ((PurposesOntario) trip.getTripPurpose()) {
-                case LEISURE:
-                    //tripPurpose = "leisure";
-                    k_dtLogsum = calibrationV[2];
-                    k_onLogsum = k_dtLogsum;
-                    break;
-                case VISIT:
-                    //tripPurpose = "visit";
-                    k_dtLogsum = calibrationV[0];
-                    k_onLogsum = k_dtLogsum;
-                    break;
-                case BUSINESS:
-                    //tripPurpose = "business";
-                    k_dtLogsum = calibrationV[1];
-                    k_onLogsum = k_dtLogsum;
-                    break;
-            }
+            k_dtLogsum = calibrationV.getOrDefault(tripPurpose, 1.);
+            k_onLogsum = k_dtLogsum;
         }
 
         //get the logsum
         double logsum = 0;
-        int[] modes = intModeChoice.getModes();
-        for (int m : modes) {
+        Mode[] modes = ModeOntario.values();
+        for (Mode m : modes) {
             logsum += Math.exp(intModeChoice.calculateUtilityToCanada(trip, m, destination));
         }
-        if(logsum ==0){
+        if (logsum == 0) {
             return Double.NEGATIVE_INFINITY;
             //deal with trips that logsum == 0 --> means that no mode is available
             //logger.info(trip.getOrigZone().getCombinedZoneId() + " to " + destination);
@@ -211,15 +189,15 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
 
         double civic = Math.log(population + employment);
 
-        double log_civic = civic>0? Math.log(population + employment): 0;
+        double log_civic = civic > 0 ? Math.log(population + employment) : 0;
 
 
         double hotel = destCombinedZones.getIndexedValueAt(destination, "hotel");
-        double log_hotel = hotel>0? Math.log(hotel): 0;
+        double log_hotel = hotel > 0 ? Math.log(hotel) : 0;
         double skiing = destCombinedZones.getIndexedValueAt(destination, "skiing");
         int altIsMetro = (int) destCombinedZones.getIndexedValueAt(destination, "alt_is_metro");
 
-        int altIsNiagara = destination == 30? 1 : 0;
+        int altIsNiagara = destination == 30 ? 1 : 0;
 
 
         //calculate utility
@@ -228,7 +206,7 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
                 b_dtLogsum * (1 - overnight) * logsum * k_dtLogsum +
                 b_onLogsum * overnight * logsum * k_onLogsum +
                 b_civic * civic +
-                b_log_civic* log_civic +
+                b_log_civic * log_civic +
                 b_skiing * skiing +
                 b_altIsMetro * altIsMetro +
                 b_hotel * hotel +
@@ -238,21 +216,18 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
     }
 
     public double calculateCanZoneUtilityFromOs(int destination) {
-
-//read coefficients
-
         return destCombinedZones.getIndexedValueAt(destination, "population");
-
-
     }
 
-    public void updateIntInboundCalibrationV(double[] b_calibrationVector) {
-        this.calibrationV[0] = this.calibrationV[0]*b_calibrationVector[0];
-        this.calibrationV[1] = this.calibrationV[1]*b_calibrationVector[1];
-        this.calibrationV[2] = this.calibrationV[2]*b_calibrationVector[2];
+    public void updateIntInboundCalibrationV(Map<Purpose, Double> b_calibrationVector) {
+
+        for (Purpose purpose : PurposeOntario.values()){
+            double newValue = calibrationV.get(purpose) * b_calibrationVector.get(purpose);
+            calibrationV.put(purpose, newValue);
+        }
     }
 
-    public double[] getCalibrationV() {
+    public Map<Purpose, Double>  getCalibrationV() {
         return calibrationV;
     }
 }

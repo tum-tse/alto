@@ -6,6 +6,9 @@ import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
+import de.tum.bgu.msm.longDistance.data.ModeOntario;
+import de.tum.bgu.msm.longDistance.data.PurposeOntario;
+import de.tum.bgu.msm.longDistance.data.TypeOntario;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -52,7 +55,7 @@ public class TimeOfDayChoice implements ModelComponent {
 
         trips.parallelStream().forEach(trip -> {
             int departureTime;
-            if (trip.getTripState() == 0){
+            if (trip.getTripState().equals(TypeOntario.AWAY)){
                 //away
             } else {
                 calculateDepartureTime(trip, convertMode(trip), convertPurpose(trip));
@@ -63,7 +66,7 @@ public class TimeOfDayChoice implements ModelComponent {
 
     private void calculateDepartureTime(LongDistanceTrip trip, String mode, String purpose) {
 
-        if( trip.getTripState()==1){
+        if( trip.getTripState().equals(TypeOntario.AWAY)){
             //daytrip
             trip.setDepartureTimeInHours(Util.select(multiply(probabilities.get("departure." + mode + "." + purpose),correctionFactorDayTripOutbound), departureTimesInHours));
             trip.setDepartureTimeInHoursSecondSegment(Util.select(multiply(probabilities.get("departure." + mode + "." + purpose),correctionFactorDayTripInbound), departureTimesInHours));
@@ -84,16 +87,14 @@ public class TimeOfDayChoice implements ModelComponent {
 
     private String convertPurpose(LongDistanceTrip trip) {
         String purpose = "all";
-        if (trip.getMode() == 0 || trip.getMode() == 3) {
-            switch (trip.getTripPurpose()) {
-                case (0):
+    if (trip.getMode().equals(ModeOntario.AUTO) || trip.getMode().equals(ModeOntario.BUS)) {
+            switch ((PurposeOntario) trip.getTripPurpose()) {
+                case LEISURE:
+                case VISIT:
                     purpose = "other";
                     break;
-                case (1):
+                case BUSINESS:
                     purpose = "business";
-                    break;
-                case (2):
-                    purpose = "other";
                     break;
             }
         }
@@ -103,18 +104,14 @@ public class TimeOfDayChoice implements ModelComponent {
 
     private String convertMode(LongDistanceTrip trip) {
         String mode = "";
-            switch (trip.getMode()) {
-                case (0):
+            switch ((ModeOntario) trip.getMode()) {
+                case AUTO:
+                case BUS:
                     mode = "auto";
                     break;
-                case (1):
+                case AIR:
+                case RAIL:
                     mode = "air";
-                    break;
-                case (2):
-                    mode = "air";
-                    break;
-                case (3):
-                    mode = "auto";
                     break;
             }
 

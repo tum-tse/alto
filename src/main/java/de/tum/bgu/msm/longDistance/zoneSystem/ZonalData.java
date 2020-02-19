@@ -6,6 +6,8 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.ModelComponent;
+import de.tum.bgu.msm.longDistance.data.Mode;
+import de.tum.bgu.msm.longDistance.data.ModeOntario;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -106,6 +108,7 @@ public class ZonalData implements ModelComponent {
 
         readSkims();
 
+        readSkimByMode(dataSet, prop);
         logger.info("Zonal data loaded");
     }
 
@@ -265,12 +268,63 @@ public class ZonalData implements ModelComponent {
     }
 
 
+    private void readSkimByMode(DataSet dataSet, JSONObject prop ) {
+
+        Map<Mode, Matrix> travelTimeMatrix = new HashMap<>();
+        Map<Mode, Matrix> priceMatrix = new HashMap<>();
+        Map<Mode, Matrix> transferMatrix = new HashMap<>();
+        Map<Mode, Matrix> frequencyMatrix = new HashMap<>();
 
 
+        String travelTimeFileName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file");
+        String priceFileName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.price_file");
+        String transfersFileName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.transfer_file");
+        String freqFileName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.frequency_file");
+        String lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
 
+        // read skim file
+        for (Mode m : ModeOntario.values()) {
 
+            String matrixName = m.toString().toLowerCase();
 
+            OmxFile skim = new OmxFile(travelTimeFileName);
+            skim.openReadOnly();
+            OmxMatrix omxMatrix = skim.getMatrix(matrixName);
+            Matrix travelTime = Util.convertOmxToMatrix(omxMatrix);
+            OmxLookup omxLookUp = skim.getLookup(lookUpName);
+            int[] externalNumbers = (int[]) omxLookUp.getLookup();
+            travelTime.setExternalNumbersZeroBased(externalNumbers);
+            travelTimeMatrix.put(m, travelTime);
 
+            skim = new OmxFile(priceFileName);
+            skim.openReadOnly();
+            omxMatrix = skim.getMatrix(matrixName);
+            Matrix price = Util.convertOmxToMatrix(omxMatrix);
+            price.setExternalNumbersZeroBased(externalNumbers);
+            priceMatrix.put(m, price);
+
+            skim = new OmxFile(transfersFileName);
+            skim.openReadOnly();
+            omxMatrix = skim.getMatrix(matrixName);
+            Matrix transfers = Util.convertOmxToMatrix(omxMatrix);
+            transfers.setExternalNumbersZeroBased(externalNumbers);
+            transferMatrix.put(m, transfers);
+
+            skim = new OmxFile(freqFileName);
+            skim.openReadOnly();
+            omxMatrix = skim.getMatrix(matrixName);
+            Matrix freq = Util.convertOmxToMatrix(omxMatrix);
+            freq.setExternalNumbersZeroBased(externalNumbers);
+            frequencyMatrix.put(m, freq);
+
+        }
+
+        dataSet.setTravelTimeMatrix(travelTimeMatrix);
+        dataSet.setPriceMatrix(priceMatrix);
+        dataSet.setTransferMatrix(transferMatrix);
+        dataSet.setFrequencyMatrix(frequencyMatrix);
+
+    }
 
 }
 

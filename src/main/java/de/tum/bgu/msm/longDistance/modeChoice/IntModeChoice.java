@@ -1,17 +1,17 @@
 package de.tum.bgu.msm.longDistance.modeChoice;
 
 import com.pb.common.datafile.TableDataSet;
-import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.Arrays;
-import java.util.ResourceBundle;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by carlloga on 4/26/2017.
@@ -20,29 +20,15 @@ public class IntModeChoice {
 
     private static Logger logger = Logger.getLogger(IntModeChoice.class);
 
-    ResourceBundle rb;
-
-    private int[] modes = {0, 1, 2, 3};
-    private String[] modeNames = {"auto", "air", "rail", "bus"};
-    // 0 is auto, 1 is plane, 2 is train, 3 is rail
-
-    //the arrays of matrices are stored in the order of modes
-    private Matrix[] travelTimeMatrix = new Matrix[4];
-    private Matrix[] priceMatrix = new Matrix[4];
-    private Matrix[] transferMatrix = new Matrix[4];
-    private Matrix[] frequencyMatrix = new Matrix[4];
-
-    String[] tripPurposeArray;
-    String[] tripStateArray;
+    private DataSet dataSet;
 
     private TableDataSet mcIntOutboundCoefficients;
     private TableDataSet mcIntInboundCoefficients;
 
     private boolean calibration;
-    private double[][] calibrationMatrixOutbound;
-    private double[][] calibrationMatrixInbound;
+    private Map<Purpose, Map<Mode, Double>> calibrationMatrixOutbound;
+    private Map<Purpose, Map<Mode, Double>> calibrationMatrixInbound;
 
-    private DomesticModeChoice dmChoice;
 
 
 
@@ -67,25 +53,28 @@ public class IntModeChoice {
 
 
     public void loadIntModeChoice(DataSet dataSet){
-        this.dmChoice = dataSet.getMcDomestic();
+        this.dataSet = dataSet;
+        calibrationMatrixOutbound = new HashMap<>();
+        calibrationMatrixInbound = new HashMap<>();
+        //fill map
+        for(Purpose purpose : PurposeOntario.values()){
+            calibrationMatrixOutbound.put(purpose, new HashMap<>());
+            calibrationMatrixInbound.put(purpose, new HashMap<>());
+            for (Mode mode : ModeOntario.values()){
+                calibrationMatrixOutbound.get(purpose).put(mode, 0.);
+                calibrationMatrixInbound.put(purpose, new HashMap<>());
+            }
+        }
 
-        tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
-        tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
-
-        calibrationMatrixOutbound = new double[tripPurposeArray.length][modes.length];
-        calibrationMatrixInbound = new double[tripPurposeArray.length][modes.length];
-
-        travelTimeMatrix = dmChoice.getTravelTimeMatrix();
-        priceMatrix = dmChoice.getPriceMatrix();
-        transferMatrix = dmChoice.getTransferMatrix();
-        frequencyMatrix = dmChoice.getFrequencyMatrix();
 
         logger.info("International MC loaded");
     }
 
-    public int selectMode(LongDistanceTrip trip){
+    public Mode selectMode(LongDistanceTrip trip){
 
         double[] expUtilities;
+
+        Mode[] modes = ModeOntario.values();
 
         if(trip.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || trip.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)){
             expUtilities = Arrays.stream(modes)
@@ -100,17 +89,17 @@ public class IntModeChoice {
 
         //choose one destination, weighted at random by the probabilities
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
-        return Util.select(expUtilities, modes);
+        return (Mode) Util.select(expUtilities, modes);
 
 
     }
 
-    public double calculateUtilityToCanada(LongDistanceTrip trip, int m, int destination) {
+    public double calculateUtilityToCanada(LongDistanceTrip trip, Mode m, int destination) {
 
         double utility;
-        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
-        String column = modeNames[m] + "." + tripPurpose;
-        String tripState = tripStateArray[trip.getTripState()];
+        String tripPurpose =trip.getTripPurpose().toString().toLowerCase();
+        String column = m.toString().toLowerCase() + "." + tripPurpose;
+        String tripState = trip.getTripState().toString().toLowerCase();
 
         //trip-related variables
         int party = trip.getAdultsHhTravelPartySize() + trip.getKidsHhTravelPartySize() + trip.getNonHhTravelPartySize();
@@ -126,9 +115,9 @@ public class IntModeChoice {
 
         //zone-related variables
 
-        double time = travelTimeMatrix[m].getValueAt(origin, destination);
-        double price = priceMatrix[m].getValueAt(origin, destination);
-        double frequency = frequencyMatrix[m].getValueAt(origin, destination);
+        double time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination);
+        double price = dataSet.getPriceMatrix().get(m).getValueAt(origin, destination);
+        double frequency = dataSet.getFrequencyMatrix().get(m).getValueAt(origin, destination);
 
         double vot= mcIntInboundCoefficients.getStringIndexedValueAt("vot", column);
 
@@ -141,7 +130,7 @@ public class IntModeChoice {
 
         //todo solve intrazonal times
         if (origin==destination){
-            if (m==0) {
+            if (m.equals(ModeOntario.AUTO)) {
                 time = 60;
                 price = 20;
             }
@@ -160,7 +149,7 @@ public class IntModeChoice {
 
         //calibration factor update during runtime
         if (calibration) {
-            k_calibration = calibrationMatrixInbound[trip.getTripPurpose()][m];
+            k_calibration = calibrationMatrixInbound.get(trip.getTripPurpose()).get(trip.getMode());
         }
 
 
@@ -179,12 +168,12 @@ public class IntModeChoice {
         return utility;
     }
 
-    public double calculateUtilityFromCanada(LongDistanceTrip trip, int m, int destination){
+    public double calculateUtilityFromCanada(LongDistanceTrip trip, Mode m, int destination){
 
         double utility;
-        String tripPurpose = tripPurposeArray[trip.getTripPurpose()];
-        String column = modeNames[m] + "." + tripPurpose;
-        String tripState = tripStateArray[trip.getTripState()];
+        String tripPurpose =trip.getTripPurpose().toString().toLowerCase();
+        String column = m.toString().toLowerCase() + "." + tripPurpose;
+        String tripState = trip.getTripState().toString().toLowerCase();
 
         //trip-related variables
         int party = trip.getAdultsHhTravelPartySize() + trip.getKidsHhTravelPartySize() + trip.getNonHhTravelPartySize();
@@ -199,9 +188,9 @@ public class IntModeChoice {
 
         //zone-related variables
 
-        double time = travelTimeMatrix[m].getValueAt(origin, destination);
-        double price = priceMatrix[m].getValueAt(origin, destination);
-        double frequency = frequencyMatrix[m].getValueAt(origin, destination);
+        double time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination);
+        double price = dataSet.getPriceMatrix().get(m).getValueAt(origin, destination);
+        double frequency = dataSet.getFrequencyMatrix().get(m).getValueAt(origin, destination);
 
         double vot= mcIntOutboundCoefficients.getStringIndexedValueAt("vot", column);
 
@@ -213,7 +202,7 @@ public class IntModeChoice {
 
         //todo solve intrazonal times
         if (origin==destination){
-            if (m==0) {
+            if (m.equals(ModeOntario.AUTO)) {
                 time = 60;
                 price = 20;
             }
@@ -233,7 +222,7 @@ public class IntModeChoice {
 
         //calibration during runtime
         if (calibration) {
-            k_calibration = calibrationMatrixOutbound[trip.getTripPurpose()][m];
+            k_calibration = calibrationMatrixOutbound.get(trip.getTripPurpose()).get(trip.getMode());
         }
 
         utility = b_intercept + k_calibration +
@@ -252,39 +241,43 @@ public class IntModeChoice {
 
     }
 
-    public int[] getModes() {
-        return modes;
-    }
-
-    public void updateCalibrationOutbound(double[][] calibrationMatrix) {
-        for (int purp = 0; purp < tripPurposeArray.length; purp++) {
-            for (int mode = 0; mode < modes.length; mode++) {
-                this.calibrationMatrixOutbound[purp][mode] += calibrationMatrix[purp][mode];
-            }
-        }
-    }
-
-    public void updateCalibrationInbound(double[][] calibrationMatrix) {
-        for (int purp = 0; purp < tripPurposeArray.length; purp++) {
-            for (int mode = 0; mode < modes.length; mode++) {
-                this.calibrationMatrixInbound[purp][mode] += calibrationMatrix[purp][mode];
-            }
-        }
-    }
-
-    public double[][] getCalibrationMatrixOutbound() {
+    public Map<Purpose, Map<Mode, Double>> getCalibrationMatrixOutbound() {
         return calibrationMatrixOutbound;
     }
 
-    public double[][] getCalibrationMatrixInbound() {
+    public Map<Purpose, Map<Mode, Double>> getCalibrationMatrixInbound() {
         return calibrationMatrixInbound;
     }
+
+
+    public void updateCalibrationOutbound(Map<Purpose, Map<Mode, Double>> updatedMatrix) {
+
+        for(Purpose purpose : PurposeOntario.values()){
+            for (Mode mode : ModeOntario.values()){
+                double newValue = this.calibrationMatrixOutbound.get(purpose).get(mode) + updatedMatrix.get(purpose).get(mode);
+                calibrationMatrixOutbound.get(purpose).put(mode, newValue);
+            }
+        }
+
+    }
+
+    public void updateCalibrationInbound(Map<Purpose, Map<Mode, Double>> updatedMatrix) {
+
+        for(Purpose purpose : PurposeOntario.values()){
+            for (Mode mode : ModeOntario.values()){
+                double newValue = this.calibrationMatrixInbound.get(purpose).get(mode) + updatedMatrix.get(purpose).get(mode);
+                calibrationMatrixInbound.get(purpose).put(mode, newValue);
+            }
+        }
+    }
+
+
 
     public float getInternationalModalTravelTime(LongDistanceTrip trip){
         if (trip.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneType.EXTOVERSEAS) ){
             return -1.f;
         } else {
-            return travelTimeMatrix[trip.getMode()].getValueAt(trip.getOrigZone().getCombinedZoneId(), trip.getDestCombinedZoneId());
+            return dataSet.getTravelTimeMatrix().get(trip.getMode()).getValueAt(trip.getOrigZone().getCombinedZoneId(), trip.getDestCombinedZoneId());
         }
 
     }

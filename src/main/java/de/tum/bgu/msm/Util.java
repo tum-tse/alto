@@ -168,7 +168,21 @@ public class Util {
     }
 
     //select method to avoid randomization of enumIntegerDistr object
-    public static int select (double[] probabilities, int[] id) {
+    public static Object select(double[] probabilities, Object[] id) {
+        // select item based on probabilities (for zero-based float array)
+        double selPos = Arrays.stream(probabilities).sum() * LDModel.rand.nextFloat();
+        double sum = 0;
+        for (int i = 0; i < probabilities.length; i++) {
+            sum += probabilities[i];
+            if (sum > selPos) {
+                //return i;
+                return id[i];
+            }
+        }
+        return id[probabilities.length - 1];
+    }
+
+    public static int select(double[] probabilities, int[] id) {
         // select item based on probabilities (for zero-based float array)
         double selPos = Arrays.stream(probabilities).sum() * LDModel.rand.nextFloat();
         double sum = 0;

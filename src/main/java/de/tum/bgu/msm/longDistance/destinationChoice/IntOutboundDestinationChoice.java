@@ -37,51 +37,43 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
 
     private IntModeChoice intModeChoice;
     private DomesticDestinationChoice dcModel;
-    private String[] tripPurposeArray;
-    private String[] tripStateArray;
-
     Map<Integer, Zone> externalOsMap = new HashMap<>();
 
     boolean calibration;
-    private double[] calibrationV;
+    private Map<Purpose, Double> calibrationV;
 
 
     public IntOutboundDestinationChoice(JSONObject prop) {
 
         //this.rb = rb;
         //coefficients = Util.readCSVfile(rb.getString("dc.int.out.coefs"));
-        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.international.outbound.coef_file"));
+        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.international.outbound.coef_file"));
         coefficients.buildStringIndex(1);
 
 //        this.ldData = ldData;
 
 
-
         //load alternatives
         //destCombinedZones = Util.readCSVfile(rb.getString("dc.us.combined"));
-        destCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.international.outbound.alternatives_file"));
+        destCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.international.outbound.alternatives_file"));
         destCombinedZones.buildIndex(1);
         alternativesUS = destCombinedZones.getColumnAsInt("combinedZone");
 
         //load alternatives (origins, to read accessibility to US of the zone)
         //origCombinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
-        origCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"destination_choice.domestic.alternatives_file"));
+        origCombinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.domestic.alternatives_file"));
         origCombinedZones.buildIndex(1);
 
 
-
         //calibration = ResourceUtil.getBooleanProperty(rb, "dc.calibration", false);
-        calibration = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration");
-        this.calibrationV = new double[]{1, 1, 1};
+        calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
+        this.calibrationV = new HashMap<>();
 
         logger.info("International DC (outbound) set up");
 
     }
 
     public void load(DataSet dataSet) {
-
-        tripPurposeArray = dataSet.tripPurposes.toArray(new String[dataSet.tripPurposes.size()]);
-        tripStateArray = dataSet.tripStates.toArray(new String[dataSet.tripStates.size()]);
 
         this.dcModel = dataSet.getDcDomestic();
         this.intModeChoice = dataSet.getMcInt();
@@ -111,7 +103,7 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
         int destination;
         //0 visit, 1 business and 2 leisure
 
-        Purpose tripPurpose =trip.getTripPurpose();
+        Purpose tripPurpose = trip.getTripPurpose();
 
         if (selectUs(trip, tripPurpose)) {
 
@@ -121,7 +113,7 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
             double[] probabilities = Arrays.stream(expUtilities).map(u -> u / probability_denominator).toArray();
 
             //destination = new EnumeratedIntegerDistribution(alternativesUS, probabilities).sample();
-            destination =  Util.select(probabilities,alternativesUS);
+            destination = Util.select(probabilities, alternativesUS);
 
         } else {
 
@@ -132,7 +124,7 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
             double[] probabilities = Arrays.stream(expUtilitiesOs).map(u -> u / probability_denominator).toArray();
 
             //destination = new EnumeratedIntegerDistribution(alternativesOS, probabilities).sample();
-            destination =  Util.select(probabilities,alternativesOS);
+            destination = Util.select(probabilities, alternativesOS);
         }
 
         return destination;
@@ -187,7 +179,7 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
 
         double probability = utility / (1 + utility);
 
-        if (trip.getTripState().equals(TypesOntario.DAYTRIP))  {
+        if (trip.getTripState().equals(TypeOntario.DAYTRIP)) {
             //daytrips are always to US
             return true;
         } else {
@@ -215,31 +207,16 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
         double k_onLogsum = coefficients.getStringIndexedValueAt("k_onLogsum", tripPurpose.toString());
 
         if (calibration) {
-            switch ((PurposesOntario) trip.getTripPurpose()) {
-                case LEISURE:
-                    //tripPurpose = "leisure";
-                    k_dtLogsum = calibrationV[2];
-                    k_onLogsum = k_dtLogsum;
-                    break;
-                case VISIT:
-                    //tripPurpose = "visit";
-                    k_dtLogsum = calibrationV[0];
-                    k_onLogsum = k_dtLogsum;
-                    break;
-                case BUSINESS:
-                    //tripPurpose = "business";
-                    k_dtLogsum = calibrationV[1];
-                    k_onLogsum = k_dtLogsum;
-                    break;
-            }
+            k_dtLogsum = calibrationV.getOrDefault(tripPurpose, 1.);
+            k_onLogsum = k_dtLogsum;
         }
 
         //read trip data
         double dist = autoTravelTime.getValueAt(trip.getOrigZone().getCombinedZoneId(), destination);
 
         double logsum = 0;
-        int[] modes = intModeChoice.getModes();
-        for (int m : modes) {
+        Mode[] modes = ModeOntario.values();
+        for (Mode m : modes) {
             logsum += Math.exp(intModeChoice.calculateUtilityFromCanada(trip, m, destination));
         }
         if (logsum == 0) {
@@ -274,13 +251,15 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
 
     }
 
-    public void updateIntOutboundCalibrationV(double[] b_calibrationVector) {
-        this.calibrationV[0] = this.calibrationV[0] * b_calibrationVector[0];
-        this.calibrationV[1] = this.calibrationV[1] * b_calibrationVector[1];
-        this.calibrationV[2] = this.calibrationV[2] * b_calibrationVector[2];
+    public void updateIntOutboundCalibrationV(Map<Purpose, Double> b_calibrationVector) {
+
+        for (Purpose purpose : PurposeOntario.values()) {
+            double newValue = calibrationV.get(purpose) * b_calibrationVector.get(purpose);
+            calibrationV.put(purpose, newValue);
+        }
     }
 
-    public double[] getCalibrationV() {
+    public Map<Purpose, Double> getCalibrationV() {
         return calibrationV;
     }
 
