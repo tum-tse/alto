@@ -9,11 +9,13 @@ import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import de.tum.bgu.msm.Util;
-import org.apache.log4j.Logger;
+
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by carlloga on 8/31/2016.
@@ -29,7 +31,7 @@ public class VisitorsTripGeneration implements TripGenerationModule {
     private DataSet dataSet;
     private ArrayList<Zone> externalZoneList;
 
-    static Logger logger = Logger.getLogger(VisitorsTripGeneration.class);
+    static Logger logger = LogManager.getLogger(VisitorsTripGeneration.class);
     private AtomicInteger atomicInteger;
     private AtomicInteger atomicIntegerVisitors;
 

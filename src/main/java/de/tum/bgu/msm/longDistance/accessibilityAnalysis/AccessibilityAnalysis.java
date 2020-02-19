@@ -8,7 +8,9 @@ import de.tum.bgu.msm.longDistance.tripGeneration.DomesticTripGeneration;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ import java.util.ResourceBundle;
 public class AccessibilityAnalysis {
     private ResourceBundle rb;
     private DataSet dataSet;
-    static Logger logger = Logger.getLogger(DomesticTripGeneration.class);
+    static Logger logger = LogManager.getLogger(DomesticTripGeneration.class);
     private List<String> fromZones;
     private List<String> toZones;
 

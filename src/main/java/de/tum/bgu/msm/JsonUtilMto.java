@@ -1,6 +1,8 @@
 package de.tum.bgu.msm;
 
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
@@ -14,7 +16,7 @@ import java.io.IOException;
  */
 public class JsonUtilMto {
 
-    static Logger logger = Logger.getLogger(JsonUtilMto.class);
+    static Logger logger = LogManager.getLogger(JsonUtilMto.class);
     private org.json.simple.parser.JSONParser parser;
     private JSONObject jsonProperties;
 

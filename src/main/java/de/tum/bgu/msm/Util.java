@@ -7,7 +7,9 @@ import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.longDistance.LDModel;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 
@@ -28,7 +30,7 @@ import static java.lang.System.exit;
  *
  */
 public class Util {
-    static Logger logger = Logger.getLogger(Util.class);
+    static Logger logger = LogManager.getLogger(Util.class);
 
 
     public static ResourceBundle mtoInitialization(String resourceBundleName) {

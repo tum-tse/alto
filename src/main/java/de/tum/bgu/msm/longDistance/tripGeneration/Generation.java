@@ -4,11 +4,13 @@ import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.data.sp.SyntheticPopulation;
-import org.apache.log4j.Logger;
+
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.ResourceBundle;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 
@@ -19,7 +21,7 @@ public class Generation implements ModelComponent {
     private ResourceBundle rb;
     private JSONObject prop;
     private DataSet dataSet;
-    static Logger logger = Logger.getLogger(Generation.class);
+    static Logger logger = LogManager.getLogger(Generation.class);
     private SyntheticPopulation synPop;
 
     //trip gen models

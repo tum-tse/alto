@@ -6,9 +6,10 @@ import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.data.Mode;
 import de.tum.bgu.msm.longDistance.data.ModeOntario;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import org.apache.log4j.Logger;
-import org.json.simple.JSONObject;
 
+import org.json.simple.JSONObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 
 /**
@@ -16,7 +17,7 @@ import java.util.ArrayList;
  */
 public class McModel implements ModelComponent {
 
-    static Logger logger = Logger.getLogger(McModel.class);
+    static Logger logger = LogManager.getLogger(McModel.class);
 
     private DomesticModeChoice mcDomesticModel;
     private IntModeChoice intModeChoice;

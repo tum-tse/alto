@@ -4,9 +4,10 @@ import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
-import org.apache.log4j.Logger;
-import org.json.simple.JSONObject;
 
+import org.json.simple.JSONObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 
 /**
@@ -14,7 +15,7 @@ import java.util.ArrayList;
  */
 public class Distribution implements ModelComponent {
 
-    static Logger logger = Logger.getLogger(Distribution.class);
+    static Logger logger = LogManager.getLogger(Distribution.class);
 
     private DomesticDestinationChoice dcModel;
     private IntOutboundDestinationChoice dcOutboundModel;

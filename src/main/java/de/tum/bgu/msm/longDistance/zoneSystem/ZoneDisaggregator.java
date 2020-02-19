@@ -7,7 +7,10 @@ import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.data.ModeOntario;
 import de.tum.bgu.msm.longDistance.data.PurposeOntario;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import org.json.simple.JSONObject;
 
 import java.util.*;
@@ -17,7 +20,7 @@ import java.util.*;
  */
 public class ZoneDisaggregator implements ModelComponent {
 
-    private static Logger logger = Logger.getLogger(ZoneDisaggregator.class);
+    private static Logger logger = LogManager.getLogger(ZoneDisaggregator.class);
     private ResourceBundle rb;
     private Collection<Zone> zoneList;
     private Map<Integer, Map<Integer, Zone>> combinedZoneMap;

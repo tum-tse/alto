@@ -7,7 +7,9 @@ import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
 import de.tum.bgu.msm.Util;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONObject;
 
 
@@ -29,7 +31,7 @@ import java.util.*;
 
 public class SyntheticPopulation implements ModelComponent {
 
-    private static Logger logger = Logger.getLogger(SyntheticPopulation.class);
+    private static Logger logger = LogManager.getLogger(SyntheticPopulation.class);
     private ResourceBundle rb;
     private JSONObject prop;
 

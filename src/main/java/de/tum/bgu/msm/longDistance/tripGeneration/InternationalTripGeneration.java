@@ -7,11 +7,13 @@ import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.Util;
-import org.apache.log4j.Logger;
+
 import org.json.simple.JSONObject;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 /**
@@ -20,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class InternationalTripGeneration implements TripGenerationModule {
 
-    private static Logger logger = Logger.getLogger(InternationalTripGeneration.class);
+    private static Logger logger = LogManager.getLogger(InternationalTripGeneration.class);
 
     //private ResourceBundle rb;
     private JSONObject prop;

@@ -12,8 +12,11 @@ import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import omx.hdf5.OmxConstants;
-import org.apache.log4j.Logger;
+
 import org.json.simple.JSONObject;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,11 +30,8 @@ import java.util.stream.Collectors;
  */
 
 public class ZonalData implements ModelComponent {
-    private static Logger logger = Logger.getLogger(ZonalData.class);
-    private ResourceBundle rb;
+    private static Logger logger = LogManager.getLogger(ZonalData.class);
     private JSONObject prop;
-    private Matrix autoTravelTime;
-    private Matrix autoTravelDistance;
 
     private DataSet dataSet;
 

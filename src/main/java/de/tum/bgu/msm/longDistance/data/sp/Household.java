@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.data.sp;
  import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
- import org.apache.log4j.Logger;
+ import org.apache.logging.log4j.LogManager;
+ import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -14,7 +15,7 @@ package de.tum.bgu.msm.longDistance.data.sp;
 
 public class Household {
 
-    static Logger logger = Logger.getLogger(Household.class);
+    static Logger logger = LogManager.getLogger(Household.class);
 
     private int id;
     private int hhSize;
