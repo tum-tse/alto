@@ -48,6 +48,7 @@ public class ZonalData implements ModelComponent {
     private TableDataSet externalCanadaTable;
     private TableDataSet externalUsTable;
     private TableDataSet externalOverseasTable;
+    private double scaleFactor;
 
 
     public ZonalData() {
@@ -81,6 +82,8 @@ public class ZonalData implements ModelComponent {
         //zoneTable = Util.readCSVfile(rb.getString("int.can"));
         zoneTable = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"zone_system.internal_file"));
         zoneTable.buildIndex(1);
+
+        scaleFactor = JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
 
         logger.info("Zonal data manager set up");
 
@@ -224,8 +227,10 @@ public class ZonalData implements ModelComponent {
         externalZonesCanada = externalCanadaTable.getColumnAsInt("ID");
         for (int externalZone : externalZonesCanada) {
             int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
-            Zone zone = new Zone(externalZone, (int) externalCanadaTable.getIndexedValueAt(externalZone, "Population"),
-                    (int) externalCanadaTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTCANADA, combinedZone);
+            int population = (int) (externalCanadaTable.getIndexedValueAt(externalZone, "Population") * scaleFactor);
+            int employment = (int) (externalCanadaTable.getIndexedValueAt(externalZone, "Employment") * scaleFactor);
+            Zone zone = new Zone(externalZone, population,
+                    employment, ZoneType.EXTCANADA, combinedZone);
             externalZonesArray.add(zone);
         }
 
@@ -233,8 +238,10 @@ public class ZonalData implements ModelComponent {
         externalZonesUs = externalUsTable.getColumnAsInt("ID");
         for (int externalZone : externalZonesUs) {
             //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
-            Zone zone = new Zone(externalZone, (int) externalUsTable.getIndexedValueAt(externalZone, "Population"),
-                    (int) externalUsTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTUS, (int) externalUsTable.getIndexedValueAt(externalZone, "CombinedZone"));
+            int population = (int) (externalUsTable.getIndexedValueAt(externalZone, "Population") * scaleFactor);
+            int employment = (int) (externalUsTable.getIndexedValueAt(externalZone, "Employment") * scaleFactor);
+            Zone zone = new Zone(externalZone, population,
+                    employment, ZoneType.EXTUS, (int) externalUsTable.getIndexedValueAt(externalZone, "CombinedZone"));
 
             externalZonesArray.add(zone);
         }
@@ -244,8 +251,10 @@ public class ZonalData implements ModelComponent {
         for (int externalZone : externalZonesOverseas) {
             //int combinedZone = (int) externalCanadaTable.getIndexedValueAt(externalZone, "combinedZone");
             long staticAttraction = (long) externalOverseasTable.getIndexedValueAt(externalZone, "staticAttraction");
-            Zone zone = new Zone(externalZone, (int) externalOverseasTable.getIndexedValueAt(externalZone, "Population"),
-                    (int) externalOverseasTable.getIndexedValueAt(externalZone, "Employment"), ZoneType.EXTOVERSEAS, (int) externalOverseasTable.getIndexedValueAt(externalZone, "CombinedZone"));
+            int population = (int) (externalOverseasTable.getIndexedValueAt(externalZone, "Population") * scaleFactor);
+            int employment = (int) (externalOverseasTable.getIndexedValueAt(externalZone, "Employment") * scaleFactor);
+            Zone zone = new Zone(externalZone, population,
+                    employment, ZoneType.EXTOVERSEAS, (int) externalOverseasTable.getIndexedValueAt(externalZone, "CombinedZone"));
             zone.setStaticAttraction(staticAttraction);
             externalZonesArray.add(zone);
         }
