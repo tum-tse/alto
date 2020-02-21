@@ -14,6 +14,7 @@ import de.tum.bgu.msm.Util;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.log4j.Logger;
 
@@ -29,7 +30,7 @@ public class VisitorsTripGeneration implements TripGenerationModule {
     private TableDataSet externalCanIntRates;
 
     private DataSet dataSet;
-    private ArrayList<Zone> externalZoneList;
+    private List<Zone> externalZoneList;
 
     static Logger logger = Logger.getLogger(VisitorsTripGeneration.class);
     private AtomicInteger atomicInteger;

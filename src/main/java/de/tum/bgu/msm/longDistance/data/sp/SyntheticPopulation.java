@@ -31,22 +31,15 @@ import java.util.*;
 public class SyntheticPopulation implements ModelComponent {
 
     private static Logger logger = Logger.getLogger(SyntheticPopulation.class);
-    private ResourceBundle rb;
     private JSONObject prop;
-
     private Map<Integer, Zone> zoneLookup;
     private DataSet dataSet;
-
     private String hhFilename;
     private String ppFilename;
     private String travellersFilename;
-
     private double scaleFactor;
-
-
-    private Map<Integer, Person> personMap = new Int2ObjectAVLTreeMap();
-
-    private Map<Integer, Household> householdMap = new Int2ObjectAVLTreeMap<>();
+    private Map<Integer, Person> personMap = new HashMap<>();
+    private Map<Integer, Household> householdMap = new HashMap<>();
 
 
     public SyntheticPopulation() {

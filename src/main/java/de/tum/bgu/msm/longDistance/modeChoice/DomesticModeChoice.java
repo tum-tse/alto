@@ -28,8 +28,6 @@ public class DomesticModeChoice {
     private TableDataSet mcOntarioCoefficients;
     private TableDataSet mcExtCanadaCoefficients;
     private TableDataSet combinedZones;
-    private String[] tripPurposeArray;
-    private String[] tripStateArray;
 
     private boolean calibration;
     private Map<Purpose, Map<Mode, Double>> calibrationMatrix;

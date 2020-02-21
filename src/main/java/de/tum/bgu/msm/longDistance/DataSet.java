@@ -13,10 +13,12 @@ import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
 
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by carlloga on 8/1/2017.
@@ -28,8 +30,6 @@ public class DataSet {
 
     //ZONAL DATA
     private Map<Integer, Zone> zones = new HashMap<>();
-    private ArrayList<Zone> internalZones = new ArrayList<>();
-    private ArrayList<Zone> externalZones = new ArrayList<>();
 
     //SKIMS GA-zones
     private Matrix autoTravelTime;
@@ -101,20 +101,8 @@ public class DataSet {
         this.zones = zones;
     }
 
-    public ArrayList<Zone> getInternalZones() {
-        return internalZones;
-    }
-
-    public void setInternalZones(ArrayList<Zone> internalZones) {
-        this.internalZones = internalZones;
-    }
-
-    public ArrayList<Zone> getExternalZones() {
-        return externalZones;
-    }
-
-    public void setExternalZones(ArrayList<Zone> externalZones) {
-        this.externalZones = externalZones;
+    public List<Zone> getExternalZones() {
+        return zones.values().stream().filter(zone -> !zone.getZoneType().equals(ZoneType.ONTARIO)).collect(Collectors.toList());
     }
 
     public void setAutoTravelTime(Matrix autoTravelTime) {

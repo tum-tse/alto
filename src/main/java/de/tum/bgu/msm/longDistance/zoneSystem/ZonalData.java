@@ -95,16 +95,14 @@ public class ZonalData implements ModelComponent {
     public void load(DataSet dataset) {
 
         this.dataSet = dataset;
-        ArrayList<Zone> zoneList;
-        ArrayList<Zone> internalZones = readInternalZones();
-        ArrayList<Zone> externalZones = readExternalZones();
+        List<Zone> zoneList;
+        List<Zone> internalZones = readInternalZones();
+        List<Zone> externalZones = readExternalZones();
 
         zoneList = new ArrayList<>();
         zoneList.addAll(internalZones);
         zoneList.addAll(externalZones);
 
-        dataSet.setInternalZones(internalZones);
-        dataSet.setExternalZones(externalZones);
         dataSet.setZones(zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x)));
 
         //convert the arraylist of zones into a map of zones accessible by id:
@@ -120,13 +118,6 @@ public class ZonalData implements ModelComponent {
 
     }
 
-    public static List<String> getTripPurposes() {
-        return tripPurposes;
-    }
-
-    public static List<String> getTripStates() {
-        return tripStates;
-    }
 
     public void readSkims(String inputFolder) {
         Matrix autoTravelTime = convertSkimToMatrix(autoFileMatrixLookup);
@@ -195,11 +186,11 @@ public class ZonalData implements ModelComponent {
     }
 
 
-    public ArrayList<Zone> readInternalZones() {
+    public List<Zone> readInternalZones() {
         //create zones objects (empty) and a map to find them in hh zone assignment
 
         int[] zones;
-        ArrayList<Zone> internalZoneList = new ArrayList<>();
+        List<Zone> internalZoneList = new ArrayList<>();
 
         zones = zoneTable.getColumnAsInt("treso_zone");
         for (int zone : zones) {
