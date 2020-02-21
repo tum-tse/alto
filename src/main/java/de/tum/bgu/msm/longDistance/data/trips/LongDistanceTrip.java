@@ -1,9 +1,9 @@
-package de.tum.bgu.msm.longDistance.data;
+package de.tum.bgu.msm.longDistance.data.trips;
 
 
 
-import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 
 import java.util.ArrayList;

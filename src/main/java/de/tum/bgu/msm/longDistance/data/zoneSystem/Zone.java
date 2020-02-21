@@ -1,4 +1,6 @@
-package de.tum.bgu.msm.longDistance.zoneSystem;
+package de.tum.bgu.msm.longDistance.data.zoneSystem;
+
+
 
 /**
  * Created by carlloga on 8/10/2016.

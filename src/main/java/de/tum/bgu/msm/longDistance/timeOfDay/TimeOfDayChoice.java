@@ -4,11 +4,11 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
-import de.tum.bgu.msm.longDistance.data.ModeOntario;
-import de.tum.bgu.msm.longDistance.data.PurposeOntario;
-import de.tum.bgu.msm.longDistance.data.TypeOntario;
+import de.tum.bgu.msm.longDistance.data.trips.ModeOntario;
+import de.tum.bgu.msm.longDistance.data.trips.PurposeOntario;
+import de.tum.bgu.msm.longDistance.data.trips.TypeOntario;
 
 import org.json.simple.JSONObject;
 

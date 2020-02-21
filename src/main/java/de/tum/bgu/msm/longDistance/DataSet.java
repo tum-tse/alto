@@ -1,8 +1,8 @@
 package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.matrix.Matrix;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.data.Mode;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.destinationChoice.Distribution;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
@@ -12,8 +12,8 @@ import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
-import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 import org.apache.log4j.Logger;
 
 
@@ -81,18 +81,6 @@ public class DataSet {
     //TRIPS
     private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
 
-    //MODELS
-    //todo probably the data to be interchanged between models should be here instead
-    private Distribution destinationChoiceModel;
-    private DomesticDestinationChoice dcDomestic;
-    private IntOutboundDestinationChoice dcIntOutbound;
-    private IntInboundDestinationChoice dcIntInbound;
-
-    private McModel modeChoiceModel;
-    private DomesticModeChoice mcDomestic;
-    private IntModeChoice mcInt;
-
-
     public Map<Integer, Zone> getZones() {
         return zones;
     }
@@ -145,67 +133,7 @@ public class DataSet {
         return households.get(hhId);
     }
 
-    public DomesticModeChoice getMcDomestic() {
-        return mcDomestic;
-    }
-
-    public void setMcDomestic(DomesticModeChoice mcDomestic) {
-        this.mcDomestic = mcDomestic;
-    }
-
-    public DomesticDestinationChoice getDcDomestic() {
-        return dcDomestic;
-    }
-
-    public void setDcDomestic(DomesticDestinationChoice dcDomestic) {
-        this.dcDomestic = dcDomestic;
-    }
-
-    public IntModeChoice getMcInt() {
-        return mcInt;
-    }
-
-    public void setMcInt(IntModeChoice mcInt) {
-        this.mcInt = mcInt;
-    }
-
-    public IntOutboundDestinationChoice getDcIntOutbound() {
-        return dcIntOutbound;
-    }
-
-    public void setDcIntOutbound(IntOutboundDestinationChoice dcIntOutbound) {
-        this.dcIntOutbound = dcIntOutbound;
-    }
-
     public ArrayList<LongDistanceTrip> getAllTrips() {
         return allTrips;
-    }
-
-    public void setAllTrips(ArrayList<LongDistanceTrip> allTrips) {
-        this.allTrips = allTrips;
-    }
-
-    public Distribution getDestinationChoiceModel() {
-        return destinationChoiceModel;
-    }
-
-    public void setDestinationChoiceModel(Distribution destinationChoiceModel) {
-        this.destinationChoiceModel = destinationChoiceModel;
-    }
-
-    public McModel getModeChoiceModel() {
-        return modeChoiceModel;
-    }
-
-    public void setModeChoiceModel(McModel modeChoiceModel) {
-        this.modeChoiceModel = modeChoiceModel;
-    }
-
-    public IntInboundDestinationChoice getDcIntInbound() {
-        return dcIntInbound;
-    }
-
-    public void setDcIntInbound(IntInboundDestinationChoice dcIntInbound) {
-        this.dcIntInbound = dcIntInbound;
     }
 }

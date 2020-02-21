@@ -1,5 +1,5 @@
 package de.tum.bgu.msm.longDistance.data.sp;
- import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
+ import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
  import org.apache.log4j.Logger;
 
 /**

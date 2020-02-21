@@ -4,9 +4,10 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.data.trips.*;
+import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import org.json.simple.JSONObject;
 
 import java.util.*;
@@ -21,20 +22,17 @@ import org.apache.log4j.Logger;
 public class InternationalTripGeneration implements TripGenerationModule {
 
     private static Logger logger = Logger.getLogger(InternationalTripGeneration.class);
-
-    //private ResourceBundle rb;
-    private JSONObject prop;
+    private final JSONObject prop;
     private Map<Purpose, Map<Type, Double>> sumProbabilities;
     private Map<Purpose, Map<Type, Map<Integer, Double>>> probabilityMatrix;
-    //private SyntheticPopulation synPop;
     private TableDataSet travelPartyProbabilities;
     private TableDataSet internationalTripRates;
-    private TableDataSet tripGenerationCoefficients;
+
 
     private TableDataSet originCombinedZones;
 
     private DataSet dataSet;
-
+    private IntOutboundDestinationChoice intOutboundDestinationChoiceInstance;
     private AtomicInteger atomicInteger;
 
 
@@ -42,6 +40,7 @@ public class InternationalTripGeneration implements TripGenerationModule {
 //        this.synPop = synPop;
 //        this.rb = rb;
         this.prop = prop;
+        this.intOutboundDestinationChoiceInstance = new IntOutboundDestinationChoice(prop);
 
 
         //String internationalTriprates = rb.getString("int.trips");
@@ -69,7 +68,9 @@ public class InternationalTripGeneration implements TripGenerationModule {
 //        toZones = Arrays.asList("EXTUS");
 //        zonalData.calculateAccessibility(zonalData.getZoneList(), fromZones, toZones, alpha , beta);
 
-        originCombinedZones = dataSet.getDcIntOutbound().getOrigCombinedZones();
+
+        intOutboundDestinationChoiceInstance.load(dataSet);
+        originCombinedZones = intOutboundDestinationChoiceInstance.getOrigCombinedZones();
 
 
     }

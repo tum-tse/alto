@@ -1,4 +1,4 @@
-package de.tum.bgu.msm.longDistance.data;
+package de.tum.bgu.msm.longDistance.data.trips;
 
 
 public enum TypeOntario implements Type {

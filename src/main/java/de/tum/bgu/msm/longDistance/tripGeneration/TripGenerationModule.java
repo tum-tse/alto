@@ -1,7 +1,7 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 
 import java.util.ArrayList;
 

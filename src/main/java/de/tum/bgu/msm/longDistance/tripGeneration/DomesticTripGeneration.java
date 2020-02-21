@@ -5,11 +5,11 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.data.*;
 import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 
+import de.tum.bgu.msm.longDistance.data.trips.*;
 import org.json.simple.JSONObject;
 
 import java.util.*;
@@ -36,7 +36,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
     private TableDataSet tripGenerationCoefficients;
     private TableDataSet travelPartyProbabilities;
 
-    //private SyntheticPopulation synPop;
+    //private SyntheticPopulationReader synPop;
 
     private float alphaAccess;
     private float betaAccess;

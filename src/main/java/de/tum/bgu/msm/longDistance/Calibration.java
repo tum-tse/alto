@@ -1,12 +1,12 @@
 package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.JsonUtilMto;
-import de.tum.bgu.msm.longDistance.data.*;
+import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.destinationChoice.*;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.McModel;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -30,7 +30,6 @@ public class Calibration implements ModelComponent {
     private IntOutboundDestinationChoice dcOutboundModel;
     private IntInboundDestinationChoice dcInBoundModel;
     private Distribution dcM;
-
     private DomesticModeChoice mcDomesticModel;
     private IntModeChoice intModeChoice;
     private McModel mcM;
@@ -71,13 +70,6 @@ public class Calibration implements ModelComponent {
     @Override
     public void run(DataSet dataSet, int nThreads) {
 
-        dcModel = dataSet.getDcDomestic();
-        dcOutboundModel = dataSet.getDcIntOutbound();
-        dcInBoundModel = dataSet.getDcIntInbound();
-        //dcM = dataSet.getDestinationChoiceModel();
-
-        mcDomesticModel = dataSet.getMcDomestic();
-        intModeChoice = dataSet.getMcInt();
         //mcM = dataSet.getModeChoiceModel();
 
 

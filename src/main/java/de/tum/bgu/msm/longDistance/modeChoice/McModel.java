@@ -1,11 +1,11 @@
 package de.tum.bgu.msm.longDistance.modeChoice;
 
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
-import de.tum.bgu.msm.longDistance.data.Mode;
-import de.tum.bgu.msm.longDistance.data.ModeOntario;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.data.trips.Mode;
+import de.tum.bgu.msm.longDistance.data.trips.ModeOntario;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 
 import org.json.simple.JSONObject;
 import org.apache.log4j.Logger;
@@ -29,10 +29,6 @@ public class McModel implements ModelComponent {
 
     @Override
     public void load(DataSet dataSet) {
-        //store the models
-        dataSet.setMcDomestic(mcDomesticModel);
-        dataSet.setMcInt(intModeChoice);
-
         //load submodels
         mcDomesticModel.loadDomesticModeChoice(dataSet);
         intModeChoice.loadIntModeChoice(dataSet);

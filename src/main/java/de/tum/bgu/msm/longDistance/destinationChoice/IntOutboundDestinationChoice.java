@@ -6,11 +6,11 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.data.*;
+import de.tum.bgu.msm.longDistance.data.trips.*;
+import de.tum.bgu.msm.longDistance.io.reader.ZoneReader;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
-import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -28,30 +28,29 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
     private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
     private TableDataSet destCombinedZones;
     private TableDataSet coefficients;
-    private Matrix autoTravelTime;
     private int[] alternativesUS;
     private int[] alternativesOS;
 
     private TableDataSet origCombinedZones;
-    private ZonalData ldData;
+    private ZoneReader ldData;
 
-    private IntModeChoice intModeChoice;
-    private DomesticDestinationChoice dcModel;
+    private IntModeChoice internationalModeChoiceForLogsums;
     Map<Integer, Zone> externalOsMap = new HashMap<>();
 
     boolean calibration;
     private Map<Purpose, Double> calibrationV;
+    private DataSet dataSet;
 
 
     public IntOutboundDestinationChoice(JSONObject prop) {
+
+        internationalModeChoiceForLogsums = new IntModeChoice(prop);
+
 
         //this.rb = rb;
         //coefficients = Util.readCSVfile(rb.getString("dc.int.out.coefs"));
         coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.international.outbound.coef_file"));
         coefficients.buildStringIndex(1);
-
-//        this.ldData = ldData;
-
 
         //load alternatives
         //destCombinedZones = Util.readCSVfile(rb.getString("dc.us.combined"));
@@ -75,12 +74,9 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
 
     public void load(DataSet dataSet) {
 
-        this.dcModel = dataSet.getDcDomestic();
-        this.intModeChoice = dataSet.getMcInt();
+        this.dataSet = dataSet;
 
-
-        //load combined zones distance skim
-        autoTravelTime = dataSet.getDcDomestic().getAutoDist();
+        internationalModeChoiceForLogsums.loadIntModeChoice(dataSet);
 
         dataSet.getExternalZones().forEach(zone -> {
             if (zone.getZoneType() == ZoneType.EXTOVERSEAS) {
@@ -140,25 +136,6 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
         }
     }
 
-
-    public void readSkim(ResourceBundle rb) {
-        // read skim file
-
-
-        String matrixName = "skim.int.out.file";
-        String hwyFileName = rb.getString(matrixName);
-        logger.info("  Reading skims file" + hwyFileName);
-
-        // Read highway hwySkim
-        OmxFile hSkim = new OmxFile(hwyFileName);
-        hSkim.openReadOnly();
-        OmxMatrix timeOmxSkimAutos = hSkim.getMatrix(rb.getString("skim.int.out.matrix"));
-        autoTravelTime = Util.convertOmxToMatrix(timeOmxSkimAutos);
-        OmxLookup omxLookUp = hSkim.getLookup(rb.getString("skim.int.out.lookup"));
-        int[] externalNumbers = (int[]) omxLookUp.getLookup();
-        autoTravelTime.setExternalNumbersZeroBased(externalNumbers);
-    }
-
     public boolean selectUs(LongDistanceTrip trip, Purpose tripPurpose) {
 
         double utility;
@@ -192,7 +169,7 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
     }
 
 
-    public double calculateUsZoneUtility(LongDistanceTrip trip, Purpose tripPurpose, int destination) {
+    private double calculateUsZoneUtility(LongDistanceTrip trip, Purpose tripPurpose, int destination) {
 
         //read coefficients
 
@@ -211,13 +188,11 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
             k_onLogsum = k_dtLogsum;
         }
 
-        //read trip data
-        double dist = autoTravelTime.getValueAt(trip.getOrigZone().getCombinedZoneId(), destination);
 
         double logsum = 0;
         Mode[] modes = ModeOntario.values();
         for (Mode m : modes) {
-            logsum += Math.exp(intModeChoice.calculateUtilityFromCanada(trip, m, destination));
+            logsum += Math.exp(internationalModeChoiceForLogsums.calculateUtilityFromCanada(trip, m, destination));
         }
         if (logsum == 0) {
             return Double.NEGATIVE_INFINITY;
@@ -245,10 +220,8 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
     }
 
 
-    public double calculateOsZoneUtility(int destination) {
-
+    private double calculateOsZoneUtility(int destination) {
         return externalOsMap.get(destination).getStaticAttraction();
-
     }
 
     public void updateIntOutboundCalibrationV(Map<Purpose, Double> b_calibrationVector) {

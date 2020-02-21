@@ -1,13 +1,13 @@
 package de.tum.bgu.msm.longDistance.accessibilityAnalysis;
 
-import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.io.reader.SkimsReader;
 import de.tum.bgu.msm.longDistance.tripGeneration.DomesticTripGeneration;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZonalData;
-import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.io.reader.ZoneReader;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 
 import org.apache.log4j.Logger;
 
@@ -30,15 +30,15 @@ public class AccessibilityAnalysis {
     private float alphaAuto;
     private float betaAuto;
 
-    public AccessibilityAnalysis (ResourceBundle rb, ZonalData zonalData){
+    public AccessibilityAnalysis (ResourceBundle rb, SkimsReader zoneReader){
         this.rb = rb;
         this.dataSet = dataSet;
 
 
 
 
-        zonalData.readSkims("");
-        //zonalData.readSkim("transit");
+        zoneReader.readSkims();
+        //zoneReader.readSkim("transit");
         //input parameters for accessibility calculations from mto properties
         alphaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.alpha");
         betaAuto = (float) ResourceUtil.getDoubleProperty(rb, "auto.accessibility.beta");

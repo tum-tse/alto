@@ -1,8 +1,7 @@
-package de.tum.bgu.msm.longDistance.zoneSystem;
+package de.tum.bgu.msm.longDistance.data.zoneSystem;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Created by carlloga on 8/10/2016.

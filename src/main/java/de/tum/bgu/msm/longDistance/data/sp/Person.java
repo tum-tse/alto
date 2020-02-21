@@ -1,8 +1,8 @@
 package de.tum.bgu.msm.longDistance.data.sp;
 
 
-import de.tum.bgu.msm.longDistance.data.Purpose;
-import de.tum.bgu.msm.longDistance.data.Type;
+import de.tum.bgu.msm.longDistance.data.trips.Purpose;
+import de.tum.bgu.msm.longDistance.data.trips.Type;
 
 import java.util.Map;
 

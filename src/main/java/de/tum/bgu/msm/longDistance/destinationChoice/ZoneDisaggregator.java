@@ -1,13 +1,14 @@
-package de.tum.bgu.msm.longDistance.zoneSystem;
+package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.ModelComponent;
-import de.tum.bgu.msm.longDistance.data.ModeOntario;
-import de.tum.bgu.msm.longDistance.data.PurposeOntario;
+import de.tum.bgu.msm.longDistance.data.trips.ModeOntario;
+import de.tum.bgu.msm.longDistance.data.trips.PurposeOntario;
 
+import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import org.apache.log4j.Logger;
 
 import org.json.simple.JSONObject;

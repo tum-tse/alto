@@ -1,12 +1,13 @@
-package de.tum.bgu.msm.longDistance.data.sp;
+package de.tum.bgu.msm.longDistance.io.reader;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.ModelComponent;
-import de.tum.bgu.msm.longDistance.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.data.sp.Household;
+import de.tum.bgu.msm.longDistance.data.sp.Person;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.Util;
-import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -28,9 +29,9 @@ import java.util.*;
  * Added read CD data to the method read zonal data (Carlos Llorca 20.07.16
  */
 
-public class SyntheticPopulation implements ModelComponent {
+public class SyntheticPopulationReader implements ModelComponent {
 
-    private static Logger logger = Logger.getLogger(SyntheticPopulation.class);
+    private static Logger logger = Logger.getLogger(SyntheticPopulationReader.class);
     private JSONObject prop;
     private Map<Integer, Zone> zoneLookup;
     private DataSet dataSet;
@@ -38,11 +39,11 @@ public class SyntheticPopulation implements ModelComponent {
     private String ppFilename;
     private String travellersFilename;
     private double scaleFactor;
-    private Map<Integer, Person> personMap = new HashMap<>();
-    private Map<Integer, Household> householdMap = new HashMap<>();
 
 
-    public SyntheticPopulation() {
+
+
+    public SyntheticPopulationReader() {
     }
 
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
@@ -81,25 +82,18 @@ public class SyntheticPopulation implements ModelComponent {
 
 
     public void readSyntheticPopulation() {
-
-        // method to read in synthetic population
         logger.info("  Reading synthetic population");
-        //readZonalData();
-        //ArrayList<Zone> internalZoneList = readInternalZones();
-        readSyntheticHouseholds();
-        readSyntheticPersons();
-        examSyntheticPopulation();
-        //summarizePopulationData();
-
-        dataSet.setPersons(this.personMap);
-        dataSet.setHouseholds(this.householdMap);
+        Map<Integer, Household> households = readSyntheticHouseholds();
+        dataSet.setHouseholds(households);
+        dataSet.setPersons(readSyntheticPersons(households));
 
 
     }
 
 
-    private void readSyntheticHouseholds() {
+    private Map<Integer, Household>  readSyntheticHouseholds() {
 
+        Map<Integer, Household> householdMap = new HashMap<>();
 
         String recString = "";
         int recCount = 0;
@@ -147,10 +141,14 @@ public class SyntheticPopulation implements ModelComponent {
             logger.fatal("recCount = " + recCount + ", recString = <" + recString + ">");
         }
         logger.info("  Finished reading " + recCount + " households.");
+
+        return householdMap;
     }
 
 
-    private void readSyntheticPersons() {
+    private Map<Integer, Person>  readSyntheticPersons(Map<Integer, Household> householdMap) {
+
+        Map<Integer, Person> personMap = new HashMap<>();
 
         boolean logUnmatchedHh = true;
 
@@ -183,7 +181,7 @@ public class SyntheticPopulation implements ModelComponent {
                 int occupation = Integer.parseInt(lineElements[posOccupation]);
                 int education = Integer.parseInt(lineElements[posHighestDegree]);
                 int workStatus = Integer.parseInt(lineElements[posEmploymentStatus]);
-                Household hh = getHouseholdFromId(hhId);
+                Household hh = householdMap.get(hhId);
 
                 if (hh != null) {
                     Person pp = new Person(id, hhId, age, gender, occupation, education, workStatus, hh);  // this automatically puts it in id->household map in Household class
@@ -202,53 +200,7 @@ public class SyntheticPopulation implements ModelComponent {
         logger.info("  Finished reading " + recCount + " persons.");
         logger.info("  The popualtion has " + personMap.size() + " persons in " + householdMap.size() + " households");
 
-    }
-
-
-    private void examSyntheticPopulation() {
-        // run selected tests on synthetic population to ensure consistency
-
-        // Test 1: Were all persons created? The person read method checks whether all households mentioned in the person
-        // file exist. Here, check if all persons mentioned in the household file exist
-
-        for (Household hh : getHouseholds()) {
-            for (Person pp : hh.getPersonsOfThisHousehold()) {
-                if (pp == null) {
-                    logger.error("Inconsistent synthetic population. Household " + hh.getId() + " is supposed to have " +
-                            hh.getHhSize() + " persons, but at least one of them is missing in the person file. Program terminated.");
-                    System.exit(9);
-
-                }
-            }
-        }
-    }
-
-    public Person getPersonFromId(int personId) {
-        return personMap.get(personId);
-    }
-
-
-    public int getPersonCount() {
-        return personMap.size();
-    }
-
-
-    public Collection<Person> getPersons() {
-        return personMap.values();
-    }
-
-    public Collection<Household> getHouseholds() {
-        return householdMap.values();
-    }
-
-
-    public Household getHouseholdFromId(int householdId) {
-        return householdMap.get(householdId);
-    }
-
-
-    public int getHouseholdCount() {
-        return householdMap.size();
+        return personMap;
     }
 
     public void writeSyntheticPopulation() {
@@ -258,7 +210,7 @@ public class SyntheticPopulation implements ModelComponent {
         PrintWriter pw2 = Util.openFileForSequentialWriting(travellersFilename, false);
 
         pw2.println("personId, away, daytrip, inOutTrip");
-        for (Person trav : getPersons()) {
+        for (Person trav : dataSet.getPersons().values()) {
             //takes only persons travelling
             if (trav.isAway() | trav.isDaytrip() | trav.isInOutTrip()) {
                 pw2.println(trav.getPersonId() + "," + trav.isAway() + "," + trav.isDaytrip() + "," + trav.isInOutTrip());

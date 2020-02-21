@@ -1,4 +1,4 @@
-package de.tum.bgu.msm.longDistance.data;
+package de.tum.bgu.msm.longDistance.data.trips;
 
 /**
  * Created by carlloga on 8/2/2017.

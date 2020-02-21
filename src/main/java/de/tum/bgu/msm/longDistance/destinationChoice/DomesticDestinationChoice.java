@@ -4,11 +4,11 @@ import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.*;
 
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 
 import org.json.simple.JSONObject;
 
@@ -25,16 +25,15 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
     private TableDataSet coefficients;
     private Matrix autoDist;
     private int[] alternatives;
-    private DomesticModeChoice domesticModeChoice;
     private boolean calibration;
     private Map<Purpose, Double> domDcCalibrationV;
     private boolean isSummer;
+    private DomesticModeChoice domesticModeChoiceForLogsums;
 
     //private String[] fileMatrixLooup = new String[3];
 
 
     public DomesticDestinationChoice(JSONObject prop) {
-
 
         //fileMatrixLooup[0] = JsonUtilMto.getStringProp(prop, )
         //fileMatrixLooup[1] = JsonUtilMto.getStringProp(prop, )
@@ -46,6 +45,8 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
         coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.domestic.coef_file"));
         coefficients.buildStringIndex(1);
 
+
+        domesticModeChoiceForLogsums = new DomesticModeChoice(prop);
 
         //load alternatives
 
@@ -69,11 +70,7 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
 
     public void load(DataSet dataSet) {
 
-        this.domesticModeChoice = dataSet.getMcDomestic();
-
-        //load combined zones distance skim
-        //readSkim();
-
+        domesticModeChoiceForLogsums.loadDomesticModeChoice(dataSet);
         autoDist = dataSet.getTravelTimeMatrix().get(ModeOntario.AUTO);
         logger.info("Domestic DC loaded");
 
@@ -176,7 +173,7 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
         double logsum = 0;
         Mode[] modes = ModeOntario.values();
         for (Mode m : modes) {
-            logsum += Math.exp(domesticModeChoice.calculateUtilityFromExtCanada(trip, m, destination));
+            logsum += Math.exp(domesticModeChoiceForLogsums.calculateUtilityFromExtCanada(trip, m, destination));
         }
         if (logsum == 0) {
             return Double.NEGATIVE_INFINITY;

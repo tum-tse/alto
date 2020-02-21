@@ -5,9 +5,9 @@ import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.*;
+import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import de.tum.bgu.msm.longDistance.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -30,13 +30,16 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
     private TableDataSet coefficients;
     private Matrix autoTravelTime;
     private int[] alternatives;
-    private DomesticDestinationChoice dcModel;
-    private IntModeChoice intModeChoice;
     private boolean calibration;
     private Map<Purpose, Double> calibrationV;
+    private IntModeChoice internationalModeChoiceForLogsums;
+    private DataSet dataSet;
 
 
     public IntInboundDestinationChoice(JSONObject prop) {
+
+
+        internationalModeChoiceForLogsums = new IntModeChoice(prop);
         //coef format
         // table format: coeff | visit | leisure | business
         //this.rb = rb;
@@ -62,11 +65,9 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
 
     @Override
     public void load(DataSet dataSet) {
+        this.dataSet = dataSet;
 
-        this.dcModel = dataSet.getDcDomestic();
-        this.intModeChoice = dataSet.getMcInt();
-        //load combined zones distance skim
-        autoTravelTime = dcModel.getAutoDist();
+        internationalModeChoiceForLogsums.loadIntModeChoice(dataSet);
 
         logger.info("International DC (inbound) loaded");
 
@@ -164,7 +165,7 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
         double logsum = 0;
         Mode[] modes = ModeOntario.values();
         for (Mode m : modes) {
-            logsum += Math.exp(intModeChoice.calculateUtilityToCanada(trip, m, destination));
+            logsum += Math.exp(internationalModeChoiceForLogsums.calculateUtilityToCanada(trip, m, destination));
         }
         if (logsum == 0) {
             return Double.NEGATIVE_INFINITY;
@@ -181,7 +182,7 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
         }
 
         //read trip data
-        double dist = autoTravelTime.getValueAt(trip.getOrigZone().getCombinedZoneId(), destination);
+        float dist = dataSet.getTravelTimeMatrix().get(ModeOntario.AUTO).getValueAt(trip.getOrigZone().getCombinedZoneId(), destination);
 
         //read destination data
         double population = destCombinedZones.getIndexedValueAt(destination, "population");
