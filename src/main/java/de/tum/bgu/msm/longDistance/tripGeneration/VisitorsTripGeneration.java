@@ -4,13 +4,15 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
-import de.tum.bgu.msm.longDistance.data.sp.Household;
+import de.tum.bgu.msm.longDistance.data.sp.HouseholdOntario;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
+import de.tum.bgu.msm.longDistance.data.sp.PersonOntario;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
 import de.tum.bgu.msm.Util;
 
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
@@ -21,7 +23,7 @@ import org.apache.log4j.Logger;
 /**
  * Created by carlloga on 8/31/2016.
  */
-public class VisitorsTripGeneration implements TripGenerationModule {
+public class VisitorsTripGeneration {
 
     private TableDataSet visitorPartyProbabilities;
     private TableDataSet visitorsRatePerZone;
@@ -68,17 +70,17 @@ public class VisitorsTripGeneration implements TripGenerationModule {
 
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> run() {
+    public ArrayList<LongDistanceTripOntario> run() {
 
         atomicInteger = new AtomicInteger(dataSet.getAllTrips().size() + 1);
         atomicIntegerVisitors = new AtomicInteger(90000000);
 
-        ArrayList<LongDistanceTrip> visitorTrips = new ArrayList<>();
+        ArrayList<LongDistanceTripOntario> visitorTrips = new ArrayList<>();
 
         int tripCount = 0;
         int tripCount2 = 0;
         for (Zone zone : externalZoneList) {
-            if (zone.getZoneType().equals(ZoneType.EXTCANADA)) {
+            if (zone.getZoneType().equals(ZoneTypeOntario.EXTCANADA)) {
                 for (Purpose tripPurpose : PurposeOntario.values()) {
                     for (Type tripState : TypeOntario.values()) {
 
@@ -87,9 +89,9 @@ public class VisitorsTripGeneration implements TripGenerationModule {
                         //generates all travellers and apply later destination choice
                         tripRate = externalCanIntRates.getIndexedValueAt(zone.getId(), column);
 
-                        int numberOfTrips = (int) Math.round(tripRate * zone.getPopulation());
+                        int numberOfTrips = (int) Math.round(tripRate * ((ZoneOntario) zone).getPopulation());
                         for (int i = 0; i < numberOfTrips; i++) {
-                            LongDistanceTrip trip = createExtCanIntLongDistanceTrip(tripPurpose, tripState, zone, visitorPartyProbabilities);
+                            LongDistanceTripOntario trip = createExtCanIntLongDistanceTrip(tripPurpose, tripState, ((ZoneOntario) zone), visitorPartyProbabilities);
                             tripCount2++;
                             visitorTrips.add(trip);
                         }
@@ -103,9 +105,9 @@ public class VisitorsTripGeneration implements TripGenerationModule {
                     String column = tripState.toString() + "." + tripPurpose.toString();
                     double tripRate;
                     tripRate = visitorsRatePerZone.getIndexedValueAt(zone.getId(), column);
-                    int numberOfTrips = (int) (tripRate * zone.getPopulation());
+                    int numberOfTrips = (int) (tripRate * ((ZoneOntario) zone).getPopulation());
                     for (int i = 0; i < numberOfTrips; i++) {
-                        LongDistanceTrip trip = createVisitorLongDistanceTrip(tripPurpose, tripState, visitorPartyProbabilities, zone);
+                        LongDistanceTripOntario trip = createVisitorLongDistanceTrip(tripPurpose, tripState, visitorPartyProbabilities, ((ZoneOntario) zone));
                         tripCount++;
                         visitorTrips.add(trip);
                     }
@@ -118,12 +120,12 @@ public class VisitorsTripGeneration implements TripGenerationModule {
         return visitorTrips;
     }
 
-    private LongDistanceTrip createVisitorLongDistanceTrip(Purpose tripPurpose, Type tripState, TableDataSet visitorPartyProbabilities, Zone zone) {
+    private LongDistanceTripOntario createVisitorLongDistanceTrip(Purpose tripPurpose, Type tripState, TableDataSet visitorPartyProbabilities, ZoneOntario zone) {
         boolean international;
         int adultsHh;
         int kidsHh;
         int nonHh;
-        if (zone.getZoneType().equals(ZoneType.EXTCANADA)) international = false;
+        if (zone.getZoneType().equals(ZoneTypeOntario.EXTCANADA)) international = false;
         else international = true;
 
         //generation of trip parties (no assignment of person, only sizes)
@@ -147,13 +149,13 @@ public class VisitorsTripGeneration implements TripGenerationModule {
 
         int duration = tripState.equals("daytrip")? 0:1;
 
-        Household visitorsHh = new Household(atomicIntegerVisitors.get(), 0, 0, 0, null);
-        Person visitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
+        HouseholdOntario visitorsHh = new HouseholdOntario(atomicIntegerVisitors.get(), 0, 0, 0, null);
+        PersonOntario visitor = new PersonOntario(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
 
-        LongDistanceTrip trip = new LongDistanceTrip(atomicInteger.get(),visitor, international, tripPurpose, tripState, zone, duration, nonHh);
+        LongDistanceTripOntario trip = new LongDistanceTripOntario(atomicInteger.get(),visitor, international, tripPurpose, tripState, zone, duration, nonHh);
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         for (int v = 0; v < adultsHh + kidsHh - 1; v++){
-            Person newVisitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
+            Person newVisitor = new PersonOntario(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
             hhTravelParty.add(newVisitor);
         }
         trip.setHhTravelParty(hhTravelParty);
@@ -163,7 +165,7 @@ public class VisitorsTripGeneration implements TripGenerationModule {
 
     }
 
-    private LongDistanceTrip createExtCanIntLongDistanceTrip(Purpose tripPurpose, Type tripState, Zone zone, TableDataSet travelPartyProbabilities) {
+    private LongDistanceTripOntario createExtCanIntLongDistanceTrip(Purpose tripPurpose, Type tripState, ZoneOntario zone, TableDataSet travelPartyProbabilities) {
 
         boolean international = true;
         int adultsHh;
@@ -190,12 +192,12 @@ public class VisitorsTripGeneration implements TripGenerationModule {
 
         int duration = tripState.equals("daytrip")? 0:1;
 
-        Household visitorsHh = new Household(atomicIntegerVisitors.get(), 0, 0, 0, null);
-        Person visitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
-        LongDistanceTrip trip = new LongDistanceTrip(atomicInteger.get(),visitor, true, tripPurpose, tripState, zone, duration, nonHh);
+        HouseholdOntario visitorsHh = new HouseholdOntario(atomicIntegerVisitors.get(), 0, 0, 0, null);
+        PersonOntario visitor = new PersonOntario(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
+        LongDistanceTripOntario trip = new LongDistanceTripOntario(atomicInteger.get(),visitor, true, tripPurpose, tripState, zone, duration, nonHh);
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         for (int v = 0; v < adultsHh + kidsHh - 1; v++){
-            Person newVisitor = new Person(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
+            Person newVisitor = new PersonOntario(atomicIntegerVisitors.getAndIncrement(), 99999999, -1, 'f',-1, -1, -1, visitorsHh );
             hhTravelParty.add(newVisitor);
         }
         trip.setHhTravelParty(hhTravelParty);

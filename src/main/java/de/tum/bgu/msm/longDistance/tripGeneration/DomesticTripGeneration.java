@@ -7,8 +7,10 @@ import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
+import de.tum.bgu.msm.longDistance.data.sp.HouseholdOntario;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 
+import de.tum.bgu.msm.longDistance.data.sp.PersonOntario;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import org.json.simple.JSONObject;
 
@@ -25,7 +27,7 @@ import org.apache.log4j.Logger;
  * works for domestic trips
  */
 
-public class DomesticTripGeneration implements TripGenerationModule {
+public class DomesticTripGeneration{
 
     private DataSet dataSet;
 
@@ -70,7 +72,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
     }
 
 
-    @Override
+
     public void load(DataSet dataSet){
 
         this.dataSet = dataSet;
@@ -83,10 +85,9 @@ public class DomesticTripGeneration implements TripGenerationModule {
         AccessibilityAnalysis.calculateAccessibility(dataSet, fromZones, toZones, alphaAccess , betaAccess);
     }
 
-    //method to run the trip generation
-    @Override
-    public ArrayList<LongDistanceTrip> run() {
-        ArrayList<LongDistanceTrip> trips = new ArrayList<>();
+
+    public ArrayList<LongDistanceTripOntario> run() {
+        ArrayList<LongDistanceTripOntario> trips = new ArrayList<>();
 
         //initialize utility vectors
         Map<Type, Double> expUtilities = new HashMap<>();
@@ -97,11 +98,13 @@ public class DomesticTripGeneration implements TripGenerationModule {
           for (Household hhold : dataSet.getHouseholds().values()) {
 
             //pick and shuffle the members of the household
-            ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(hhold.getPersonsOfThisHousehold()));
+            ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(((HouseholdOntario) hhold).getPersonsOfThisHousehold()));
             Collections.shuffle(membersList, LDModel.rand);
 
-            for (Person pers : membersList) {
+            for (Person person : membersList) {
                 //array to store 3 x 3 trip probabilities for later use in international
+
+                PersonOntario pers = (PersonOntario) person;
 
                 Map<Purpose, Map<Type ,Double>> tgProbabilities = new HashMap<>();
 
@@ -141,7 +144,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
                         }
 
                         if (tripState != null) {
-                            LongDistanceTrip trip = createLongDistanceTrip(pers, tripPurpose, tripState, probabilities,  travelPartyProbabilities);
+                            LongDistanceTripOntario trip = createLongDistanceTrip(pers, tripPurpose, tripState, probabilities,  travelPartyProbabilities);
                             trips.add(trip);
                             //tripCount++;
                         }
@@ -157,7 +160,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
         return trips;
     }
 
-    public double calculateUtility(Person pers, String tripPurpose, String tripState) {
+    public double calculateUtility(PersonOntario pers, String tripPurpose, String tripState) {
 
         double accessibility = pers.getHousehold().getZone().getAccessibility();
 
@@ -202,7 +205,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
     }
 
     //this method is no longer used
-    public float[] readPersonSocioDemographics(Person pers) {
+    public float[] readPersonSocioDemographics(PersonOntario pers) {
         float personDescription[] = new float[15];
         //change size to 15 if "winter" is added
         //intercept always = 1
@@ -305,7 +308,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
     }
 
 
-    private LongDistanceTrip createLongDistanceTrip(Person pers, Purpose tripPurpose, Type tripState, Map<Type, Double> probability, TableDataSet travelPartyProbabilities) {
+    private LongDistanceTripOntario createLongDistanceTrip(PersonOntario pers, Purpose tripPurpose, Type tripState, Map<Type, Double> probability, TableDataSet travelPartyProbabilities) {
 
         ArrayList<Person> adultsHhTravelParty = addAdultsHhTravelParty(pers, tripPurpose.toString(), travelPartyProbabilities);
         ArrayList<Person> kidsHhTravelParty = addKidsHhTravelParty(pers, tripPurpose.toString(), travelPartyProbabilities);
@@ -319,7 +322,7 @@ public class DomesticTripGeneration implements TripGenerationModule {
             tripDuration = estimateSimpleTripDuration(tripState);
         }
 
-        LongDistanceTrip trip = new LongDistanceTrip(atomicInteger.getAndIncrement(), pers, false, tripPurpose, tripState,
+        LongDistanceTripOntario trip = new LongDistanceTripOntario(atomicInteger.getAndIncrement(), pers, false, tripPurpose, tripState,
                 pers.getHousehold().getZone(), tripDuration, nonHhTravelPartySize);
         trip.setHhTravelParty(hhTravelParty);
 
@@ -349,14 +352,14 @@ public class DomesticTripGeneration implements TripGenerationModule {
     }
 
 
-    public static ArrayList<Person> addAdultsHhTravelParty(Person pers, String tripPurpose, TableDataSet travelPartyProbabilities) {
+    public static ArrayList<Person> addAdultsHhTravelParty(PersonOntario pers, String tripPurpose, TableDataSet travelPartyProbabilities) {
 
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         int hhmember = 0;
         hhTravelParty.add(0, pers);
         double randomChoice2 = LDModel.rand.nextDouble();
-        Household hhold = pers.getHousehold();
-        for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
+        HouseholdOntario hhold = pers.getHousehold();
+        for (PersonOntario pers2 : hhold.getPersonsOfThisHousehold()) {
             if (pers2 != pers && !pers2.isAway() && !pers2.isDaytrip() && !pers2.isInOutTrip() && pers2.getAge() > 17) {
                 String column = tripPurpose + "." + Math.min(pers.getAdultsHh(), 5);
                 double probability2 = travelPartyProbabilities.getIndexedValueAt(Math.min(hhmember + 1, 5), column);
@@ -372,12 +375,12 @@ public class DomesticTripGeneration implements TripGenerationModule {
         return hhTravelParty;
     }
 
-    public static ArrayList<Person> addKidsHhTravelParty(Person pers, String tripPurpose, TableDataSet travelPartyProbabilities) {
+    public static ArrayList<Person> addKidsHhTravelParty(PersonOntario pers, String tripPurpose, TableDataSet travelPartyProbabilities) {
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         int hhmember = 0;
         double randomChoice2 = LDModel.rand.nextDouble();
-        Household hhold = pers.getHousehold();
-        for (Person pers2 : hhold.getPersonsOfThisHousehold()) {
+        HouseholdOntario hhold = pers.getHousehold();
+        for (PersonOntario pers2 : hhold.getPersonsOfThisHousehold()) {
             if (pers2 != pers && !pers2.isAway() && !pers2.isDaytrip() && !pers2.isInOutTrip() && pers2.getAge() < 18) {
                 String column = "kids." + tripPurpose + "." + Math.min(pers.getKidsHh(), 5);
                 double probability2 = travelPartyProbabilities.getIndexedValueAt(Math.min(hhmember + 1, 5), column);

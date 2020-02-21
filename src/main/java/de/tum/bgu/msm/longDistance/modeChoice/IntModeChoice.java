@@ -5,8 +5,8 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import org.json.simple.JSONObject;
 
 import java.util.Arrays;
@@ -71,13 +71,13 @@ public class IntModeChoice {
         logger.info("International MC loaded");
     }
 
-    public Mode selectMode(LongDistanceTrip trip){
+    public Mode selectMode(LongDistanceTripOntario trip){
 
         double[] expUtilities;
 
         Mode[] modes = ModeOntario.values();
 
-        if(trip.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || trip.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)){
+        if(trip.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO) || trip.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTCANADA)){
             expUtilities = Arrays.stream(modes)
                     //calculate exp(Ui) for each destination
                     .mapToDouble(m -> Math.exp(calculateUtilityFromCanada(trip, m, trip.getDestCombinedZoneId()))).toArray();
@@ -95,7 +95,7 @@ public class IntModeChoice {
 
     }
 
-    public double calculateUtilityToCanada(LongDistanceTrip trip, Mode m, int destination) {
+    public double calculateUtilityToCanada(LongDistanceTripOntario trip, Mode m, int destination) {
 
         double utility;
         String tripPurpose =trip.getTripPurpose().toString().toLowerCase();
@@ -169,7 +169,7 @@ public class IntModeChoice {
         return utility;
     }
 
-    public double calculateUtilityFromCanada(LongDistanceTrip trip, Mode m, int destination){
+    public double calculateUtilityFromCanada(LongDistanceTripOntario trip, Mode m, int destination){
 
         double utility;
         String tripPurpose =trip.getTripPurpose().toString().toLowerCase();
@@ -274,8 +274,8 @@ public class IntModeChoice {
 
 
 
-    public float getInternationalModalTravelTime(LongDistanceTrip trip){
-        if (trip.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneType.EXTOVERSEAS) ){
+    public float getInternationalModalTravelTime(LongDistanceTripOntario trip){
+        if (trip.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneTypeOntario.EXTOVERSEAS) ){
             return -1.f;
         } else {
             return dataSet.getTravelTimeMatrix().get(trip.getMode()).getValueAt(trip.getOrigZone().getCombinedZoneId(), trip.getDestCombinedZoneId());

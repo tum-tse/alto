@@ -7,8 +7,8 @@ import de.tum.bgu.msm.longDistance.DataSet;
 
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.trips.*;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 
 import org.json.simple.JSONObject;
 
@@ -30,27 +30,13 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
     private boolean isSummer;
     private DomesticModeChoice domesticModeChoiceForLogsums;
 
-    //private String[] fileMatrixLooup = new String[3];
 
 
     public DomesticDestinationChoice(JSONObject prop) {
-
-        //fileMatrixLooup[0] = JsonUtilMto.getStringProp(prop, )
-        //fileMatrixLooup[1] = JsonUtilMto.getStringProp(prop, )
-        //fileMatrixLooup[2] = JsonUtilMto.getStringProp(prop, )
-
-        //coef format
-        // table format: coeff | visit | leisure | business
-        //coefficients = Util.readCSVfile(rb.getString("dc.domestic.coefs"));
         coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.domestic.coef_file"));
         coefficients.buildStringIndex(1);
 
-
         domesticModeChoiceForLogsums = new DomesticModeChoice(prop);
-
-        //load alternatives
-
-        //combinedZones = Util.readCSVfile(rb.getString("dc.combined.zones"));
         combinedZones = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.domestic.alternatives_file"));
         combinedZones.buildIndex(1);
         alternatives = combinedZones.getColumnAsInt("alt");
@@ -98,7 +84,7 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
 
 
     //given a trip, calculate the utility of each destination
-    public int selectDestination(LongDistanceTrip trip) {
+    public int selectDestination(LongDistanceTripOntario trip) {
 
         //        switch (trip.getTripPurpose()) {
 //            case 2:
@@ -128,18 +114,18 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
 
     }
 
-    public ZoneType getDestinationZoneType(int destinationZoneId) {
+    public ZoneTypeOntario getDestinationZoneType(int destinationZoneId) {
         //method to give the destination zone type from a destination
 
         if (combinedZones.getIndexedStringValueAt(destinationZoneId, "loc").equals("ontario")) {
-            return ZoneType.ONTARIO;
+            return ZoneTypeOntario.ONTARIO;
         } else {
-            return ZoneType.EXTCANADA;
+            return ZoneTypeOntario.EXTCANADA;
         }
 
     }
 
-    private double calculateUtility(LongDistanceTrip trip, Purpose tripPurpose, int destination) {
+    private double calculateUtility(LongDistanceTripOntario trip, Purpose tripPurpose, int destination) {
         // Method to calculate utility of all possible destinations for LongDistanceTrip trip
 
         int origin = trip.getOrigZone().getCombinedZoneId();

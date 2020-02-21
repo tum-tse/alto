@@ -3,6 +3,15 @@ package de.tum.bgu.msm;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 
+import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoiceOntario;
+import de.tum.bgu.msm.longDistance.destinationChoice.ZoneDisaggregatorOntario;
+import de.tum.bgu.msm.longDistance.io.OutputWriterOntario;
+import de.tum.bgu.msm.longDistance.io.reader.SkimsReaderOntario;
+import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReaderOntario;
+import de.tum.bgu.msm.longDistance.io.reader.ZoneReaderOntario;
+import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceOntario;
+import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoiceOntario;
+import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationOntario;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -53,7 +62,12 @@ public class RunModel {
         DataSet dataSet = new DataSet();
         String inputFolder =  JsonUtilMto.getStringProp(prop, "work_folder");
         String outputFolder = JsonUtilMto.getStringProp(prop, "work_folder");
-        LDModel ldModel = new LDModel();
+
+
+
+        LDModel ldModel = new LDModel(new ZoneReaderOntario(), new SkimsReaderOntario(), new SyntheticPopulationReaderOntario(),
+                new TripGenerationOntario(), new DestinationChoiceOntario(), new ModeChoiceOntario(), new ZoneDisaggregatorOntario(),
+                new TimeOfDayChoiceOntario(), new OutputWriterOntario());
         ldModel.setup(prop, inputFolder, outputFolder);
         ldModel.load(dataSet);
         ldModel.run(dataSet, -1);

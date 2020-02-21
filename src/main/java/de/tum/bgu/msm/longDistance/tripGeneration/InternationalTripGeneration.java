@@ -6,6 +6,7 @@ import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.data.sp.PersonOntario;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
 import org.json.simple.JSONObject;
@@ -19,7 +20,7 @@ import org.apache.log4j.Logger;
  * Created by Carlos on 7/19/2016.
  * Based on number of trips and increased later with travel parties.
  */
-public class InternationalTripGeneration implements TripGenerationModule {
+public class InternationalTripGeneration {
 
     private static Logger logger = Logger.getLogger(InternationalTripGeneration.class);
     private final JSONObject prop;
@@ -76,13 +77,13 @@ public class InternationalTripGeneration implements TripGenerationModule {
     }
 
     //method to run the trip generation
-    public ArrayList<LongDistanceTrip> run() {
+    public ArrayList<LongDistanceTripOntario> run() {
 
       atomicInteger = new AtomicInteger(dataSet.getAllTrips().size() + 1);
 
 
 
-        ArrayList<LongDistanceTrip> trips = new ArrayList<>();
+        ArrayList<LongDistanceTripOntario> trips = new ArrayList<>();
 
         //initialize probMatrices
         for (Purpose purpose : PurposeOntario.values()){
@@ -124,11 +125,11 @@ public class InternationalTripGeneration implements TripGenerationModule {
                             next = iterator.next();
                             cumulative += next.getValue();
                         }
-                        Person pers = dataSet.getPersonFromId(next.getKey());
+                        PersonOntario pers = (PersonOntario) dataSet.getPersonFromId(next.getKey());
 
                         if (!pers.isDaytrip() && !pers.isAway() && !pers.isInOutTrip() && pers.getAge() > 17 && tripCount < numberOfTrips) {
 
-                            LongDistanceTrip trip = createIntLongDistanceTrip(pers, tripPurpose,tripState, travelPartyProbabilities);
+                            LongDistanceTripOntario trip = createIntLongDistanceTrip(pers, tripPurpose,tripState, travelPartyProbabilities);
                             trips.add(trip);
                             tripCount++;
                         }
@@ -148,7 +149,7 @@ public class InternationalTripGeneration implements TripGenerationModule {
     }
 
 
-    private LongDistanceTrip createIntLongDistanceTrip(Person pers, Purpose tripPurpose, Type tripState, TableDataSet travelPartyProbabilities ){
+    private LongDistanceTripOntario createIntLongDistanceTrip(PersonOntario pers, Purpose tripPurpose, Type tripState, TableDataSet travelPartyProbabilities ){
 
         TypeOntario type = (TypeOntario) tripState;
 
@@ -174,7 +175,7 @@ public class InternationalTripGeneration implements TripGenerationModule {
             tripDuration = 1;
         }
 
-        LongDistanceTrip trip =  new LongDistanceTrip(atomicInteger.getAndIncrement(), pers, true, tripPurpose, tripState, pers.getHousehold().getZone(), tripDuration,
+        LongDistanceTripOntario trip =  new LongDistanceTripOntario(atomicInteger.getAndIncrement(), pers, true, tripPurpose, tripState, pers.getHousehold().getZone(), tripDuration,
                 nonHhTravelPartySize);
         trip.setHhTravelParty(hhTravelParty);
 
@@ -196,7 +197,9 @@ public class InternationalTripGeneration implements TripGenerationModule {
         double exponent = 2;
 
         int p = 0;
-        for (Person pers : persons) {
+        for (Person person : persons) {
+            PersonOntario pers = (PersonOntario) person;
+
             //IntStream.range(0, synPop.getPersons().size()).parallel().forEach(p -> {
             //Person pers = synPop.getPersonFromId(p);
             if (pers.getTravelProbabilities() != null) {

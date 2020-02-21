@@ -1,15 +1,19 @@
 package de.tum.bgu.msm.longDistance;
 
-import de.tum.bgu.msm.longDistance.destinationChoice.Distribution;
+import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoice;
+import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoiceOntario;
+import de.tum.bgu.msm.longDistance.destinationChoice.ZoneDisaggregatorOntario;
 import de.tum.bgu.msm.longDistance.io.OutputWriter;
-import de.tum.bgu.msm.longDistance.io.reader.SkimsReader;
-import de.tum.bgu.msm.longDistance.modeChoice.McModel;
+import de.tum.bgu.msm.longDistance.io.OutputWriterOntario;
+import de.tum.bgu.msm.longDistance.io.reader.*;
+import de.tum.bgu.msm.longDistance.modeChoice.ModeChoice;
+import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceOntario;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoice;
-import de.tum.bgu.msm.longDistance.tripGeneration.Generation;
-import de.tum.bgu.msm.longDistance.io.reader.ZoneReader;
 import de.tum.bgu.msm.longDistance.destinationChoice.ZoneDisaggregator;
-import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReader;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoiceOntario;
+import de.tum.bgu.msm.longDistance.tripGeneration.TripGeneration;
+import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationOntario;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -32,57 +36,43 @@ public class LDModel implements ModelComponent {
     private ZoneReader zoneReader;
     private SkimsReader skimsReader;
     private SyntheticPopulationReader syntheticPopulationReader;
-    private Generation tripGenModel;
-    private Distribution distribution;
-    private McModel mcModel;
-    private Calibration calib;
+    private TripGeneration tripGenModel;
+    private DestinationChoice destinationChoice;
+    private ModeChoice mcModel;
     private ZoneDisaggregator zd;
     private TimeOfDayChoice timeOfDayChoice;
     private OutputWriter outputWriter;
 
-    //developing options
-    private boolean runTG;
-    private boolean runDC;
-    private String inputTripFile;
-
-    //output options
-    private boolean writeTrips;
-    private String outputTripFile;
-
-
-    public LDModel() {
-        syntheticPopulationReader = new SyntheticPopulationReader();
-        zoneReader = new ZoneReader();
-        skimsReader = new SkimsReader();
-        tripGenModel = new Generation();
-        distribution = new Distribution();
-        mcModel = new McModel();
-        zd = new ZoneDisaggregator();
-        calib = new Calibration();
-        timeOfDayChoice = new TimeOfDayChoice();
-        outputWriter = new OutputWriter();
+    public LDModel(ZoneReader zoneReader, SkimsReader skimsReader,
+                   SyntheticPopulationReader syntheticPopulationReader,
+                   TripGeneration tripGenModel,
+                   DestinationChoice destinationChoice,
+                   ModeChoice mcModel,
+                   ZoneDisaggregator zd, TimeOfDayChoice timeOfDayChoice, OutputWriter outputWriter) {
+        this.zoneReader = zoneReader;
+        this.skimsReader = skimsReader;
+        this.syntheticPopulationReader = syntheticPopulationReader;
+        this.tripGenModel = tripGenModel;
+        this.destinationChoice = destinationChoice;
+        this.mcModel = mcModel;
+        this.zd = zd;
+        this.timeOfDayChoice = timeOfDayChoice;
+        this.outputWriter = outputWriter;
     }
 
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
         Util.initializeRandomNumber(prop);
-
         //options
-
-
-
-
         zoneReader.setup(prop, inputFolder, outputFolder);
         skimsReader.setup(prop, inputFolder, outputFolder);
         syntheticPopulationReader.setup(prop, inputFolder, outputFolder);
         tripGenModel.setup(prop, inputFolder, outputFolder);
-        distribution.setup(prop, inputFolder, outputFolder);
+        destinationChoice.setup(prop, inputFolder, outputFolder);
         mcModel.setup(prop, inputFolder, outputFolder);
-        calib.setup(prop, inputFolder, outputFolder);
         zd.setup(prop, inputFolder, outputFolder);
         timeOfDayChoice.setup(prop, inputFolder, outputFolder);
         outputWriter.setup(prop, inputFolder, outputFolder);
-
         logger.info("---------------------ALL MODULES SET UP---------------------");
     }
 
@@ -92,12 +82,10 @@ public class LDModel implements ModelComponent {
         skimsReader.load(dataSet);
         syntheticPopulationReader.load(dataSet);
         mcModel.load(dataSet);
-        distribution.load(dataSet);
+        destinationChoice.load(dataSet);
         tripGenModel.load(dataSet);
-        calib.load(dataSet);
         zd.load(dataSet);
         outputWriter.load(dataSet);
-
         logger.info("---------------------ALL MODULES LOADED---------------------");
 
     }
@@ -105,12 +93,11 @@ public class LDModel implements ModelComponent {
     public void run(DataSet dataSet, int nThreads) {
 
         tripGenModel.run(dataSet, -1);
-        distribution.run(dataSet, -1);
+        destinationChoice.run(dataSet, -1);
         mcModel.run(dataSet, -1);
-        calib.run(dataSet, -1);
         zd.run(dataSet, -1);
         timeOfDayChoice.run(dataSet, -1);
-
+        outputWriter.run(dataSet, -1);
         //print outputs
 
 

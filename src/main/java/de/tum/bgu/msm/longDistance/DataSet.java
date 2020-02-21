@@ -1,19 +1,14 @@
 package de.tum.bgu.msm.longDistance;
 
 import com.pb.common.matrix.Matrix;
+import de.tum.bgu.msm.longDistance.data.sp.PersonOntario;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
-import de.tum.bgu.msm.longDistance.destinationChoice.Distribution;
-import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
-import de.tum.bgu.msm.longDistance.destinationChoice.IntInboundDestinationChoice;
-import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.McModel;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import org.apache.log4j.Logger;
 
 
@@ -79,7 +74,7 @@ public class DataSet {
     private Map<Integer, Household> households = new HashMap<>();
 
     //TRIPS
-    private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
+    private ArrayList<LongDistanceTripOntario> allTrips = new ArrayList<>();
 
     public Map<Integer, Zone> getZones() {
         return zones;
@@ -90,7 +85,7 @@ public class DataSet {
     }
 
     public List<Zone> getExternalZones() {
-        return zones.values().stream().filter(zone -> !zone.getZoneType().equals(ZoneType.ONTARIO)).collect(Collectors.toList());
+        return zones.values().stream().filter(zone -> !zone.getZoneType().equals(ZoneTypeOntario.ONTARIO)).collect(Collectors.toList());
     }
 
     public void setAutoTravelTime(Matrix autoTravelTime) {
@@ -133,7 +128,7 @@ public class DataSet {
         return households.get(hhId);
     }
 
-    public ArrayList<LongDistanceTrip> getAllTrips() {
+    public ArrayList<LongDistanceTripOntario> getAllTrips() {
         return allTrips;
     }
 }

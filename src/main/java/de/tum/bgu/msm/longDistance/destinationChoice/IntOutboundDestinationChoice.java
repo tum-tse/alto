@@ -1,19 +1,16 @@
 package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.datafile.TableDataSet;
-import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 import de.tum.bgu.msm.longDistance.data.trips.*;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import de.tum.bgu.msm.longDistance.io.reader.ZoneReader;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
-import omx.OmxFile;
-import omx.OmxLookup;
-import omx.OmxMatrix;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -79,8 +76,8 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
         internationalModeChoiceForLogsums.loadIntModeChoice(dataSet);
 
         dataSet.getExternalZones().forEach(zone -> {
-            if (zone.getZoneType() == ZoneType.EXTOVERSEAS) {
-                externalOsMap.put(zone.getCombinedZoneId(), zone);
+            if (zone.getZoneType() == ZoneTypeOntario.EXTOVERSEAS) {
+                externalOsMap.put(((ZoneOntario) zone).getCombinedZoneId(), zone);
             }
         });
 
@@ -94,7 +91,7 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
         logger.info("International DC (outbound) loaded");
     }
 
-    public int selectDestination(LongDistanceTrip trip) {
+    public int selectDestination(LongDistanceTripOntario trip) {
 
         int destination;
         //0 visit, 1 business and 2 leisure
@@ -126,21 +123,21 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
         return destination;
     }
 
-    public ZoneType getDestinationZoneType(int destinationZoneId) {
+    public ZoneTypeOntario getDestinationZoneType(int destinationZoneId) {
         //method to give the destination zone type from a destination
 
         if (externalOsMap.keySet().contains(destinationZoneId)) {
-            return ZoneType.EXTOVERSEAS;
+            return ZoneTypeOntario.EXTOVERSEAS;
         } else {
-            return ZoneType.EXTUS;
+            return ZoneTypeOntario.EXTUS;
         }
     }
 
-    public boolean selectUs(LongDistanceTrip trip, Purpose tripPurpose) {
+    public boolean selectUs(LongDistanceTripOntario trip, Purpose tripPurpose) {
 
         double utility;
         //binary choice model for US/OS (per purpose)
-        if (trip.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
+        if (trip.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO)) {
             //trips from Ontario = use accessibility to get the probability
             double b_intercept = coefficients.getStringIndexedValueAt("isUs", tripPurpose.toString());
             double b_usAccess = coefficients.getStringIndexedValueAt("isUsAcc", tripPurpose.toString());
@@ -169,7 +166,7 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
     }
 
 
-    private double calculateUsZoneUtility(LongDistanceTrip trip, Purpose tripPurpose, int destination) {
+    private double calculateUsZoneUtility(LongDistanceTripOntario trip, Purpose tripPurpose, int destination) {
 
         //read coefficients
 
@@ -221,7 +218,7 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
 
 
     private double calculateOsZoneUtility(int destination) {
-        return externalOsMap.get(destination).getStaticAttraction();
+        return ((ZoneOntario) externalOsMap.get(destination)).getStaticAttraction();
     }
 
     public void updateIntOutboundCalibrationV(Map<Purpose, Double> b_calibrationVector) {

@@ -2,11 +2,11 @@ package de.tum.bgu.msm.longDistance.modeChoice;
 
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.ModelComponent;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.data.trips.ModeOntario;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import org.json.simple.JSONObject;
 import org.apache.log4j.Logger;
 import java.util.ArrayList;
@@ -14,9 +14,9 @@ import java.util.ArrayList;
 /**
  * Created by carlloga on 8/2/2017.
  */
-public class McModel implements ModelComponent {
+public class ModeChoiceOntario implements ModeChoice {
 
-    static Logger logger = Logger.getLogger(McModel.class);
+    static Logger logger = Logger.getLogger(ModeChoiceOntario.class);
 
     private DomesticModeChoice mcDomesticModel;
     private IntModeChoice intModeChoice;
@@ -41,7 +41,7 @@ public class McModel implements ModelComponent {
         runModeChoice(dataSet.getAllTrips());
     }
 
-    public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
+    public void runModeChoice(ArrayList<LongDistanceTripOntario> trips) {
         logger.info("Running Mode Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach(t -> {
             if (!t.isInternational()) {
@@ -50,9 +50,9 @@ public class McModel implements ModelComponent {
                 t.setMode(mode);
                 t.setTravelTimeLevel2(mcDomesticModel.getDomesticModalTravelTime(t));
                 // international mode choice
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)) {
+            } else if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTCANADA)) {
                 //residents
-                if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
+                if (t.getDestZoneType().equals(ZoneTypeOntario.EXTUS)) {
                     //international from Canada to US
                     Mode mode = intModeChoice.selectMode(t);
                     t.setMode(mode);
@@ -62,13 +62,13 @@ public class McModel implements ModelComponent {
                 }
                 t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
                 //visitors
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
+            } else if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTUS)) {
                 //international visitors from US
                 Mode mode = intModeChoice.selectMode(t);
                 t.setMode(mode);
                 t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
 
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)) {
+            } else if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTOVERSEAS)) {
                 //international visitors from US
                 t.setMode(ModeOntario.AIR); //always by air
                 t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));

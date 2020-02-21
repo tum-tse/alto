@@ -4,10 +4,10 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.data.sp.PersonOntario;
 import de.tum.bgu.msm.longDistance.data.trips.*;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
-import de.tum.bgu.msm.longDistance.data.sp.Person;
 
 import org.json.simple.JSONObject;
 import org.apache.log4j.Logger;
@@ -87,10 +87,10 @@ public class DomesticModeChoice {
 
 
 
-    public Mode selectModeDomestic(LongDistanceTrip trip) {
+    public Mode selectModeDomestic(LongDistanceTripOntario trip) {
 
         double[] expUtilities;
-        if (trip.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
+        if (trip.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO)) {
             //calculate exp(Ui) for each destination
             expUtilities = Arrays.stream(ModeOntario.values()).mapToDouble(m -> Math.exp(calculateUtilityFromOntario(trip, m, trip.getDestCombinedZoneId()))).toArray();
         } else {
@@ -111,7 +111,7 @@ public class DomesticModeChoice {
     }
 
 
-    public double calculateUtilityFromExtCanada(LongDistanceTrip trip, Mode m, int destination) {
+    public double calculateUtilityFromExtCanada(LongDistanceTripOntario trip, Mode m, int destination) {
 
         double utility;
         String tripPurpose = trip.getTripPurpose().toString().toLowerCase();
@@ -196,7 +196,7 @@ public class DomesticModeChoice {
     }
 
 
-    public double calculateUtilityFromOntario(LongDistanceTrip trip, Mode m, int destination) {
+    public double calculateUtilityFromOntario(LongDistanceTripOntario trip, Mode m, int destination) {
 
 
         double utility;
@@ -246,7 +246,7 @@ public class DomesticModeChoice {
         }
 
         //person-related variables
-        Person p = trip.getTraveller();
+        PersonOntario p = trip.getTraveller();
 
         double incomeLow = p.getIncome() <= 50000 ? 1 : 0;
         double incomeHigh = p.getIncome() >= 100000 ? 1 : 0;
@@ -328,8 +328,8 @@ public class DomesticModeChoice {
         return calibrationMatrix;
     }
 
-    public float getDomesticModalTravelTime(LongDistanceTrip trip){
-        if (trip.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneType.EXTOVERSEAS) ){
+    public float getDomesticModalTravelTime(LongDistanceTripOntario trip){
+        if (trip.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneTypeOntario.EXTOVERSEAS) ){
             return -1.f;
         } else {
             return dataSet.getTravelTimeMatrix().get(trip.getMode()).getValueAt(trip.getOrigZone().getCombinedZoneId(), trip.getDestCombinedZoneId());

@@ -2,9 +2,9 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.ModelComponent;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
 import org.json.simple.JSONObject;
@@ -14,9 +14,9 @@ import java.util.ArrayList;
 /**
  * Created by carlloga on 8/2/2017.
  */
-public class Distribution implements ModelComponent {
+public class DestinationChoiceOntario implements DestinationChoice {
 
-    static Logger logger = Logger.getLogger(Distribution.class);
+    static Logger logger = Logger.getLogger(DestinationChoiceOntario.class);
 
     private DomesticDestinationChoice dcModel;
     private IntOutboundDestinationChoice dcOutboundModel;
@@ -26,7 +26,7 @@ public class Distribution implements ModelComponent {
     private IntModeChoice intModeChoice;
     private DomesticModeChoice domesticModeChoice;
 
-    public Distribution() {
+    public DestinationChoiceOntario() {
     }
 
 
@@ -53,7 +53,7 @@ public class Distribution implements ModelComponent {
     }
 
 
-    public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
+    public void runDestinationChoice(ArrayList<LongDistanceTripOntario> trips) {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
         //AtomicInteger counter = new AtomicInteger(0);
 
@@ -64,15 +64,15 @@ public class Distribution implements ModelComponent {
                 t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                 t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
             } else {
-                if (t.getOrigZone().getZoneType() == ZoneType.ONTARIO || t.getOrigZone().getZoneType() == ZoneType.EXTCANADA) {
+                if (t.getOrigZone().getZoneType() == ZoneTypeOntario.ONTARIO || t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTCANADA) {
                     // residents to international
                     int destZoneId = dcOutboundModel.selectDestination(t);
                     t.setCombinedDestZoneId(destZoneId);
                     t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
-                    if (t.getDestZoneType().equals(ZoneType.EXTUS))
+                    if (t.getDestZoneType().equals(ZoneTypeOntario.EXTUS))
                         t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
 
-                } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS) {
+                } else if (t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTUS) {
                     // us visitors with destination in CANADA
                     int destZoneId = dcInBoundModel.selectDestination(t);
                     t.setCombinedDestZoneId(destZoneId);

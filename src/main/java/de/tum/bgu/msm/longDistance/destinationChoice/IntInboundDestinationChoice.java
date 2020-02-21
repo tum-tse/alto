@@ -6,8 +6,8 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -75,8 +75,8 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
 
 
     @Override
-    public int selectDestination(LongDistanceTrip trip) {
-        if (trip.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
+    public int selectDestination(LongDistanceTripOntario trip) {
+        if (trip.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTUS)) {
             return selectDestinationFromUs(trip);
         } else {
             return selectDestinationFromOs(trip);
@@ -84,7 +84,7 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
     }
 
 
-    private int selectDestinationFromUs(LongDistanceTrip trip) {
+    private int selectDestinationFromUs(LongDistanceTripOntario trip) {
 
 
         Purpose tripPurpose = trip.getTripPurpose();
@@ -135,7 +135,7 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
     }
 
 
-    public double calculateCanZoneUtilityFromUs(LongDistanceTrip trip, Purpose tripPurpose, int destination) {
+    public double calculateCanZoneUtilityFromUs(LongDistanceTripOntario trip, Purpose tripPurpose, int destination) {
 
 //read coefficients
         Type tripState = trip.getTripState();

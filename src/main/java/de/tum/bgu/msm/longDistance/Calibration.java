@@ -2,12 +2,12 @@ package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.data.trips.*;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import de.tum.bgu.msm.longDistance.destinationChoice.*;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.McModel;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 
+import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceOntario;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -29,14 +29,14 @@ public class Calibration implements ModelComponent {
     private DomesticDestinationChoice dcModel;
     private IntOutboundDestinationChoice dcOutboundModel;
     private IntInboundDestinationChoice dcInBoundModel;
-    private Distribution dcM;
+    private DestinationChoice dcM;
     private DomesticModeChoice mcDomesticModel;
     private IntModeChoice intModeChoice;
-    private McModel mcM;
+    private ModeChoiceOntario mcM;
 
     static Logger logger = Logger.getLogger(Calibration.class);
 
-    private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
+    private ArrayList<LongDistanceTripOntario> allTrips = new ArrayList<>();
 
     public Calibration() {
     }
@@ -82,7 +82,7 @@ public class Calibration implements ModelComponent {
 
     public void calibrateModel(boolean dc, boolean mc, DataSet dataSet) {
 
-        for (LongDistanceTrip t : dataSet.getAllTrips()) {
+        for (LongDistanceTripOntario t : dataSet.getAllTrips()) {
             if (!t.getTripState().equals(TypeOntario.AWAY)) {
                 allTrips.add(t);
             }
@@ -135,7 +135,7 @@ public class Calibration implements ModelComponent {
     }
 
 
-    public Map<DcModelName, Map<Purpose, Double>> getAverageTripDistances(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<DcModelName, Map<Purpose, Double>> getAverageTripDistances(ArrayList<LongDistanceTripOntario> allTrips) {
 
         Map<DcModelName, Map<Purpose, Double>> averageDistances = new HashMap<>();
         Map<DcModelName, Map<Purpose, Double>> counts = new HashMap<>();
@@ -150,8 +150,8 @@ public class Calibration implements ModelComponent {
 
         }
 
-        for (LongDistanceTrip t : allTrips) {
-            if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getDestZoneType().equals(ZoneType.ONTARIO)) {
+        for (LongDistanceTripOntario t : allTrips) {
+            if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO) || t.getDestZoneType().equals(ZoneTypeOntario.ONTARIO)) {
                 //trip that starts in Ontario or end in ontario
                 if (!t.isInternational()) {
                     //domestic from Ontario - row 0
@@ -160,13 +160,13 @@ public class Calibration implements ModelComponent {
                         addTripToAverageCalculator(averageDistances, counts, t, name);
                     }
 
-                } else if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
+                } else if (t.getDestZoneType().equals(ZoneTypeOntario.EXTUS)) {
                     //international from ontario to us - row 1
                     if (t.getTravelDistanceLevel2() < 4000) {
                         DcModelName name = DcModelName.internationalOutboundDc;
                         addTripToAverageCalculator(averageDistances, counts, t, name);
                     }
-                } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS) /*&& t.getDestZoneType().equals(ZoneType.ONTARIO)*/) {
+                } else if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTUS) /*&& t.getDestZoneType().equals(ZoneType.ONTARIO)*/) {
                     //international from US to ontario + row 2
                     if (t.getTravelDistanceLevel2() < 4000) {
                         DcModelName name = DcModelName.internationalInboundDc;
@@ -194,7 +194,7 @@ public class Calibration implements ModelComponent {
 
     }
 
-    private void addTripToAverageCalculator(Map<DcModelName, Map<Purpose, Double>> averageDistances, Map<DcModelName, Map<Purpose, Double>> counts, LongDistanceTrip t, DcModelName name) {
+    private void addTripToAverageCalculator(Map<DcModelName, Map<Purpose, Double>> averageDistances, Map<DcModelName, Map<Purpose, Double>> counts, LongDistanceTripOntario t, DcModelName name) {
         double previousDistance = averageDistances.get(name).get(t.getTripPurpose());
         double previousCount = counts.get(name).get(t.getTripPurpose());
 
@@ -202,7 +202,7 @@ public class Calibration implements ModelComponent {
         counts.get(name).put(t.getTripPurpose(), previousCount + getTripWeight(t));
     }
 
-    public Map<DcModelName, Map<Purpose, Double>> calculateCalibrationMatrix(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<DcModelName, Map<Purpose, Double>> calculateCalibrationMatrix(ArrayList<LongDistanceTripOntario> allTrips) {
 
         Map<DcModelName, Map<Purpose, Double>> averageDistances = getAverageTripDistances(allTrips);
         Map<DcModelName, Map<Purpose, Double>> calibrationMatrix = new HashMap<>();
@@ -239,7 +239,7 @@ public class Calibration implements ModelComponent {
 
     }
 
-    public Map<McModelName, Map<Purpose, Map<Mode, Double>>> getAverageModalShares(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<McModelName, Map<Purpose, Map<Mode, Double>>> getAverageModalShares(ArrayList<LongDistanceTripOntario> allTrips) {
 
         Map<McModelName, Map<Purpose, Map<Mode, Double>>> countsByMode = new HashMap<>();
 
@@ -256,11 +256,11 @@ public class Calibration implements ModelComponent {
 
         //int tripCounter = 0;
 
-        for (LongDistanceTrip t : allTrips) {
-            if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getDestZoneType().equals(ZoneType.ONTARIO)) {
+        for (LongDistanceTripOntario t : allTrips) {
+            if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO) || t.getDestZoneType().equals(ZoneTypeOntario.ONTARIO)) {
                 if (!t.isInternational()) {
                     //domestic to or from ontario
-                    if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO)) {
+                    if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO)) {
                         McModelName name = McModelName.domesticResidentsMc;
                         //domestic from Ontario - row 0
                         addTripToModalShareCalculator(countsByMode, t, name);
@@ -272,12 +272,12 @@ public class Calibration implements ModelComponent {
                     }
 
 
-                } else if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
+                } else if (t.getDestZoneType().equals(ZoneTypeOntario.EXTUS)) {
                     McModelName name = McModelName.internationalOutboundMc;
                     //international from ontario to US - row 1
                     addTripToModalShareCalculator(countsByMode, t, name);
 
-                } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
+                } else if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTUS)) {
                     //international from US to ontario - row 2
                     McModelName name = McModelName.internationalInboundMc;
                     addTripToModalShareCalculator(countsByMode, t, name);
@@ -309,12 +309,12 @@ public class Calibration implements ModelComponent {
         return modalShares;
     }
 
-    private void addTripToModalShareCalculator(Map<McModelName, Map<Purpose, Map<Mode, Double>>> countsByMode, LongDistanceTrip t, McModelName name) {
+    private void addTripToModalShareCalculator(Map<McModelName, Map<Purpose, Map<Mode, Double>>> countsByMode, LongDistanceTripOntario t, McModelName name) {
         double currentCount = countsByMode.get(name).get(t.getTripPurpose()).get(t.getMode());
         countsByMode.get(name).get(t.getTripPurpose()).put(t.getMode(), currentCount + getTripWeight(t));
     }
 
-    public Map<McModelName, Map<Purpose, Map<Mode, Double>>> calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<McModelName, Map<Purpose, Map<Mode, Double>>> calculateMCCalibrationFactors(ArrayList<LongDistanceTripOntario> allTrips) {
 
         Map<McModelName, Map<Purpose, Map<Mode, Double>>> calibrationMatrix = new HashMap<>();
 
@@ -457,7 +457,7 @@ public class Calibration implements ModelComponent {
     }
 
 
-    public double getTripWeight(LongDistanceTrip t) {
+    public double getTripWeight(LongDistanceTripOntario t) {
         double weight = 0;
         switch ((TypeOntario) t.getTripState()) {
             case AWAY:
@@ -541,15 +541,15 @@ public class Calibration implements ModelComponent {
                 t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
                 t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
             } else {
-                if (t.getOrigZone().getZoneType() == ZoneType.ONTARIO || t.getOrigZone().getZoneType() == ZoneType.EXTCANADA) {
+                if (t.getOrigZone().getZoneType() == ZoneTypeOntario.ONTARIO || t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTCANADA) {
                     // residents to international
                     int destZoneId = dcOutboundModel.selectDestination(t);
                     t.setCombinedDestZoneId(destZoneId);
                     t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
-                    if (t.getDestZoneType().equals(ZoneType.EXTUS))
+                    if (t.getDestZoneType().equals(ZoneTypeOntario.EXTUS))
                         t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
 
-                } else if (t.getOrigZone().getZoneType() == ZoneType.EXTUS) {
+                } else if (t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTUS) {
                     // us visitors with destination in CANADA
                     int destZoneId = dcInBoundModel.selectDestination(t);
                     t.setCombinedDestZoneId(destZoneId);
@@ -576,9 +576,9 @@ public class Calibration implements ModelComponent {
                 t.setMode(mode);
                 t.setTravelTimeLevel2(mcDomesticModel.getDomesticModalTravelTime(t));
                 // international mode choice
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneType.EXTCANADA)) {
+            } else if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTCANADA)) {
                 //residents
-                if (t.getDestZoneType().equals(ZoneType.EXTUS)) {
+                if (t.getDestZoneType().equals(ZoneTypeOntario.EXTUS)) {
                     //international from Canada to US
                     Mode mode = intModeChoice.selectMode(t);
                     t.setMode(mode);
@@ -588,13 +588,13 @@ public class Calibration implements ModelComponent {
                 }
                 t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
                 //visitors
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTUS)) {
+            } else if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTUS)) {
                 //international visitors from US
                 Mode mode = intModeChoice.selectMode(t);
                 t.setMode(mode);
                 t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));
 
-            } else if (t.getOrigZone().getZoneType().equals(ZoneType.EXTOVERSEAS)) {
+            } else if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTOVERSEAS)) {
                 //international visitors from US
                 t.setMode(ModeOntario.AIR); //always by air
                 t.setTravelTimeLevel2(intModeChoice.getInternationalModalTravelTime(t));

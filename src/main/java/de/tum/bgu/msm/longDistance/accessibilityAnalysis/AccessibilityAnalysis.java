@@ -3,11 +3,11 @@ package de.tum.bgu.msm.longDistance.accessibilityAnalysis;
 import com.pb.common.util.ResourceUtil;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.io.reader.SkimsReader;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
+import de.tum.bgu.msm.longDistance.io.reader.SkimsReaderOntario;
 import de.tum.bgu.msm.longDistance.tripGeneration.DomesticTripGeneration;
-import de.tum.bgu.msm.longDistance.io.reader.ZoneReader;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 
 import org.apache.log4j.Logger;
 
@@ -30,7 +30,7 @@ public class AccessibilityAnalysis {
     private float alphaAuto;
     private float betaAuto;
 
-    public AccessibilityAnalysis (ResourceBundle rb, SkimsReader zoneReader){
+    public AccessibilityAnalysis (ResourceBundle rb, SkimsReaderOntario zoneReader){
         this.rb = rb;
         this.dataSet = dataSet;
 
@@ -65,14 +65,14 @@ public class AccessibilityAnalysis {
         ArrayList<Zone> origZoneList = new ArrayList<>();
         for (String stringZoneType : fromZones) {
             for (Zone zone : dataSet.getZones().values()) {
-                if (zone.getZoneType().equals(ZoneType.getZoneType(stringZoneType))) origZoneList.add(zone);
+                if (zone.getZoneType().equals(ZoneTypeOntario.getZoneType(stringZoneType))) origZoneList.add(zone);
             }
         }
 
         ArrayList<Zone> destZoneList = new ArrayList<>();
         for (String stringZoneType : toZones) {
             for (Zone zone : dataSet.getZones().values()) {
-                if (zone.getZoneType().equals(ZoneType.getZoneType(stringZoneType))) destZoneList.add(zone);
+                if (zone.getZoneType().equals(ZoneTypeOntario.getZoneType(stringZoneType))) destZoneList.add(zone);
             }
         }
 
@@ -90,10 +90,10 @@ public class AccessibilityAnalysis {
                     autoImpedance = Math.exp(betaAuto * dataSet.getAutoTravelTime(origZone.getId(), destZone.getId()));
                 }
 
-                autoAccessibility += Math.pow(destZone.getPopulation(), alphaAuto) * autoImpedance;
+                autoAccessibility += Math.pow(((ZoneOntario) destZone).getPopulation(), alphaAuto) * autoImpedance;
 
             }
-            origZone.setAccessibility(autoAccessibility);
+            ((ZoneOntario) origZone).setAccessibility(autoAccessibility);
 
 
         }
@@ -104,15 +104,17 @@ public class AccessibilityAnalysis {
         int i = 0;
         double highestVal = 0;
         for (Zone zone : dataSet.getZones().values()) {
-            autoAccessibilityArray[i] = zone.getAccessibility();
-            if (autoAccessibilityArray[i] > highestVal & zone.getZoneType().equals(ZoneType.ONTARIO)) {
+            ZoneOntario zoneOntario = (ZoneOntario) zone;
+            autoAccessibilityArray[i] = zoneOntario.getAccessibility();
+            if (autoAccessibilityArray[i] > highestVal & zone.getZoneType().equals(ZoneTypeOntario.ONTARIO)) {
                 highestVal = autoAccessibilityArray[i];
             }
             i++;
         }
         i = 0;
         for (Zone zone : dataSet.getZones().values()) {
-            zone.setAccessibility(autoAccessibilityArray[i] / highestVal * 100);
+            ZoneOntario zoneOntario = (ZoneOntario) zone;
+            zoneOntario.setAccessibility(autoAccessibilityArray[i] / highestVal * 100);
             i++;
         }
 
@@ -130,7 +132,10 @@ public class AccessibilityAnalysis {
         logger.info("Print out data of accessibility");
 
         for (Zone zone : zoneList) {
-            pw.println(zone.getId() + "," + zone.getAccessibility() + "," + zone.getPopulation() + "," + zone.getEmployment());
+
+            ZoneOntario zoneOntario = (ZoneOntario) zone;
+
+            pw.println(zoneOntario.getId() + "," + zoneOntario.getAccessibility() + "," + zoneOntario.getPopulation() + "," + zoneOntario.getEmployment());
         }
         pw.close();
     }
