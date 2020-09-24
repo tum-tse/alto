@@ -1,7 +1,6 @@
 package de.tum.bgu.msm.longDistance.modeChoice;
 
-import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.data.trips.ModeOntario;

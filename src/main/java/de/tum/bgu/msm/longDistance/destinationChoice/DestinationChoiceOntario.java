@@ -1,7 +1,6 @@
 package de.tum.bgu.msm.longDistance.destinationChoice;
 
-import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.DataSet;
 
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;

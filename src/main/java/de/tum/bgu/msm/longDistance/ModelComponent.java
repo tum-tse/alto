@@ -1,5 +1,6 @@
 package de.tum.bgu.msm.longDistance;
 
+import de.tum.bgu.msm.longDistance.data.DataSet;
 import org.json.simple.JSONObject;
 
 /**

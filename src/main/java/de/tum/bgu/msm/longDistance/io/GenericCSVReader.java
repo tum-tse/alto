@@ -1,7 +1,7 @@
 package de.tum.bgu.msm.longDistance.io;
 
 import de.tum.bgu.msm.Util;
-import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.data.DataSet;
 
 import java.util.HashMap;
 import java.util.List;

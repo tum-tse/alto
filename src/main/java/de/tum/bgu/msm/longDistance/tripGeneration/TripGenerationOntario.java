@@ -1,8 +1,6 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
-import de.tum.bgu.msm.longDistance.DataSet;
-import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.ModelComponent;
+import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReader;
 

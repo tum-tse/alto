@@ -1,7 +1,7 @@
 package de.tum.bgu.msm.longDistance.io;
 
 
-import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.data.DataSet;
 
 public abstract class AbstractReader {
 

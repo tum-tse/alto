@@ -1,6 +1,6 @@
 package de.tum.bgu.msm.longDistance.io;
 
-import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.data.DataSet;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;

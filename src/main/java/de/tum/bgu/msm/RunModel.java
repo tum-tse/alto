@@ -1,6 +1,6 @@
 package de.tum.bgu.msm;
 
-import de.tum.bgu.msm.longDistance.DataSet;
+import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.LDModel;
 
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoiceOntario;
@@ -14,9 +14,6 @@ import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoiceOntario;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationOntario;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
-
-
-import java.util.ResourceBundle;
 
 
 /**

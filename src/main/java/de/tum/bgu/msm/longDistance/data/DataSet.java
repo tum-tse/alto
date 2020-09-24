@@ -1,8 +1,6 @@
-package de.tum.bgu.msm.longDistance;
+package de.tum.bgu.msm.longDistance.data;
 
 import com.pb.common.matrix.Matrix;
-import de.tum.bgu.msm.longDistance.data.sp.PersonOntario;
-import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
