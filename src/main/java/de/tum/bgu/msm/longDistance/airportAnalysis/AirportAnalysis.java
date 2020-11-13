@@ -129,11 +129,6 @@ public final class AirportAnalysis implements ModelComponent {
                         float time = 1000000;
                         int minHubId = 0;
                         for (Airport hub : germanHubs) {
-                            if (origin.getName().equals("HAJ")){
-                                if (destination.getName().equals("VIE")){
-                                    int a = 1;
-                                }
-                            }
                             float timeHub = routeThroughHub(origin, destination, hub);
                             if (timeHub < time) {
                                 minHubId = hub.getId();
