@@ -135,9 +135,6 @@ public final class AirportAnalysis implements ModelComponent {
                                 time = timeHub;
 
                             }
-                        /*Airport originHub = dataSet.getAirportFromId(origin.getHubAirportId());
-                        Airport destinationHub = dataSet.getAirportFromId(destination.getHubAirportId());
-                        routeIfFlightRoutedFromOriginHubOrDestinationHub(origin, destination, originHub, destinationHub);*/
                         }
                         if (minHubId > 0) {
                             Airport hub = dataSet.getAirportFromId(minHubId);
