@@ -15,7 +15,6 @@ import org.json.simple.JSONObject;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 public final class AirportAnalysis implements ModelComponent {
 
@@ -38,7 +37,7 @@ public final class AirportAnalysis implements ModelComponent {
     private String fileNameLegs;
     private String fileNameFlights;
 
-    private Map<Airport, Map<Airport, Float>> connectedAirports = new HashMap<>();
+    private Map<Airport, Map<Airport, Map<String, Float>>> connectedAirports = new HashMap<>();
 
 
     public AirportAnalysis() {
@@ -77,11 +76,14 @@ public final class AirportAnalysis implements ModelComponent {
         calculateDirectConnections(dataSet);
         calculateMultiStopConnections(dataSet);
         calculateMainAirportAndHubForZone(dataSet);
-        //need to read the matrix with distance between airports
-        //need to loop for direct flights and one change plus going to hub
+        calculateAirSkims(dataSet);
         writeAirports(dataSet, fileNameAirports);
         writeLegs(dataSet, fileNameLegs);
         writeFlights(dataSet, fileNameFlights);
+
+    }
+
+    private void calculateAirSkims(DataSet dataSet) {
 
     }
 
@@ -101,15 +103,28 @@ public final class AirportAnalysis implements ModelComponent {
                 float time = leg.getTime();
                 flight.setTime(time);
                 if (!connectedAirports.containsKey(origin)) {
-                    HashMap<Airport, Float> con = new HashMap<>();
-                    con.put(destination, time);
-                    connectedAirports.put(origin, con);
+                    Map<String, Float> attributes = new HashMap<>();
+                    Map<Airport, Map<String, Float>> airportDestination = new HashMap<>();
+                    attributes.put("time", time);
+                    attributes.put("cost", leg.getCost());
+                    airportDestination.put(destination, attributes);
+                    connectedAirports.put(origin, airportDestination);
                 } else {
-
-                    // private Map<Airport, Map<Airport, Float>> connectedAirports = new HashMap<>();
-                   Map<Airport, Float> con = connectedAirports.get(origin);
-                   con.put(destination, time);
-                   connectedAirports.put(origin, con);
+                    if (!connectedAirports.get(origin).containsKey(destination)) {
+                        Map<Airport, Map<String, Float>> destinationAttributes = connectedAirports.get(origin);
+                        Map<String, Float> attributes = new HashMap<>();
+                        attributes.put("time", time);
+                        attributes.put("cost", leg.getCost());
+                        destinationAttributes.put(destination, attributes);
+                        connectedAirports.put(origin, destinationAttributes);
+                    } else {
+                        Map<Airport, Map<String, Float>> destinationAttributes = connectedAirports.get(origin);
+                        Map<String, Float> attributes = destinationAttributes.get(destination);
+                        attributes.put("time", time);
+                        attributes.put("cost", leg.getCost());
+                        destinationAttributes.put(destination, attributes);
+                        connectedAirports.put(origin, destinationAttributes);
+                    }
                 }
                 origin.getFlights().add(flight);
                 airportsWithFlightsMap.put(id++, origin);
@@ -121,7 +136,7 @@ public final class AirportAnalysis implements ModelComponent {
 
         Map<Integer, Airport> airportsDataSet= dataSet.getAirports();
         List<Airport> airports = dataSet.getMainAirports();
-        List<Airport> germanHubs = dataSet.getHubs();
+        List<Airport> germanHubs = dataSet.getGermanHubs();
         for (Airport origin : dataSet.getGermanAirports()){
             for (Airport destination : airports) {
                 if (origin.getId() != destination.getId()) {
@@ -140,9 +155,11 @@ public final class AirportAnalysis implements ModelComponent {
                             Airport hub = dataSet.getAirportFromId(minHubId);
                             List<AirLeg> legs = new ArrayList<>();
                             AirLeg leg1 = new AirLeg(atomicIntegerLeg.getAndIncrement(), origin, hub);
-                            leg1.setTime(connectedAirports.get(origin).get(hub));
+                            leg1.setTime(connectedAirports.get(origin).get(hub).get("time"));
+                            leg1.setCost(connectedAirports.get(origin).get(hub).get("cost"));
                             AirLeg leg2 = new AirLeg(atomicIntegerLeg.getAndIncrement(), hub, destination);
-                            leg2.setTime(connectedAirports.get(hub).get(destination));
+                            leg2.setTime(connectedAirports.get(hub).get(destination).get("time"));
+                            leg2.setCost(connectedAirports.get(hub).get(destination).get("cost"));
                             legs.add(leg1);
                             legs.add(leg2);
                             Flight flight = new Flight(atomicIntegerFlight.getAndIncrement(), origin, destination, legs);
@@ -151,7 +168,6 @@ public final class AirportAnalysis implements ModelComponent {
                         }
                     }
                 }
-
             }
         }
         //dataSet.setAirports();
@@ -177,17 +193,16 @@ public final class AirportAnalysis implements ModelComponent {
         float time2 = 10 * 60f; //10 hours
         if (checkIfDirectFlightExists(origin, originHub)) {
             if (checkIfDirectFlightExists(originHub, destination)) {
-                logger.info("boo at " + originHub.getId() + " of airport " + origin.getId());
-                time1 = connectedAirports.get(origin).get(originHub) +
+                time1 = connectedAirports.get(origin).get(originHub).get("time") +
                         transferTimes.getIndexedValueAt(originHub.getId(), "transferTime") +
-                        connectedAirports.get(originHub).get(destination);
+                        connectedAirports.get(originHub).get(destination).get("time");
             }
         }
         if (checkIfDirectFlightExists(origin, destinationHub)) {
             if (checkIfDirectFlightExists(destinationHub, destination)) {
-                time2 = connectedAirports.get(origin).get(destinationHub) +
+                time2 = connectedAirports.get(origin).get(destinationHub).get("time") +
                         transferTimes.getIndexedValueAt(destinationHub.getId(), "transferTime") +
-                        connectedAirports.get(destinationHub).get(destination);
+                        connectedAirports.get(destinationHub).get(destination).get("time");
             }
         }
         if (time1 == time2 & time2 == 10 * 60f){
@@ -216,9 +231,9 @@ public final class AirportAnalysis implements ModelComponent {
 
         if (checkIfDirectFlightExists(origin, hub)) {
             if (checkIfDirectFlightExists(hub, destination)) {
-                time = connectedAirports.get(origin).get(hub) +
+                time = connectedAirports.get(origin).get(hub).get("time") +
                         transferTimes.getIndexedValueAt(hub.getId(), "transferTime") +
-                        connectedAirports.get(hub).get(destination);
+                        connectedAirports.get(hub).get(destination).get("time");
             }
         }
 
@@ -291,20 +306,30 @@ public final class AirportAnalysis implements ModelComponent {
     private void writeAirports(DataSet dataSet, String fileName) {
 
         PrintWriter pw = Util.openFileForSequentialWriting(fileName, false);
-        pw.println("zone,airport,hub,distanceAirport,distanceHub");
+        pw.println("zone,airport,main,hub,distanceAirport,distanceMain,distanceHub");
+        List <Airport> airports = dataSet.getMainAirports();
         for (Map.Entry<Integer, Zone> zoneId : dataSet.getZones().entrySet()){
             ZoneGermany zone = (ZoneGermany) zoneId.getValue();
+            Airport airport = dataSet.getAirportFromId(zone.getClosestAirportId());
+            Airport main = dataSet.getAirportFromId(zone.getClosestMainAirportId());
+            Airport hub = dataSet.getAirportFromId(zone.getClosestHubId());
             pw.print(zone.getId());
             pw.print(",");
-            pw.print(zone.getClosestAirport());
+            pw.print(airport.getName());
             pw.print(",");
-            pw.print(zone.getClosestHub());
+            pw.print(main.getName());
             pw.print(",");
-            if (zone.getId() < 11865) {
-                pw.print(dataSet.getAutoTravelDistance(zone.getId(), zone.getClosestAirport()));
+            pw.print(hub.getName());
+            pw.print(",");
+            if (!airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
+                pw.print(dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()));
                 pw.print(",");
-                pw.println(dataSet.getAutoTravelDistance(zone.getId(), zone.getClosestHub()));
+                pw.print(dataSet.getAutoTravelDistance(zone.getId(), main.getZone().getId()));
+                pw.print(",");
+                pw.println(dataSet.getAutoTravelDistance(zone.getId(), hub.getZone().getId()));
             } else {
+                pw.print(0);
+                pw.print(",");
                 pw.print(0);
                 pw.print(",");
                 pw.println(0);
@@ -450,51 +475,108 @@ public final class AirportAnalysis implements ModelComponent {
     private void calculateMainAirportAndHubForZone(DataSet dataSet) {
         //calculate the closest airport to each zone
 
-        for (Map.Entry<Integer, Zone> zoneId : dataSet.getZones().entrySet()){
-            ZoneGermany zone = (ZoneGermany) zoneId.getValue();
-            if (zone.getId() < 11865) {
-                int idClosestAirport = 0;
-                float distMin = 100000000000000f;
-                int idClosestHub = 0;
-                float distHub = 100000000000000f;
-                List<Airport> mainAirports = dataSet.getMainAirports();
-                for (Airport airport : mainAirports) {
-                    if (airport.getZone().getId() < 11865) {
-                        if (dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()) < distMin) {
-                            distMin = dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId());
-                            idClosestAirport = airport.getId();
-                            if (!airport.getAirportType().equals(AirportType.HUB)) {
-                                distHub = distMin;
-                                idClosestHub = idClosestAirport;
-                            }
-                        }
+        List<Airport> mainAirports = dataSet.getMainAirports();
+        List<Airport> germanAirports = dataSet.getGermanAirports();
+        List<Airport> overseasAirports = dataSet.getOverseasAirports();
+
+        for (Airport airport : mainAirports){
+            if (airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY)){
+                int nationalFlights = 0;
+                int internationalFlights = 0;
+                Set<Flight> flights = airport.getFlights();
+                for (Flight flight : flights){
+                    if (germanAirports.contains(flight.getDestination())){
+                        nationalFlights++;
+                    } else {
+                        internationalFlights++;
                     }
                 }
-                for (Airport hub : dataSet.getHubs()){
-                    if (hub.getZone().getId() < 11718) {
-                        if (dataSet.getAutoTravelDistance(zone.getId(), hub.getZone().getId()) < distMin) {
-                            distMin = dataSet.getAutoTravelDistance(zone.getId(), hub.getZone().getId());
-                            idClosestAirport = hub.getId();
-                            if (!hub.getAirportType().equals(AirportType.HUB)) {
-                                distHub = distMin;
-                                idClosestHub = idClosestAirport;
-                            }
-                        }
-                    }
+                if (nationalFlights == 0){
+                    airport.setAirportDestinationType(AirportDestinationType.ONLY_INTERNATIONAL);
+                } else {
+                    airport.setAirportDestinationType(AirportDestinationType.DOMESTIC_AND_INTERNATIONAL);
                 }
-                zone.setClosestAirport(idClosestAirport);
-                zone.setClosestHub(idClosestHub);
             } else {
-                zone.setClosestAirport(zone.getId());
-                zone.setClosestHub(zone.getId());
+                airport.setAirportDestinationType(AirportDestinationType.ONLY_INTERNATIONAL);
             }
         }
 
 
+        for (Map.Entry<Integer, Zone> zoneId : dataSet.getZones().entrySet()){
+            ZoneGermany zone = (ZoneGermany) zoneId.getValue();
+            int idClosestAirport = 0;
+            float distMin = 100000000000000f;
+            int idClosestMainAirport = 0;
+            float distMainAirport = 100000000000000f;
+            int idClosestHub = 0;
+            float distHub = 100000000000000f;
 
-    }
+            if (zone.getZoneType().equals(ZoneTypeGermany.GERMANY)) {
 
-    private void addRoute(){
+                for (Airport airport : germanAirports) {
+                    if (!airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
+                        if (dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()) < distMin) {
+                            distMin = dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId());
+                            idClosestAirport = airport.getId();
+                        }
+                        if (airport.getAirportDestinationType().equals(AirportDestinationType.DOMESTIC_AND_INTERNATIONAL)) {
+                            if (dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()) < distMainAirport) {
+                                distMainAirport = dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId());
+                                idClosestMainAirport = airport.getId();
+                            }
+                        }
+                        if (airport.getAirportType().equals(AirportType.HUB)) {
+                            if (dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()) < distHub) {
+                                distHub = dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId());
+                                idClosestHub = airport.getId();
+                            }
+                        }
+                    }
+                }
+
+            } else if (zone.getZoneType().equals(ZoneTypeGermany.EXTEU)) {
+
+                for (Airport airport : mainAirports) {
+                    if (!airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
+                        if (dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()) < distMin) {
+                            distMin = dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId());
+                            idClosestAirport = airport.getId();
+                            idClosestMainAirport = airport.getId();
+                            idClosestHub = airport.getId();
+                        }
+                    }
+                }
+
+            } else {
+                //overseas
+                for (Airport airport : overseasAirports) {
+                    if (airport.getZone().getId() == zone.getId()) {
+                        idClosestAirport = airport.getId();
+                        idClosestMainAirport = airport.getId();
+                        idClosestHub = airport.getId();
+                    }
+                }
+            }
+            //this happens because there are zones with all times equal to infinity (200 or so)
+            //TODO clean the zone system to avoid zones that are not connected to the network
+            //set the airports to Frankfurt FRA
+            if (idClosestAirport == 0) {
+
+                idClosestAirport = 13;
+            }
+            if (idClosestMainAirport == 0) {
+                idClosestMainAirport = 13;
+            }
+            if (idClosestHub == 0){
+                idClosestHub = 13;
+            }
+
+            zone.setClosestAirportId(idClosestAirport);
+            zone.setClosestMainAirportId(idClosestMainAirport);
+            zone.setClosestHubId(idClosestHub);
+        }
+
+
 
     }
 

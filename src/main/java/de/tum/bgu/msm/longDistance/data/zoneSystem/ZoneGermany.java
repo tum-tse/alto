@@ -16,6 +16,7 @@ public class ZoneGermany implements Zone {
     private long staticAttraction;
     private int closestAirport = 0;
     private int closestHub = 0;
+    private int closestMainAirport = 0;
 
 
     public ZoneGermany(int id, int population, int employment, ZoneTypeGermany zoneType, int combinedZoneId) {
@@ -84,20 +85,28 @@ public class ZoneGermany implements Zone {
         this.staticAttraction = staticAttraction;
     }
 
-    public int getClosestAirport() {
+    public int getClosestAirportId() {
         return closestAirport;
     }
 
-    public void setClosestAirport(int closestAirport) {
+    public void setClosestAirportId(int closestAirport) {
         this.closestAirport = closestAirport;
     }
 
-    public int getClosestHub() {
+    public int getClosestHubId() {
         return closestHub;
     }
 
-    public void setClosestHub(int closestHub) {
+    public void setClosestHubId(int closestHub) {
         this.closestHub = closestHub;
+    }
+
+    public int getClosestMainAirportId() {
+        return closestMainAirport;
+    }
+
+    public void setClosestMainAirportId(int closestMainAirport) {
+        this.closestMainAirport = closestMainAirport;
     }
 }
 

@@ -182,12 +182,16 @@ public class DataSet {
         return airports.values().stream().filter(airport -> !airport.getAirportType().equals(AirportType.FEEDER_ZONE)).collect(Collectors.toList());
     }
 
-    public List<Airport> getHubs() {
-        return airports.values().stream().filter(airport -> airport.getAirportType().equals(AirportType.HUB) && airport.getZone().getId() < 11718 ).collect(Collectors.toList());
+    public List<Airport> getGermanHubs() {
+        return airports.values().stream().filter(airport -> airport.getAirportType().equals(AirportType.HUB) && airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY) ).collect(Collectors.toList());
     }
 
     public List<Airport> getGermanAirports(){
         return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY)).collect(Collectors.toList());
+    }
+
+    public List<Airport> getOverseasAirports(){
+        return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)).collect(Collectors.toList());
     }
 
 

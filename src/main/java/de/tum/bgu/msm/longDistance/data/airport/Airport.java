@@ -22,6 +22,7 @@ public class Airport implements Id {
     private int hubAirportId;
     private int idOpenFlight;
     private int transferTime;
+    private AirportDestinationType airportDestinationType;
 
 
     public Airport(int id, String name, ZoneGermany zone, AirportType airportType) {
@@ -94,5 +95,13 @@ public class Airport implements Id {
 
     public void setTransferTime(int transferTime) {
         this.transferTime = transferTime;
+    }
+
+    public AirportDestinationType getAirportDestinationType() {
+        return airportDestinationType;
+    }
+
+    public void setAirportDestinationType(AirportDestinationType airportDestinationType) {
+        this.airportDestinationType = airportDestinationType;
     }
 }
