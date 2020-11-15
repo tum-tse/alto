@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.airportAnalysis;
 
 import com.pb.common.datafile.TableDataSet;
+import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.ModelComponent;
@@ -9,9 +10,15 @@ import de.tum.bgu.msm.longDistance.data.airport.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
+import de.tum.bgu.msm.longDistance.io.writer.OmxMatrixWriter;
+import omx.OmxFile;
+import omx.OmxLookup;
+import omx.OmxMatrix;
+import omx.hdf5.OmxConstants;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
+import javax.xml.crypto.Data;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,8 +43,15 @@ public final class AirportAnalysis implements ModelComponent {
     private String fileNameAirports;
     private String fileNameLegs;
     private String fileNameFlights;
+    private String fileNameOmxFirstLeg;
+    private String fileNameOmxSecondLeg;
+    private String fileNameOmxTransfer;
+    private String fileNameOmxAccess;
+    private String fileNameOmxEgress;
+    private String fileNameOmxTotal;
 
-    private Map<Airport, Map<Airport, Map<String, Float>>> connectedAirports = new HashMap<>();
+
+    private Map<Airport, Map<Airport, Map<String, Integer>>> connectedAirports = new HashMap<>();
 
 
     public AirportAnalysis() {
@@ -60,6 +74,12 @@ public final class AirportAnalysis implements ModelComponent {
         fileNameFlights = JsonUtilMto.getStringProp(prop, "airport.flightsOutput_file");
         transferTimes = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.transferTime_file"));
         transferTimes.buildIndex(transferTimes.getColumnPosition("id_hub"));
+        fileNameOmxFirstLeg = JsonUtilMto.getStringProp(prop, "airport.omxOutputfirstLeg_file");
+        fileNameOmxSecondLeg = JsonUtilMto.getStringProp(prop, "airport.omxOutputsecondLeg_file");
+        fileNameOmxTransfer = JsonUtilMto.getStringProp(prop, "airport.omxOutputtransfer_file");
+        fileNameOmxAccess = JsonUtilMto.getStringProp(prop, "airport.omxOutputaccess_file");
+        fileNameOmxEgress = JsonUtilMto.getStringProp(prop, "airport.omxOutputegress_file");
+        fileNameOmxTotal = JsonUtilMto.getStringProp(prop, "airport.omxOutputtotal_file");
         logger.info("Airport analysis set up");
     }
 
@@ -83,14 +103,248 @@ public final class AirportAnalysis implements ModelComponent {
 
     }
 
+
+
     private void calculateAirSkims(DataSet dataSet) {
 
+
+        /*int numberOfZones = 4;
+        Matrix firstLegTime = new Matrix(fileNameOmxFirstLeg, fileNameOmxFirstLeg, numberOfZones, numberOfZones);
+        Matrix secondLegTime = new Matrix(fileNameOmxSecondLeg, fileNameOmxSecondLeg, numberOfZones, numberOfZones);
+        Matrix transferTime = new Matrix(fileNameOmxTransfer, fileNameOmxTransfer, numberOfZones, numberOfZones);
+        Matrix accessTime = new Matrix(fileNameOmxAccess, fileNameOmxAccess, numberOfZones, numberOfZones);
+        Matrix egressTime = new Matrix(fileNameOmxEgress, fileNameOmxEgress, numberOfZones, numberOfZones);
+        Matrix totalTime = new Matrix(fileNameOmxTotal, fileNameOmxTotal, numberOfZones, numberOfZones);*/
+
+ int numberOfZones = dataSet.getZones().size();
+        Matrix firstLegTime = new Matrix(fileNameOmxFirstLeg, fileNameOmxFirstLeg, numberOfZones, numberOfZones);
+        Matrix secondLegTime = new Matrix(fileNameOmxSecondLeg, fileNameOmxSecondLeg, numberOfZones, numberOfZones);
+        Matrix transferTime = new Matrix(fileNameOmxTransfer, fileNameOmxTransfer, numberOfZones, numberOfZones);
+        Matrix accessTime = new Matrix(fileNameOmxAccess, fileNameOmxAccess, numberOfZones, numberOfZones);
+        Matrix egressTime = new Matrix(fileNameOmxEgress, fileNameOmxEgress, numberOfZones, numberOfZones);
+        Matrix totalTime = new Matrix(fileNameOmxTotal, fileNameOmxTotal, numberOfZones, numberOfZones);
+
+
+        for (Map.Entry<Integer, Zone> originMap : dataSet.getZones().entrySet()){
+
+        //int[] example = new int[]{1,5, 6644, 8223};
+        //int[] example2 = new int[]{1,5, 6644, 8223};
+        //int rowOr = 1;
+        //for (int originZoneId : example){
+            ZoneGermany originZone = (ZoneGermany) originMap.getValue();
+            int originZoneId = originMap.getKey();
+            //ZoneGermany originZone = (ZoneGermany) dataSet.getZones().get(originZoneId);
+            //int rowDes = 1;
+
+            //for (int destinationZoneId : example2){
+            for (Map.Entry<Integer, Zone> destinationMap : dataSet.getZones().entrySet()){
+
+                ZoneGermany destinationZone = (ZoneGermany) destinationMap.getValue();
+                int destinationZoneId = destinationMap.getKey();
+                //ZoneGermany destinationZone = (ZoneGermany) dataSet.getZones().get(destinationZoneId);
+
+
+                float[] travelTimes = new float[6];
+
+                if (originZone.getId() == destinationZone.getId()){
+                    //same zone - no flights allowed
+                    travelTimes = assignIntrazonalTrip();
+
+                } else {
+                    if (originZone.getClosestAirportId() == destinationZone.getClosestAirportId()){
+                        //same airport - no flights allowed
+                        travelTimes = assignIntrazonalTrip();
+
+                    } else {
+                        //not in the catchment area of the same airport
+                        Airport originAirport = dataSet.getAirportFromId(originZone.getClosestAirportId());
+                        Airport destinationAirport = dataSet.getAirportFromId(destinationZone.getClosestAirportId());
+
+                        if (checkIfDirectFlightExists(originAirport, destinationAirport)){
+
+                            if (connectedAirports.get(originAirport).get(destinationAirport).get("stops") == 0) {
+                                //direct flight
+                                travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originAirport, destinationAirport);
+
+                            } else  {
+                                //no direct flight: Need to check if it is faster to drive to the hub (only the hub because the airport is already connected)
+                                Airport originHub = dataSet.getAirportFromId(originZone.getClosestHubId());
+                                Airport destinationHub = dataSet.getAirportFromId(destinationZone.getClosestHubId());
+
+                                float travelTimeBetweenAirports = getTotalTravelTime(dataSet, originZoneId, destinationZoneId, originAirport, destinationAirport);
+                                float travelTimeFromHubOrigin = Float.MAX_VALUE;
+                                float travelTimeFromHubDestination = Float.MAX_VALUE;
+                                float travelTimeBetweenHubs = Float.MAX_VALUE;
+
+                                if (checkIfDirectFlightExists(originHub, destinationAirport)) {
+                                    travelTimeFromHubOrigin = getTotalTravelTime(dataSet, originZoneId, destinationZoneId, originHub, destinationAirport);
+                                }
+                                if (checkIfDirectFlightExists(originAirport, destinationHub)) {
+                                    travelTimeFromHubDestination = getTotalTravelTime(dataSet, originZoneId, destinationZoneId, originAirport, destinationHub);
+                                }
+                                if(checkIfDirectFlightExists(originHub, destinationHub)){
+                                    travelTimeBetweenHubs = getTotalTravelTime(dataSet, originZoneId, destinationZoneId, originHub, destinationHub);
+                                }
+
+                                float minTravelTime = Math.min(Math.min(Math.min(travelTimeBetweenAirports, travelTimeFromHubOrigin), travelTimeFromHubDestination), travelTimeBetweenHubs);
+
+                                if (minTravelTime == travelTimeBetweenAirports) {
+                                    //the fastest is to have 1 stop and use the airport
+                                    travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originAirport, destinationAirport);
+                                } else if (minTravelTime == travelTimeFromHubOrigin) {
+                                    //the fastest is to travel from the origin hub
+                                    travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originHub, destinationAirport);
+                                } else if (minTravelTime == travelTimeFromHubDestination) {
+                                    //the fastest is to travel to the destination hub
+                                    travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originAirport, destinationHub);
+                                } else {
+                                    //the fastest is to travel to the destination hub
+                                    travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originHub, destinationHub);
+                                }
+                            }
+                        } else { //no connection between the airports
+                            //check if the main airport is connected and repeat with hubs
+                            //no direct flight: Need to check if it is faster to drive to the hub (only the hub because the airport is already connected)
+                            Airport originMain = dataSet.getAirportFromId(originZone.getClosestMainAirportId());
+                            Airport destinationMain = dataSet.getAirportFromId(destinationZone.getClosestMainAirportId());
+                            Airport originHub = dataSet.getAirportFromId(originZone.getClosestHubId());
+                            Airport destinationHub = dataSet.getAirportFromId(destinationZone.getClosestHubId());
+
+                            float travelTimeBetweenMainAndAirport = Float.MAX_VALUE;
+                            float travelTimeBetweenAirportAndMain = Float.MAX_VALUE;
+                            float travelTimeBetweenMainAirports = Float.MAX_VALUE;
+                            float travelTimeFromHubOrigin = Float.MAX_VALUE;
+                            float travelTimeFromHubDestination = Float.MAX_VALUE;
+                            float travelTimeBetweenHubs = Float.MAX_VALUE;
+
+                            if (checkIfDirectFlightExists(originMain, destinationMain)) {
+                                travelTimeBetweenMainAirports = getTotalTravelTime(dataSet, originZoneId, destinationZoneId, originMain, destinationMain);
+                            }
+                            if (checkIfDirectFlightExists(originAirport, destinationMain)) {
+                                travelTimeBetweenAirportAndMain = getTotalTravelTime(dataSet, originZoneId, destinationZoneId, originAirport, destinationMain);
+                            }
+                            if (checkIfDirectFlightExists(originMain, destinationAirport)) {
+                                travelTimeBetweenMainAndAirport = getTotalTravelTime(dataSet, originZoneId, destinationZoneId, originMain, destinationAirport);
+                            }
+                            if (checkIfDirectFlightExists(originHub, destinationAirport)) {
+                                travelTimeFromHubOrigin = getTotalTravelTime(dataSet, originZoneId, destinationZoneId, originHub, destinationAirport);
+                            }
+                            if (checkIfDirectFlightExists(originAirport, destinationHub)) {
+                                travelTimeFromHubDestination = getTotalTravelTime(dataSet, originZoneId, destinationZoneId, originAirport, destinationHub);
+                            }
+                            if (checkIfDirectFlightExists(originHub, destinationHub)) {
+                                travelTimeBetweenHubs = getTotalTravelTime(dataSet, originZoneId, destinationZoneId, originHub, destinationHub);
+                            }
+
+                            float minTravelTime = Math.min(Math.min(Math.min(Math.min(Math.min(travelTimeBetweenMainAndAirport, travelTimeFromHubOrigin), travelTimeFromHubDestination),
+                                    travelTimeBetweenHubs), travelTimeBetweenMainAirports), travelTimeBetweenAirportAndMain);
+
+                            if (minTravelTime < Float.MAX_VALUE) {
+                                if (minTravelTime == travelTimeBetweenMainAndAirport) {
+                                    travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originMain, destinationMain);
+                                } else if (minTravelTime == travelTimeFromHubOrigin) {
+                                    travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originHub, destinationAirport);
+                                } else if (minTravelTime == travelTimeFromHubDestination) {
+                                    travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originAirport, destinationHub);
+                                } else if (minTravelTime == travelTimeBetweenHubs) {
+                                    travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originHub, destinationHub);
+                                } else if (minTravelTime == travelTimeBetweenAirportAndMain) {
+                                    travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originAirport, destinationMain);
+                                } else {
+                                    travelTimes = getTravelTimes(dataSet, originZoneId, destinationZoneId, originMain, destinationMain);
+                                }
+                            } else {
+                                travelTimes = assignIntrazonalTrip();
+                            }
+                        }
+                    }
+                }
+                /*firstLegTime.setValueAt(rowOr, rowDes, travelTimes[0]);
+                secondLegTime.setValueAt(rowOr, rowDes, travelTimes[1]);
+                transferTime.setValueAt(rowOr, rowDes, travelTimes[2]);
+                accessTime.setValueAt(rowOr, rowDes, travelTimes[3]);
+                egressTime.setValueAt(rowOr, rowDes, travelTimes[4]);*/
+                firstLegTime.setValueAt(originZoneId, destinationZoneId, travelTimes[0]);
+                secondLegTime.setValueAt(originZoneId, destinationZoneId, travelTimes[1]);
+                transferTime.setValueAt(originZoneId, destinationZoneId, travelTimes[2]);
+                accessTime.setValueAt(originZoneId, destinationZoneId, travelTimes[3]);
+                egressTime.setValueAt(originZoneId, destinationZoneId, travelTimes[4]);
+                totalTime.setValueAt(originZoneId, destinationZoneId, travelTimes[5]);
+                //rowDes++;
+            }
+            //rowOr++;
+        }
+        //String fileName, DataSet dataSet, Matrix matrix, String matrixName
+        printSkim(fileNameOmxFirstLeg, dataSet, firstLegTime, "time");
+        printSkim(fileNameOmxSecondLeg, dataSet, secondLegTime, "time");
+        printSkim(fileNameOmxTransfer, dataSet, transferTime, "time");
+        printSkim(fileNameOmxAccess, dataSet, accessTime, "time");
+        printSkim(fileNameOmxEgress, dataSet, egressTime, "time");
+        printSkim(fileNameOmxTotal, dataSet, totalTime, "time");
     }
+
+
+    private float[] assignIntrazonalTrip(){
+        float[] times = new float[6];
+        times[0] = 100000000;
+        times[1] = 0;
+        times[2] = 0;
+        times[3] = 0;
+        times[4] = 0;
+        times[5] = 0;
+        return times;
+
+    }
+
+    private float getTotalTravelTime(DataSet dataSet, int originZoneId, int destinationZoneId, Airport originAirport, Airport destinationAirport) {
+        float travelTimeBetweenAirports = dataSet.getFligthFromId(connectedAirports.get(originAirport).get(destinationAirport).get("flightId")).getTime() ;
+        if (originZoneId < 11868) {
+            travelTimeBetweenAirports = travelTimeBetweenAirports +
+                    dataSet.getAutoTravelTime(originZoneId, originAirport.getZone().getId());
+        }
+        if (destinationZoneId < 11868) {
+            travelTimeBetweenAirports = travelTimeBetweenAirports +
+                    dataSet.getAutoTravelTime(destinationAirport.getZone().getId(), destinationZoneId);
+        }
+        return travelTimeBetweenAirports;
+    }
+
+
+    private float[] getTravelTimes(DataSet dataSet, int originZoneId, int destinationZoneId, Airport originAirport, Airport destinationAirport){
+        float[] times = new float[6];
+        if (originAirport.getId() != destinationAirport.getId()) {
+            List<AirLeg> legs = dataSet.getFligthFromId(connectedAirports.get(originAirport).get(destinationAirport).get("flightId")).getLegs();
+            times[0] = legs.get(0).getTime();
+            times[1] = 0;
+            times[2] = 0;
+            if (legs.size() > 1) {
+                times[1] = legs.get(1).getTime();
+                ;
+                times[2] = transferTimes.getIndexedValueAt(legs.get(0).getDestination().getId(), "transferTime");
+            }
+            if (originZoneId < 11868) {
+                times[3] = dataSet.getAutoTravelTime(originZoneId, originAirport.getZone().getId());
+            } else {
+                times[3] = 0;
+            }
+            if (destinationZoneId < 11868) {
+                times[4] = dataSet.getAutoTravelTime(destinationAirport.getZone().getId(), destinationZoneId);
+            } else {
+                times[4] = 0;
+            }
+            times[5] = times[0] + times[1] + times[2] + times[3] + times[4];
+        } else {
+            times = assignIntrazonalTrip();
+        }
+        return times;
+    }
+
 
     private void calculateDirectConnections(DataSet dataSet) {
         Map<Airport, Map<Airport, Float>>  legs = obtainOpenflightLegs(dataSet);
         generateLegs(dataSet, legs);
-       Map<Integer, Airport> airportsWithFlightsMap = new HashMap<>();
+        Map<Integer, Airport> airportsWithFlightsMap = new HashMap<>();
+        Map<Integer, Flight> flightMap = new HashMap<>();
         int id = 0;
 
         for (AirLeg leg: dataSet.getAirLegs().values()){
@@ -102,34 +356,37 @@ public final class AirportAnalysis implements ModelComponent {
                 Flight flight = new Flight(atomicIntegerFlight.getAndIncrement(), origin, destination, connection);
                 float time = leg.getTime();
                 flight.setTime(time);
+                flight.setCost(leg.getCost());
                 if (!connectedAirports.containsKey(origin)) {
-                    Map<String, Float> attributes = new HashMap<>();
-                    Map<Airport, Map<String, Float>> airportDestination = new HashMap<>();
-                    attributes.put("time", time);
-                    attributes.put("cost", leg.getCost());
+                    Map<String, Integer> attributes = new HashMap<>();
+                    Map<Airport, Map<String, Integer>> airportDestination = new HashMap<>();
+                    attributes.put("stops", 0);
+                    attributes.put("flightId", flight.getId());
                     airportDestination.put(destination, attributes);
                     connectedAirports.put(origin, airportDestination);
                 } else {
                     if (!connectedAirports.get(origin).containsKey(destination)) {
-                        Map<Airport, Map<String, Float>> destinationAttributes = connectedAirports.get(origin);
-                        Map<String, Float> attributes = new HashMap<>();
-                        attributes.put("time", time);
-                        attributes.put("cost", leg.getCost());
+                        Map<Airport, Map<String, Integer>> destinationAttributes = connectedAirports.get(origin);
+                        Map<String, Integer> attributes = new HashMap<>();
+                        attributes.put("stops", 0);
+                        attributes.put("flightId", flight.getId());
                         destinationAttributes.put(destination, attributes);
                         connectedAirports.put(origin, destinationAttributes);
                     } else {
-                        Map<Airport, Map<String, Float>> destinationAttributes = connectedAirports.get(origin);
-                        Map<String, Float> attributes = destinationAttributes.get(destination);
-                        attributes.put("time", time);
-                        attributes.put("cost", leg.getCost());
+                        Map<Airport, Map<String, Integer>> destinationAttributes = connectedAirports.get(origin);
+                        Map<String, Integer> attributes = destinationAttributes.get(destination);
+                        attributes.put("stops", 0);
+                        attributes.put("flightId", flight.getId());
                         destinationAttributes.put(destination, attributes);
                         connectedAirports.put(origin, destinationAttributes);
                     }
                 }
                 origin.getFlights().add(flight);
                 airportsWithFlightsMap.put(id++, origin);
+                flightMap.put(flight.getId(), flight);
             }
         }
+        dataSet.setFlights(flightMap);
     }
 
     private void calculateMultiStopConnections(DataSet dataSet) {
@@ -137,6 +394,7 @@ public final class AirportAnalysis implements ModelComponent {
         Map<Integer, Airport> airportsDataSet= dataSet.getAirports();
         List<Airport> airports = dataSet.getMainAirports();
         List<Airport> germanHubs = dataSet.getGermanHubs();
+        Map<Integer, Flight> flightMap = dataSet.getFlights();
         for (Airport origin : dataSet.getGermanAirports()){
             for (Airport destination : airports) {
                 if (origin.getId() != destination.getId()) {
@@ -144,7 +402,7 @@ public final class AirportAnalysis implements ModelComponent {
                         float time = 1000000;
                         int minHubId = 0;
                         for (Airport hub : germanHubs) {
-                            float timeHub = routeThroughHub(origin, destination, hub);
+                            float timeHub = routeThroughHub(origin, destination, hub, dataSet);
                             if (timeHub < time) {
                                 minHubId = hub.getId();
                                 time = timeHub;
@@ -154,24 +412,29 @@ public final class AirportAnalysis implements ModelComponent {
                         if (minHubId > 0) {
                             Airport hub = dataSet.getAirportFromId(minHubId);
                             List<AirLeg> legs = new ArrayList<>();
-                            AirLeg leg1 = new AirLeg(atomicIntegerLeg.getAndIncrement(), origin, hub);
-                            leg1.setTime(connectedAirports.get(origin).get(hub).get("time"));
-                            leg1.setCost(connectedAirports.get(origin).get(hub).get("cost"));
-                            AirLeg leg2 = new AirLeg(atomicIntegerLeg.getAndIncrement(), hub, destination);
-                            leg2.setTime(connectedAirports.get(hub).get(destination).get("time"));
-                            leg2.setCost(connectedAirports.get(hub).get(destination).get("cost"));
-                            legs.add(leg1);
-                            legs.add(leg2);
+                            AirLeg legOriginToHub = dataSet.getFligthFromId(connectedAirports.get(origin).get(hub).get("flightId")).getLegs().get(0);
+                            AirLeg legHubToDestination = dataSet.getFligthFromId(connectedAirports.get(hub).get(destination).get("flightId")).getLegs().get(0);
+                            legs.add(legOriginToHub);
+                            legs.add(legHubToDestination);
                             Flight flight = new Flight(atomicIntegerFlight.getAndIncrement(), origin, destination, legs);
                             flight.setTime(time);
+                            flight.setCost(legOriginToHub.getCost() + legHubToDestination.getCost());
                             origin.getFlights().add(flight);
+                            Map<Airport, Map<String, Integer>> destinationAttributes = connectedAirports.get(origin);
+                            Map<String, Integer> attributes = new HashMap<>();
+                            attributes.put("stops", 1);
+                            attributes.put("flightId", flight.getId());
+                            destinationAttributes.put(destination, attributes);
+                            connectedAirports.put(origin, destinationAttributes);
+                            flightMap.put(flight.getId(), flight);
                         }
                     }
                 }
             }
         }
-        //dataSet.setAirports();
+        dataSet.setFlights(flightMap);
     }
+
 
     private boolean checkIfDirectFlightExists(Airport origin, Airport destination){
         boolean exists = true;
@@ -188,58 +451,19 @@ public final class AirportAnalysis implements ModelComponent {
     }
 
 
-    private void routeIfFlightRoutedFromOriginHubOrDestinationHub(Airport origin, Airport destination, Airport originHub, Airport destinationHub) {
-        float time1 = 10 * 60f; //10 hours
-        float time2 = 10 * 60f; //10 hours
-        if (checkIfDirectFlightExists(origin, originHub)) {
-            if (checkIfDirectFlightExists(originHub, destination)) {
-                time1 = connectedAirports.get(origin).get(originHub).get("time") +
-                        transferTimes.getIndexedValueAt(originHub.getId(), "transferTime") +
-                        connectedAirports.get(originHub).get(destination).get("time");
-            }
-        }
-        if (checkIfDirectFlightExists(origin, destinationHub)) {
-            if (checkIfDirectFlightExists(destinationHub, destination)) {
-                time2 = connectedAirports.get(origin).get(destinationHub).get("time") +
-                        transferTimes.getIndexedValueAt(destinationHub.getId(), "transferTime") +
-                        connectedAirports.get(destinationHub).get(destination).get("time");
-            }
-        }
-        if (time1 == time2 & time2 == 10 * 60f){
-
-        } else if (time1 < time2){
-            List<AirLeg> legs = new ArrayList<>();
-            legs.add(new AirLeg(atomicIntegerLeg.getAndIncrement(), origin, originHub));
-            legs.add(new AirLeg(atomicIntegerLeg.getAndIncrement(), originHub, destination));
-            Flight flight = new Flight(atomicIntegerFlight.getAndIncrement(), origin, destination, legs);
-            flight.setTime(time1);
-            origin.getFlights().add(flight);
-        } else {
-            List<AirLeg> legs = new ArrayList<>();
-            legs.add(new AirLeg(atomicIntegerLeg.getAndIncrement(), origin, destinationHub));
-            legs.add(new AirLeg(atomicIntegerLeg.getAndIncrement(), destinationHub, destination));
-            Flight flight = new Flight(atomicIntegerFlight.getAndIncrement(), origin, destination, legs);
-            flight.setTime(time2);
-            origin.getFlights().add(flight);
-        }
-
-    }
-
-
-    private float routeThroughHub(Airport origin, Airport destination, Airport hub) {
+    private float routeThroughHub(Airport origin, Airport destination, Airport hub, DataSet dataSet) {
         float time = 1000001f; //10 hours
 
         if (checkIfDirectFlightExists(origin, hub)) {
             if (checkIfDirectFlightExists(hub, destination)) {
-                time = connectedAirports.get(origin).get(hub).get("time") +
+                time = dataSet.getFligthFromId(connectedAirports.get(origin).get(hub).get("flightId")).getTime() +
                         transferTimes.getIndexedValueAt(hub.getId(), "transferTime") +
-                        connectedAirports.get(hub).get(destination).get("time");
+                        dataSet.getFligthFromId(connectedAirports.get(hub).get(destination).get("flightId")).getTime();
             }
         }
 
         return time;
     }
-
 
 
     private void writeFlights(DataSet dataSet, String fileName) {
@@ -441,7 +665,7 @@ public final class AirportAnalysis implements ModelComponent {
         if (distance > 1000000){
             detour = detourFactorOVERSEAS;
         }
-        return  distance * detour / cruiseSpeed * 60 / 1000 + ascendingTime + descendingTime;
+        return  distance * detour / cruiseSpeed * 3600 / 1000 + ascendingTime + descendingTime;
     }
 
     private float estimateAirCost(float distance) {
@@ -576,9 +800,22 @@ public final class AirportAnalysis implements ModelComponent {
             zone.setClosestHubId(idClosestHub);
         }
 
-
-
     }
 
 
+
+    private void printSkim(String fileName, DataSet dataSet, Matrix matrix, String matrixName) {
+
+        try {
+
+            int dimension = dataSet.getZones().size();
+            //int dimension = 4;
+            OmxMatrixWriter.createOmxFile(fileName, dimension);
+            OmxMatrixWriter.createOmxSkimMatrix(matrix,fileName, matrixName);
+
+
+        } catch (ClassCastException e) {
+            logger.info("Currently it is not possible to print out a matrix from an object which is not SkimTravelTime");
+        }
+    }
 }

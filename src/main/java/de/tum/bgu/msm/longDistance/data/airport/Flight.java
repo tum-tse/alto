@@ -15,6 +15,7 @@ public class Flight implements Id {
     private final Airport destination;
     private final List< AirLeg> legs;
     private float time;
+    private float cost;
 
 
     public Flight(int id, Airport origin, Airport destination, List<AirLeg> legs) {
@@ -47,5 +48,13 @@ public class Flight implements Id {
 
     public void setTime(float time) {
         this.time = time;
+    }
+
+    public float getCost() {
+        return cost;
+    }
+
+    public void setCost(float cost) {
+        this.cost = cost;
     }
 }
