@@ -1,5 +1,6 @@
 package de.tum.bgu.msm.longDistance.airportAnalysis;
 
+import com.pb.common.datafile.CSVFileWriter;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
@@ -19,6 +20,8 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import javax.xml.crypto.Data;
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,8 +53,24 @@ public final class AirportAnalysis implements ModelComponent {
     private String fileNameOmxEgress;
     private String fileNameOmxTotal;
 
+    private Matrix firstLegTime;
+    private Matrix secondLegTime;
+
+    private TableDataSet midTrips;
+
+    private TableDataSet selectedTimes;
+
 
     private Map<Airport, Map<Airport, Map<String, Integer>>> connectedAirports = new HashMap<>();
+    private String fileNameTripsOutput;
+    private Matrix transferTime;
+    private Matrix accessTime;
+    private Matrix egressTime;
+    private Matrix totalTime;
+    private Matrix originAirportMatrix;
+    private Matrix destinationAirportMatrix;
+    private int boardingTime;
+    private int postprocessTime;
 
 
     public AirportAnalysis() {
@@ -80,6 +99,10 @@ public final class AirportAnalysis implements ModelComponent {
         fileNameOmxAccess = JsonUtilMto.getStringProp(prop, "airport.omxOutputaccess_file");
         fileNameOmxEgress = JsonUtilMto.getStringProp(prop, "airport.omxOutputegress_file");
         fileNameOmxTotal = JsonUtilMto.getStringProp(prop, "airport.omxOutputtotal_file");
+        midTrips = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.mid_trips_file"));
+        fileNameTripsOutput = JsonUtilMto.getStringProp(prop, "airport.mid_trips_output_file");
+        boardingTime = JsonUtilMto.getIntProp(prop, "airport.boardingTime");
+        postprocessTime = JsonUtilMto.getIntProp(prop, "airport.postProcessTime");
         logger.info("Airport analysis set up");
     }
 
@@ -97,54 +120,45 @@ public final class AirportAnalysis implements ModelComponent {
         calculateMultiStopConnections(dataSet);
         calculateMainAirportAndHubForZone(dataSet);
         calculateAirSkims(dataSet);
+        getAirportsForMid(dataSet);
         writeAirports(dataSet, fileNameAirports);
         writeLegs(dataSet, fileNameLegs);
         writeFlights(dataSet, fileNameFlights);
-
+        printSelectionAirports(dataSet);
+        writeMiDtrips(fileNameTripsOutput);
     }
 
+    private void writeMiDtrips(String fileName) {
+        writeTableDataSet(midTrips, fileName);
+    }
 
 
     private void calculateAirSkims(DataSet dataSet) {
 
 
-        /*int numberOfZones = 4;
-        Matrix firstLegTime = new Matrix(fileNameOmxFirstLeg, fileNameOmxFirstLeg, numberOfZones, numberOfZones);
-        Matrix secondLegTime = new Matrix(fileNameOmxSecondLeg, fileNameOmxSecondLeg, numberOfZones, numberOfZones);
-        Matrix transferTime = new Matrix(fileNameOmxTransfer, fileNameOmxTransfer, numberOfZones, numberOfZones);
-        Matrix accessTime = new Matrix(fileNameOmxAccess, fileNameOmxAccess, numberOfZones, numberOfZones);
-        Matrix egressTime = new Matrix(fileNameOmxEgress, fileNameOmxEgress, numberOfZones, numberOfZones);
-        Matrix totalTime = new Matrix(fileNameOmxTotal, fileNameOmxTotal, numberOfZones, numberOfZones);*/
+        int numberOfZones = dataSet.getZones().size();
+        firstLegTime = new Matrix(fileNameOmxFirstLeg, fileNameOmxFirstLeg, numberOfZones, numberOfZones);
+        secondLegTime = new Matrix(fileNameOmxSecondLeg, fileNameOmxSecondLeg, numberOfZones, numberOfZones);
+        transferTime = new Matrix(fileNameOmxTransfer, fileNameOmxTransfer, numberOfZones, numberOfZones);
+        accessTime = new Matrix(fileNameOmxAccess, fileNameOmxAccess, numberOfZones, numberOfZones);
+        egressTime = new Matrix(fileNameOmxEgress, fileNameOmxEgress, numberOfZones, numberOfZones);
+        totalTime = new Matrix(fileNameOmxTotal, fileNameOmxTotal, numberOfZones, numberOfZones);
+        originAirportMatrix = new Matrix("originAirport", "originAirport", numberOfZones, numberOfZones);
+        destinationAirportMatrix = new Matrix("originAirport", "originAirport", numberOfZones, numberOfZones);
 
- int numberOfZones = dataSet.getZones().size();
-        Matrix firstLegTime = new Matrix(fileNameOmxFirstLeg, fileNameOmxFirstLeg, numberOfZones, numberOfZones);
-        Matrix secondLegTime = new Matrix(fileNameOmxSecondLeg, fileNameOmxSecondLeg, numberOfZones, numberOfZones);
-        Matrix transferTime = new Matrix(fileNameOmxTransfer, fileNameOmxTransfer, numberOfZones, numberOfZones);
-        Matrix accessTime = new Matrix(fileNameOmxAccess, fileNameOmxAccess, numberOfZones, numberOfZones);
-        Matrix egressTime = new Matrix(fileNameOmxEgress, fileNameOmxEgress, numberOfZones, numberOfZones);
-        Matrix totalTime = new Matrix(fileNameOmxTotal, fileNameOmxTotal, numberOfZones, numberOfZones);
 
 
         for (Map.Entry<Integer, Zone> originMap : dataSet.getZones().entrySet()){
 
-        //int[] example = new int[]{1,5, 6644, 8223};
-        //int[] example2 = new int[]{1,5, 6644, 8223};
-        //int rowOr = 1;
-        //for (int originZoneId : example){
             ZoneGermany originZone = (ZoneGermany) originMap.getValue();
             int originZoneId = originMap.getKey();
-            //ZoneGermany originZone = (ZoneGermany) dataSet.getZones().get(originZoneId);
-            //int rowDes = 1;
 
-            //for (int destinationZoneId : example2){
             for (Map.Entry<Integer, Zone> destinationMap : dataSet.getZones().entrySet()){
 
                 ZoneGermany destinationZone = (ZoneGermany) destinationMap.getValue();
                 int destinationZoneId = destinationMap.getKey();
-                //ZoneGermany destinationZone = (ZoneGermany) dataSet.getZones().get(destinationZoneId);
 
-
-                float[] travelTimes = new float[6];
+                float[] travelTimes = new float[8];
 
                 if (originZone.getId() == destinationZone.getId()){
                     //same zone - no flights allowed
@@ -259,39 +273,134 @@ public final class AirportAnalysis implements ModelComponent {
                         }
                     }
                 }
-                /*firstLegTime.setValueAt(rowOr, rowDes, travelTimes[0]);
-                secondLegTime.setValueAt(rowOr, rowDes, travelTimes[1]);
-                transferTime.setValueAt(rowOr, rowDes, travelTimes[2]);
-                accessTime.setValueAt(rowOr, rowDes, travelTimes[3]);
-                egressTime.setValueAt(rowOr, rowDes, travelTimes[4]);*/
                 firstLegTime.setValueAt(originZoneId, destinationZoneId, travelTimes[0]);
                 secondLegTime.setValueAt(originZoneId, destinationZoneId, travelTimes[1]);
                 transferTime.setValueAt(originZoneId, destinationZoneId, travelTimes[2]);
                 accessTime.setValueAt(originZoneId, destinationZoneId, travelTimes[3]);
                 egressTime.setValueAt(originZoneId, destinationZoneId, travelTimes[4]);
                 totalTime.setValueAt(originZoneId, destinationZoneId, travelTimes[5]);
-                //rowDes++;
+                originAirportMatrix.setValueAt(originZoneId, destinationZoneId, travelTimes[6]);
+                destinationAirportMatrix.setValueAt(originZoneId, destinationZoneId, travelTimes[7]);
             }
-            //rowOr++;
         }
-        //String fileName, DataSet dataSet, Matrix matrix, String matrixName
+
+/*
         printSkim(fileNameOmxFirstLeg, dataSet, firstLegTime, "time");
         printSkim(fileNameOmxSecondLeg, dataSet, secondLegTime, "time");
         printSkim(fileNameOmxTransfer, dataSet, transferTime, "time");
         printSkim(fileNameOmxAccess, dataSet, accessTime, "time");
         printSkim(fileNameOmxEgress, dataSet, egressTime, "time");
         printSkim(fileNameOmxTotal, dataSet, totalTime, "time");
+*/
+
     }
 
+    private void getAirportsForMid(DataSet dataSet) {
+
+        initializeMidTrips();
+        for (int row = 1; row <= midTrips.getRowCount(); row++){
+            int originZoneId =  (int) midTrips.getValueAt(row, "TAZ_id_O");
+            int destinationZoneId =  (int) midTrips.getValueAt(row, "TAZ_id_D");
+            float firstLeg = firstLegTime.getValueAt(originZoneId, destinationZoneId);
+            float secondLeg = secondLegTime.getValueAt(originZoneId, destinationZoneId);
+            float transfer = transferTime.getValueAt(originZoneId, destinationZoneId);
+            float travelTime = firstLeg + secondLeg + transfer + boardingTime + postprocessTime;
+            float access = accessTime.getValueAt(originZoneId, destinationZoneId);
+            float egress = egressTime.getValueAt(originZoneId, destinationZoneId);
+            int origin = (int) originAirportMatrix.getValueAt(originZoneId, destinationZoneId);
+            int destination = (int) destinationAirportMatrix.getValueAt(originZoneId, destinationZoneId);
+            String originAirportName = "NA";
+            String destinationAirportName = "NA";
+            if (origin != 0) {
+                originAirportName = dataSet.getAirportFromId(origin).getName();
+            }
+            if (destination != 0) {
+                destinationAirportName = dataSet.getAirportFromId(destination).getName();
+            }
+            midTrips.setValueAt(row, "t.air_firstLeg_time_s", firstLeg );
+            midTrips.setValueAt(row, "t.air_secondLeg_time_s", secondLeg);
+            midTrips.setValueAt(row, "t.air_transferTime_s", transfer);
+            midTrips.setValueAt(row, "t.air_travelTimeBetweenAirports_s", travelTime);
+            midTrips.setValueAt(row,"t.air_accessTimeSkim_s", access);
+            midTrips.setValueAt(row,"t.air_agressTimeSkim_s", egress);
+            midTrips.setStringValueAt(row, "originAirport",originAirportName);
+            midTrips.setStringValueAt(row, "destinationAirport", destinationAirportName);
+
+        }
+    }
+
+    private void initializeMidTrips(){
+
+        midTrips = addIntegerColumnToTableDataSet(midTrips, "t.air_firstLeg_time_s");
+        midTrips = addIntegerColumnToTableDataSet(midTrips, "t.air_secondLeg_time_s");
+        midTrips = addIntegerColumnToTableDataSet(midTrips, "t.air_transferTime_s");
+        midTrips = addIntegerColumnToTableDataSet(midTrips, "t.air_travelTimeBetweenAirports_s");
+        midTrips = addIntegerColumnToTableDataSet(midTrips, "t.air_accessTimeSkim_s");
+        midTrips = addIntegerColumnToTableDataSet(midTrips, "t.air_agressTimeSkim_s");
+        midTrips = addStringColumnToTableDataSet(midTrips, "originAirport");
+        midTrips = addStringColumnToTableDataSet(midTrips, "destinationAirport");
+
+    }
+
+    private void printSelectionAirports( DataSet dataSet){
+
+        selectedTimes = new TableDataSet();
+        int[] selectedOrigins = new int[]{7698, 6645, 6475, 6663, 8605} ;//Nuremberg, Freising, Altsatdt Muc, Hallbergmoos, Berlin;
+
+        selectedTimes = addIntegerColumnToTableDataSet(selectedTimes,"TAZ_id", 11869);
+        selectedTimes = addIntegerColumnToTableDataSet(selectedTimes,"CarTravelTime", 11869);
+        for (int zonr : dataSet.getZones().keySet()){
+
+            selectedTimes.setValueAt(zonr, "TAZ_id", zonr);
+            if (zonr < 11865) {
+                float carTime = dataSet.getAutoTravelTime(6645, zonr);;
+                selectedTimes.setValueAt(zonr, "CarTravelTime", carTime);
+            }
+        }
+        selectedTimes.buildIndex(selectedTimes.getColumnPosition("TAZ_id"));
+        for (int origin : selectedOrigins){
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, Integer.toString(origin), 11869);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "accessTime" + Integer.toString(origin), 11869);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "firstFlightTime" + Integer.toString(origin), 11869);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "secondFlightTime" + Integer.toString(origin), 11869);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "transferTime" + Integer.toString(origin), 11869);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "egressTime" + Integer.toString(origin), 11869);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "totalTime" + Integer.toString(origin), 11869);
+            for (int zonr : dataSet.getZones().keySet()){
+                selectedTimes.setValueAt(zonr, "accessTime" + Integer.toString(origin), accessTime.getValueAt(origin, zonr));
+                selectedTimes.setValueAt(zonr, "firstFlightTime" + Integer.toString(origin), firstLegTime.getValueAt(origin, zonr));
+                selectedTimes.setValueAt(zonr, "secondFlightTime" + Integer.toString(origin), secondLegTime.getValueAt(origin, zonr));
+                selectedTimes.setValueAt(zonr, "transferTime" + Integer.toString(origin), transferTime.getValueAt(origin, zonr));
+                selectedTimes.setValueAt(zonr, "egressTime" + Integer.toString(origin), egressTime.getValueAt(origin, zonr));
+                selectedTimes.setValueAt(zonr, "totalTime" + Integer.toString(origin), totalTime.getValueAt(origin, zonr));
+            }
+        }
+        writeTableDataSet(selectedTimes, "output/airport/air_skim_total.csv");
+
+    }
+
+    public static void writeTableDataSet (TableDataSet data, String fileName) {
+        try {
+            CSVFileWriter cfwWriter = new CSVFileWriter();
+            cfwWriter.writeFile(data, new File(fileName));
+            cfwWriter.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            logger.error("Could not write TableDataSet to file " + fileName + ".");
+        }
+    }
 
     private float[] assignIntrazonalTrip(){
-        float[] times = new float[6];
-        times[0] = 100000000;
+        float[] times = new float[8];
+        times[0] = 1000000000;
         times[1] = 0;
         times[2] = 0;
         times[3] = 0;
         times[4] = 0;
         times[5] = 0;
+        times[6] = 0;
+        times[7] = 0;
         return times;
 
     }
@@ -311,7 +420,7 @@ public final class AirportAnalysis implements ModelComponent {
 
 
     private float[] getTravelTimes(DataSet dataSet, int originZoneId, int destinationZoneId, Airport originAirport, Airport destinationAirport){
-        float[] times = new float[6];
+        float[] times = new float[8];
         if (originAirport.getId() != destinationAirport.getId()) {
             List<AirLeg> legs = dataSet.getFligthFromId(connectedAirports.get(originAirport).get(destinationAirport).get("flightId")).getLegs();
             times[0] = legs.get(0).getTime();
@@ -333,6 +442,8 @@ public final class AirportAnalysis implements ModelComponent {
                 times[4] = 0;
             }
             times[5] = times[0] + times[1] + times[2] + times[3] + times[4];
+            times[6] = originAirport.getId();
+            times[7] = destinationAirport.getId();
         } else {
             times = assignIntrazonalTrip();
         }
@@ -503,8 +614,6 @@ public final class AirportAnalysis implements ModelComponent {
         }
         pw.close();
     }
-
-
 
     private void writeLegs(DataSet dataSet, String fileName) {
         PrintWriter pw = Util.openFileForSequentialWriting(fileName, false);
@@ -817,5 +926,26 @@ public final class AirportAnalysis implements ModelComponent {
         } catch (ClassCastException e) {
             logger.info("Currently it is not possible to print out a matrix from an object which is not SkimTravelTime");
         }
+    }
+
+    private static TableDataSet addIntegerColumnToTableDataSet(TableDataSet table, String label){
+        int[] anArray = new int[table.getRowCount()];
+        Arrays.fill(anArray, 0);
+        table.appendColumn(anArray,label);
+        return table;
+    }
+
+    private static TableDataSet addStringColumnToTableDataSet(TableDataSet table, String label){
+        String[] anArray = new String[table.getRowCount()];
+        Arrays.fill(anArray, "");
+        table.appendColumn(anArray,label);
+        return table;
+    }
+
+    private static TableDataSet addIntegerColumnToTableDataSet(TableDataSet table, String label, int size){
+        int[] anArray = new int[size];
+        Arrays.fill(anArray, 0);
+        table.appendColumn(anArray,label);
+        return table;
     }
 }
