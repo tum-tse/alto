@@ -34,11 +34,11 @@ public class AirLeg implements Id {
         return id;
     }
 
-    public float getFrequency() {
+    public float getDistance() {
         return distance;
     }
 
-    public void setFrequency(float distance) {
+    public void setDistance(float distance) {
         this.distance = distance;
     }
 

@@ -47,9 +47,11 @@ public final class AirportAnalysis implements ModelComponent {
     private String fileNameOmxAccess;
     private String fileNameOmxEgress;
     private String fileNameOmxTotal;
+    private String fileNameOmxDistance;
 
     private Matrix firstLegTime;
     private Matrix secondLegTime;
+    private Matrix distanceAir;
 
     private TableDataSet midTrips;
 
@@ -94,6 +96,7 @@ public final class AirportAnalysis implements ModelComponent {
         fileNameOmxAccess = JsonUtilMto.getStringProp(prop, "airport.omxOutputaccess_file");
         fileNameOmxEgress = JsonUtilMto.getStringProp(prop, "airport.omxOutputegress_file");
         fileNameOmxTotal = JsonUtilMto.getStringProp(prop, "airport.omxOutputtotal_file");
+        fileNameOmxDistance = JsonUtilMto.getStringProp(prop, "airport.omxOutputDistance_file");
         midTrips = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.mid_trips_file"));
         fileNameTripsOutput = JsonUtilMto.getStringProp(prop, "airport.mid_trips_output_file");
         boardingTime = JsonUtilMto.getIntProp(prop, "airport.boardingTime");
@@ -138,6 +141,7 @@ public final class AirportAnalysis implements ModelComponent {
         accessTime = new Matrix(fileNameOmxAccess, fileNameOmxAccess, numberOfZones, numberOfZones);
         egressTime = new Matrix(fileNameOmxEgress, fileNameOmxEgress, numberOfZones, numberOfZones);
         totalTime = new Matrix(fileNameOmxTotal, fileNameOmxTotal, numberOfZones, numberOfZones);
+        distanceAir = new Matrix(fileNameOmxDistance, fileNameOmxDistance, numberOfZones, numberOfZones);
         originAirportMatrix = new Matrix("originAirport", "originAirport", numberOfZones, numberOfZones);
         destinationAirportMatrix = new Matrix("originAirport", "originAirport", numberOfZones, numberOfZones);
 
@@ -153,7 +157,7 @@ public final class AirportAnalysis implements ModelComponent {
                 ZoneGermany destinationZone = (ZoneGermany) destinationMap.getValue();
                 int destinationZoneId = destinationMap.getKey();
 
-                float[] travelTimes = new float[8];
+                float[] travelTimes = new float[9];
 
                 if (originZone.getId() == destinationZone.getId()){
                     //same zone - no flights allowed
@@ -276,17 +280,18 @@ public final class AirportAnalysis implements ModelComponent {
                 totalTime.setValueAt(originZoneId, destinationZoneId, travelTimes[5]);
                 originAirportMatrix.setValueAt(originZoneId, destinationZoneId, travelTimes[6]);
                 destinationAirportMatrix.setValueAt(originZoneId, destinationZoneId, travelTimes[7]);
+                distanceAir.setValueAt(originZoneId, destinationZoneId, travelTimes[8]);
             }
         }
 
-/*
         printSkim(fileNameOmxFirstLeg, dataSet, firstLegTime, "time");
         printSkim(fileNameOmxSecondLeg, dataSet, secondLegTime, "time");
         printSkim(fileNameOmxTransfer, dataSet, transferTime, "time");
         printSkim(fileNameOmxAccess, dataSet, accessTime, "time");
         printSkim(fileNameOmxEgress, dataSet, egressTime, "time");
         printSkim(fileNameOmxTotal, dataSet, totalTime, "time");
-*/
+        printSkim(fileNameOmxDistance, dataSet, distanceAir, "distance");
+
 
     }
 
@@ -304,6 +309,7 @@ public final class AirportAnalysis implements ModelComponent {
             float egress = egressTime.getValueAt(originZoneId, destinationZoneId);
             int origin = (int) originAirportMatrix.getValueAt(originZoneId, destinationZoneId);
             int destination = (int) destinationAirportMatrix.getValueAt(originZoneId, destinationZoneId);
+            float distance = distanceAir.getValueAt(originZoneId, destinationZoneId);
             String originAirportName = "NA";
             String destinationAirportName = "NA";
             if (origin != 0) {
@@ -320,6 +326,8 @@ public final class AirportAnalysis implements ModelComponent {
             midTrips.setValueAt(row,"t.air_agressTimeSkim_s", egress);
             midTrips.setStringValueAt(row, "originAirport",originAirportName);
             midTrips.setStringValueAt(row, "destinationAirport", destinationAirportName);
+            midTrips.setValueAt(row,"t.air_distanceTotal", distance);
+
 
         }
     }
@@ -334,6 +342,7 @@ public final class AirportAnalysis implements ModelComponent {
         midTrips = addIntegerColumnToTableDataSet(midTrips, "t.air_agressTimeSkim_s");
         midTrips = addStringColumnToTableDataSet(midTrips, "originAirport");
         midTrips = addStringColumnToTableDataSet(midTrips, "destinationAirport");
+        midTrips = addFloatColumnToTableDataSet(midTrips, "t.air_distanceTotal");
 
     }
 
@@ -387,7 +396,7 @@ public final class AirportAnalysis implements ModelComponent {
     }
 
     private float[] assignIntrazonalTrip(){
-        float[] times = new float[8];
+        float[] times = new float[9];
         times[0] = 1000000000;
         times[1] = 0;
         times[2] = 0;
@@ -396,6 +405,7 @@ public final class AirportAnalysis implements ModelComponent {
         times[5] = 0;
         times[6] = 0;
         times[7] = 0;
+        times[8] = 1000000000;
         return times;
 
     }
@@ -415,16 +425,17 @@ public final class AirportAnalysis implements ModelComponent {
 
 
     private float[] getTravelTimes(DataSet dataSet, int originZoneId, int destinationZoneId, Airport originAirport, Airport destinationAirport){
-        float[] times = new float[8];
+        float[] times = new float[9];
         if (originAirport.getId() != destinationAirport.getId()) {
             List<AirLeg> legs = dataSet.getFligthFromId(connectedAirports.get(originAirport).get(destinationAirport).get("flightId")).getLegs();
             times[0] = legs.get(0).getTime();
             times[1] = 0;
             times[2] = 0;
+            times[8] = legs.get(0).getDistance();;
             if (legs.size() > 1) {
                 times[1] = legs.get(1).getTime();
-                ;
                 times[2] = transferTimes.getIndexedValueAt(legs.get(0).getDestination().getId(), "transferTime");
+                times[8] = times[8] + legs.get(1).getDistance();
             }
             if (originZoneId < 11868) {
                 times[3] = dataSet.getAutoTravelTime(originZoneId, originAirport.getZone().getId());
@@ -439,6 +450,7 @@ public final class AirportAnalysis implements ModelComponent {
             times[5] = times[0] + times[1] + times[2] + times[3] + times[4];
             times[6] = originAirport.getId();
             times[7] = destinationAirport.getId();
+
         } else {
             times = assignIntrazonalTrip();
         }
@@ -621,7 +633,7 @@ public final class AirportAnalysis implements ModelComponent {
             pw.print(",");
             pw.print(leg.getDestination().getName());
             pw.print(",");
-            pw.print(leg.getFrequency());
+            pw.print(leg.getDistance());
             pw.print(",");
             pw.print(leg.getTime());
             pw.print(",");
@@ -755,7 +767,7 @@ public final class AirportAnalysis implements ModelComponent {
                 float time = estimateAirTime(distance);
                 airLeg.setCost(cost);
                 airLeg.setTime(time);
-                airLeg.setFrequency(distance);
+                airLeg.setDistance(distance);
                 airLegMap.put(airLeg.getId(), airLeg);
             }
         }
@@ -926,6 +938,13 @@ public final class AirportAnalysis implements ModelComponent {
     private static TableDataSet addIntegerColumnToTableDataSet(TableDataSet table, String label){
         int[] anArray = new int[table.getRowCount()];
         Arrays.fill(anArray, 0);
+        table.appendColumn(anArray,label);
+        return table;
+    }
+
+    private static TableDataSet addFloatColumnToTableDataSet(TableDataSet table, String label){
+        float[] anArray = new float[table.getRowCount()];
+        Arrays.fill(anArray, 0f);
         table.appendColumn(anArray,label);
         return table;
     }
