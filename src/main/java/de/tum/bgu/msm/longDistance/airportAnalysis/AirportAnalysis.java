@@ -340,7 +340,7 @@ public final class AirportAnalysis implements ModelComponent {
     private void writeSelectionOfOriginAirports(DataSet dataSet){
 
         selectedTimes = new TableDataSet();
-        int[] selectedOrigins = new int[]{7698, 6645, 6475, 6663, 8605} ;//Nuremberg, Freising, Altsatdt Muc, Hallbergmoos, Berlin;
+        int[] selectedOrigins = new int[]{7698, 6645, 6475, 6663, 8605}  ;//Nuremberg, Freising, Altsatdt Muc, Hallbergmoos, Berlin;
 
         selectedTimes = addIntegerColumnToTableDataSet(selectedTimes,"TAZ_id", 11869);
         selectedTimes = addIntegerColumnToTableDataSet(selectedTimes,"CarTravelTime", 11869);
