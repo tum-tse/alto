@@ -12,14 +12,9 @@ import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import de.tum.bgu.msm.longDistance.io.writer.OmxMatrixWriter;
-import omx.OmxFile;
-import omx.OmxLookup;
-import omx.OmxMatrix;
-import omx.hdf5.OmxConstants;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import javax.xml.crypto.Data;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -124,7 +119,7 @@ public final class AirportAnalysis implements ModelComponent {
         writeAirports(dataSet, fileNameAirports);
         writeLegs(dataSet, fileNameLegs);
         writeFlights(dataSet, fileNameFlights);
-        printSelectionAirports(dataSet);
+        writeSelectionOfOriginAirports(dataSet);
         writeMiDtrips(fileNameTripsOutput);
     }
 
@@ -342,7 +337,7 @@ public final class AirportAnalysis implements ModelComponent {
 
     }
 
-    private void printSelectionAirports( DataSet dataSet){
+    private void writeSelectionOfOriginAirports(DataSet dataSet){
 
         selectedTimes = new TableDataSet();
         int[] selectedOrigins = new int[]{7698, 6645, 6475, 6663, 8605} ;//Nuremberg, Freising, Altsatdt Muc, Hallbergmoos, Berlin;
