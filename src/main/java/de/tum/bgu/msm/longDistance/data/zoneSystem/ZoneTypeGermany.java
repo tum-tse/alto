@@ -4,8 +4,17 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * Created by carlloga on 8/10/2016.
+ *
+ * Germany Model
+ * Class to store zones types in the German implementation
+ * Author: Ana Moreno, Technical University of Munich (TUM), ana.moreno@tum.de
+ * Date: 8 December 2020
+ * Version 1
+ * Adapted from Ontario
+ * Version 1
+ *
  */
+
 public enum ZoneTypeGermany implements ZoneType {
     GERMANY, EXTEU, EXTOVERSEAS;
 

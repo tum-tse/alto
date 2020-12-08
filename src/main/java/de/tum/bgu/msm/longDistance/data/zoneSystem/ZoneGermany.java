@@ -3,7 +3,15 @@ package de.tum.bgu.msm.longDistance.data.zoneSystem;
 
 
 /**
- * Created by carlloga on 8/10/2016.
+ *
+ * Germany Model
+ * Class to store zones
+ * Author: Ana Moreno, Technical University of Munich (TUM), ana.moreno@tum.de
+ * Date: 8 December 2020
+ * Version 1
+ * Adapted from Ontario. Added features for airport analysis
+ * Version 1
+ *
  */
 public class ZoneGermany implements Zone {
     private int id;

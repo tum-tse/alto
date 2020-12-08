@@ -13,11 +13,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Ontario Provincial Model
- * Class to store data for long-distance travel demand model
- * Author: Rolf Moeckel, Technical University of Munich (TUM), rolf.moeckel@tum.de
- * Date: 21 April 2016
+ *
+ * Germany Model
+ * Class to read zones
+ * Author: Ana Moreno, Technical University of Munich (TUM), ana.moreno@tum.de
+ * Date: 8 December 2020
  * Version 1
+ * Adapted from Ontario
+ * Version 1
+ *
  */
 
 public class ZoneReaderGermany implements ZoneReader {

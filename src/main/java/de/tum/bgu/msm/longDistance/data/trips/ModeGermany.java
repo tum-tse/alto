@@ -1,8 +1,18 @@
 package de.tum.bgu.msm.longDistance.data.trips;
 
 /**
- * Created by carlloga on 8/2/2017.
+ *
+ * Germany Model
+ * Class to store long distance main modes
+ * Author: Ana Moreno, Technical University of Munich (TUM), ana.moreno@tum.de
+ * Date: 8 December 2020
+ * Version 1
+ * Adapted from Ontario
+ * Version 1
+ *
  */
+
+
 public enum ModeGermany implements Mode {
 
     AUTO;

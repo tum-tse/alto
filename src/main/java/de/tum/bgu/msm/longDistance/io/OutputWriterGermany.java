@@ -8,6 +8,18 @@ import org.json.simple.JSONObject;
 
 import java.io.PrintWriter;
 
+/**
+ *
+ * Germany Model
+ * Class to write outputs
+ * Author: Ana Moreno, Technical University of Munich (TUM), ana.moreno@tum.de
+ * Date: 8 December 2020
+ * Version 1
+ * Adapted from Ontario
+ * Version 1
+ *
+ */
+
 public class OutputWriterGermany implements OutputWriter {
 
 

@@ -17,6 +17,18 @@ import org.json.simple.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ *
+ * Germany Model
+ * Class to read skims
+ * Author: Ana Moreno, Technical University of Munich (TUM), ana.moreno@tum.de
+ * Date: 8 December 2020
+ * Version 1
+ * Adapted from Ontario
+ * Version 1
+ *
+ */
+
 public class SkimsReaderGermany implements SkimsReader {
 
     private static Logger logger = Logger.getLogger(SkimsReaderGermany.class);

@@ -1,20 +1,24 @@
 package de.tum.bgu.msm.longDistance.data.sp;
- import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
- import org.apache.log4j.Logger;
+
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
+import org.apache.log4j.Logger;
 
 /**
  *
  * Ontario Provincial Model
  * Class to store synthetic households
- * Author: Rolf Moeckel, Technical University of Munich (TUM), rolf.moeckel@tum.de
- * Date: 22 April 2016
+ * Author: Ana Moreno, Technical University of Munich (TUM), ana.moreno@tum.de
+ * Date: 8 December 2020
+ * Version 1
+ * Adapted from Ontario
  * Version 1
  *
  */
 
-public class HouseholdOntario implements Household {
+public class HouseholdGermany implements Household {
 
-    static Logger logger = Logger.getLogger(HouseholdOntario.class);
+    static Logger logger = Logger.getLogger(HouseholdGermany.class);
 
     private int id;
     private int hhSize;
@@ -23,11 +27,11 @@ public class HouseholdOntario implements Household {
     private int numWrks;
     private int numKids;
     private int taz;
-    private ZoneOntario zone;
-    private PersonOntario[] persons;
+    private ZoneGermany zone;
+    private PersonGermany[] persons;
 
 
-    public HouseholdOntario(int id, int hhInc, int ddType, int taz, ZoneOntario zone) {
+    public HouseholdGermany(int id, int hhInc, int ddType, int taz, ZoneGermany zone) {
         this.id      = id;
         this.hhSize  = 0;
         this.hhInc   = hhInc;
@@ -37,7 +41,7 @@ public class HouseholdOntario implements Household {
 //        persons = new Person[hhSize];
         this.taz = taz;
         this.zone = zone;
-        this.persons = new PersonOntario[0];
+        this.persons = new PersonGermany[0];
     }
 
 
@@ -45,10 +49,10 @@ public class HouseholdOntario implements Household {
     public void addPersonForInitialSetup(Person per) {
         // This method adds a person to the household (only used for initial setup)
 
-        Person[] personsAddedSoFar = persons;
-        persons = new PersonOntario[personsAddedSoFar.length + 1];
+        PersonGermany[] personsAddedSoFar = persons;
+        persons = new PersonGermany[personsAddedSoFar.length + 1];
         System.arraycopy(personsAddedSoFar, 0, persons, 0, persons.length-1);
-        persons[persons.length-1] = (PersonOntario) per;
+        persons[persons.length-1] = (PersonGermany) per;
         hhSize++;
     }
 
@@ -69,9 +73,9 @@ public class HouseholdOntario implements Household {
         return taz;
     }
 
-    public ZoneOntario getZone() {return zone;}
+    public ZoneGermany getZone() {return zone;}
 
-    public PersonOntario[] getPersonsOfThisHousehold() {
+    public PersonGermany[] getPersonsOfThisHousehold() {
         return persons;
     }
 }
