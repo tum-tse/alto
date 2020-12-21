@@ -4,7 +4,7 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.LDModel;
+import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
@@ -91,8 +91,9 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
         logger.info("International DC (outbound) loaded");
     }
 
-    public int selectDestination(LongDistanceTripOntario trip) {
+    public int selectDestination(LongDistanceTrip t) {
 
+        LongDistanceTripOntario trip = (LongDistanceTripOntario) t;
         int destination;
         //0 visit, 1 business and 2 leisure
 
@@ -157,7 +158,7 @@ public class IntOutboundDestinationChoice implements DestinationChoiceModule {
             //daytrips are always to US
             return true;
         } else {
-            if (LDModel.rand.nextDouble() < probability) {
+            if (LDModelOntario.rand.nextDouble() < probability) {
                 return true;
             } else {
                 return false;

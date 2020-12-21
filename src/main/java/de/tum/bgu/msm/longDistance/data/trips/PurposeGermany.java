@@ -15,7 +15,7 @@ package de.tum.bgu.msm.longDistance.data.trips;
 
 public enum PurposeGermany implements Purpose {
 
-    VISIT, BUSINESS, LEISURE;
+    PRIVATE, BUSINESS, LEISURE;
     //public static final List<String> tripPurposes = Arrays.asList("visit", "business", "leisure");
 
 

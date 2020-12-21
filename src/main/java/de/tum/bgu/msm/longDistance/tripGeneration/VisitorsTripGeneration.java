@@ -3,7 +3,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.LDModel;
+import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.data.sp.HouseholdOntario;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.data.sp.PersonOntario;
@@ -133,17 +133,17 @@ public class VisitorsTripGeneration {
         kidsHh = 0;
         nonHh = 0;
         String column = "adults." + tripPurpose;
-        double randomChoice = LDModel.rand.nextDouble();
+        double randomChoice = LDModelOntario.rand.nextDouble();
         while (adultsHh < 9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(adultsHh, 5), column))
             adultsHh++;
 
         column = "kids." + tripPurpose;
-        randomChoice = LDModel.rand.nextDouble();
+        randomChoice = LDModelOntario.rand.nextDouble();
         while (kidsHh < 9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(kidsHh + 1, 9), column))
             kidsHh++;
 
         column = "nonHh." + tripPurpose;
-        randomChoice = LDModel.rand.nextDouble();
+        randomChoice = LDModelOntario.rand.nextDouble();
         while (nonHh < 9 & randomChoice < visitorPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
             nonHh++;
 
@@ -176,17 +176,17 @@ public class VisitorsTripGeneration {
         kidsHh = 0;
         nonHh = 0;
         String column = "adults." + tripPurpose;
-        double randomChoice = LDModel.rand.nextDouble();
+        double randomChoice = LDModelOntario.rand.nextDouble();
         while (adultsHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(adultsHh, 5), column))
             adultsHh++;
 
         column = "kids." + tripPurpose;
-        randomChoice = LDModel.rand.nextDouble();
+        randomChoice = LDModelOntario.rand.nextDouble();
         while (kidsHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(kidsHh + 1, 9), column))
             kidsHh++;
 
         column = "nonHh." + tripPurpose;
-        randomChoice = LDModel.rand.nextDouble();
+        randomChoice = LDModelOntario.rand.nextDouble();
         while (nonHh < 9 && randomChoice < travelPartyProbabilities.getIndexedValueAt(Math.min(nonHh + 1, 9), column))
             nonHh++;
 

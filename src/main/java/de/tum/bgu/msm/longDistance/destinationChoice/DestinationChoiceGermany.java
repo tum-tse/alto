@@ -1,40 +1,40 @@
 package de.tum.bgu.msm.longDistance.destinationChoice;
 
+import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
-import org.json.simple.JSONObject;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by carlloga on 8/2/2017.
  */
-public class DestinationChoiceOntario implements DestinationChoice {
+public class DestinationChoiceGermany implements DestinationChoice {
 
-    static Logger logger = Logger.getLogger(DestinationChoiceOntario.class);
+    static Logger logger = Logger.getLogger(DestinationChoiceGermany.class);
 
-    private DomesticDestinationChoice dcModel;
-    private IntOutboundDestinationChoice dcOutboundModel;
-    private IntInboundDestinationChoice dcInBoundModel;
+    private DomesticDestinationChoiceGermany dcModel;
+    private Map<Integer, Zone> zonesMap;
 
-
-    private IntModeChoice intModeChoice;
-    private DomesticModeChoice domesticModeChoice;
-
-    public DestinationChoiceOntario() {
+    public DestinationChoiceGermany() {
     }
 
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
-        dcModel = new DomesticDestinationChoice(prop);
-        dcOutboundModel = new IntOutboundDestinationChoice(prop);
-        dcInBoundModel = new IntInboundDestinationChoice(prop);
+        dcModel = new DomesticDestinationChoiceGermany(prop);
+
     }
 
     @Override
@@ -42,8 +42,10 @@ public class DestinationChoiceOntario implements DestinationChoice {
 
         //load submodels
         dcModel.load(dataSet);
-        dcInBoundModel.load(dataSet);
-        dcOutboundModel.load(dataSet);
+        zonesMap = dataSet.getZones();
+        //TODO. code the international destination choice model
+        // replace the commented the lines for inbound and outbound models by the new model
+
 
     }
 
@@ -58,14 +60,16 @@ public class DestinationChoiceOntario implements DestinationChoice {
         //AtomicInteger counter = new AtomicInteger(0);
 
         trips.parallelStream().forEach(tripToCast -> {
-            LongDistanceTripOntario t = (LongDistanceTripOntario) tripToCast;
+            LongDistanceTripGermany t = (LongDistanceTripGermany) tripToCast;
             if (!t.isInternational()) {
                 int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
-                t.setCombinedDestZoneId(destZoneId);
-                t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
-                t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
+                t.setDestZoneType(ZoneTypeGermany.GERMANY);
+                t.setDestZone(zonesMap.get(destZoneId));
+                //TODO: Set destination
+                //t.setDestZone();
             } else {
-                if (t.getOrigZone().getZoneType() == ZoneTypeOntario.ONTARIO || t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTCANADA) {
+                //TODO. Replace by the international destination choice model
+/*                if (t.getOrigZone().getZoneType() == ZoneTypeOntario.ONTARIO || t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTCANADA) {
                     // residents to international
                     int destZoneId = dcOutboundModel.selectDestination(t);
                     t.setCombinedDestZoneId(destZoneId);
@@ -84,13 +88,14 @@ public class DestinationChoiceOntario implements DestinationChoice {
                     int destZoneId = dcInBoundModel.selectDestination(t);
                     t.setCombinedDestZoneId(destZoneId);
                     t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
-                }
+                }*/
             }
 
-//            if (Util.isPowerOfFour(counter.getAndIncrement())){
-//                logger.info("dc done for: " + counter.get());
-//            }
+/*            if (Util.isPowerOfFour(counter.getAndIncrement())){
+                logger.info("dc done for: " + counter.get());
+            }*/
 
         });
+        logger.info("Finished Destination Choice Model");
     }
 }

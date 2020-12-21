@@ -2,7 +2,7 @@ package de.tum.bgu.msm.longDistance.io.reader;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
-import de.tum.bgu.msm.longDistance.LDModel;
+import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.sp.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
@@ -85,6 +85,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
         Map<Integer, Household> households = readSyntheticHouseholds();
         dataSet.setHouseholds(households);
         dataSet.setPersons(readSyntheticPersons(households));
+        //estimateEconomicStatus(households);
 
 
     }
@@ -104,32 +105,23 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             // Remove quotation marks if they are available in the header columns (after splitting by commas)
             for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
 
-            int posId = Util.findPositionInArray("hhid", header);
-//            int posSize   = util.findPositionInArray("hhsize",header);
-            int posInc = Util.findPositionInArray("hhinc", header);
-            int posDdType = Util.findPositionInArray("dtype", header);
-//            int posWrkrs  = util.findPositionInArray("nworkers",header);
-//            int posKids   = util.findPositionInArray("kidspr",header);
-//            todo this line needs to be changed if reading TRESO or Qt
-//            int posTaz    = Util.findPositionInArray("ID",header); /*is the old sp*/
-            int posTaz = Util.findPositionInArray("Treso_ID", header); /*is the new sp*/
+            int posId = Util.findPositionInArray("id", header);
+            int posAutos = Util.findPositionInArray("autos", header);
+            int posTaz = Util.findPositionInArray("zone", header); /*is the new sp*/
 
             // read line
             while ((recString = in.readLine()) != null) {
                 recCount++;
                 String[] lineElements = recString.split(",");
                 int id = Integer.parseInt(lineElements[posId]);
-//                int hhSize  = Integer.parseInt(lineElements[posSize]);
-                int hhInc = Integer.parseInt(lineElements[posInc]);
-                int ddType = Integer.parseInt(lineElements[posDdType]);
-//                int numWrks = Integer.parseInt(lineElements[posWrkrs]);
-//                int numKids = Integer.parseInt(lineElements[posKids]);
+                int hhAutos = Integer.parseInt(lineElements[posAutos]);
                 int taz = Integer.parseInt(lineElements[posTaz]);
 
                 ZoneGermany zone = (ZoneGermany) zoneLookup.get(taz);
 
-                if (LDModel.rand.nextDouble() < scaleFactor) {
-                    Household hh = new HouseholdGermany(id, hhInc, ddType, taz, zone);
+                if (LDModelOntario.rand.nextDouble() < scaleFactor) {
+                    Household hh = new HouseholdGermany(id, taz, hhAutos, zone);
+                    ((HouseholdGermany) hh).setHhAutos(hhAutos);
                     householdMap.put(id, hh);
                 }
 
@@ -161,13 +153,13 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
 
             int posHhId = Util.findPositionInArray("hhid", header);
-            int posId = Util.findPositionInArray("uid", header);
+            int posId = Util.findPositionInArray("id", header);
             int posAge = Util.findPositionInArray("age", header);
-            int posGender = Util.findPositionInArray("sex", header);
-            int posOccupation = Util.findPositionInArray("nocs", header);
-            int posAttSchool = Util.findPositionInArray("attsch", header);
-            int posHighestDegree = Util.findPositionInArray("hdgree", header);
-            int posEmploymentStatus = Util.findPositionInArray("work_status", header);
+            int posGender = Util.findPositionInArray("gender", header);
+            int posOccupation = Util.findPositionInArray("occupation", header);
+            int posIncome = Util.findPositionInArray("income", header);
+            int posLicense = Util.findPositionInArray("driversLicense", header);
+            int posWorkplaceId = Util.findPositionInArray("workplace", header);
 
             // read line
             while ((recString = in.readLine()) != null) {
@@ -176,14 +168,19 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
                 int id = Integer.parseInt(lineElements[posId]);
                 int hhId = Integer.parseInt(lineElements[posHhId]);
                 int age = Integer.parseInt(lineElements[posAge]);
-                char gender = lineElements[posGender].charAt(0);
-                int occupation = Integer.parseInt(lineElements[posOccupation]);
-                int education = Integer.parseInt(lineElements[posHighestDegree]);
-                int workStatus = Integer.parseInt(lineElements[posEmploymentStatus]);
+                Gender gender = Gender.valueOf(Integer.parseInt(lineElements[posGender]));
+                OccupationStatus occupation = OccupationStatus.valueOf(Integer.parseInt(lineElements[posOccupation]));
                 HouseholdGermany hh = (HouseholdGermany) householdMap.get(hhId);
-
+                int income = Integer.parseInt(lineElements[posIncome]);
+                hh.addIncome(income / 12);
+                String workplaceStr = lineElements[posWorkplaceId];
+                int workplace = -1;
+                if (!workplaceStr.equals("NA")){
+                    workplace = Integer.parseInt(lineElements[posWorkplaceId]);
+                }
+                boolean license = Boolean.parseBoolean(lineElements[posLicense]);
                 if (hh != null) {
-                    Person pp = new PersonGermany(id, hhId, age, gender, occupation, education, workStatus, hh);  // this automatically puts it in id->household map in Household class
+                    Person pp = new PersonGermany(id, hhId, age, gender, occupation, workplace, license, hh);  // this automatically puts it in id->household map in Household class
                     personMap.put(id, pp);
                 } else {
                     if (logUnmatchedHh) {

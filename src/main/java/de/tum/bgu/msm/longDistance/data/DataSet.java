@@ -5,6 +5,7 @@ import de.tum.bgu.msm.longDistance.data.airport.AirLeg;
 import de.tum.bgu.msm.longDistance.data.airport.Airport;
 import de.tum.bgu.msm.longDistance.data.airport.AirportType;
 import de.tum.bgu.msm.longDistance.data.airport.Flight;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
@@ -38,6 +39,7 @@ public class DataSet {
     private Map<Mode, Matrix> travelTimeMatrix;;
     private Map<Mode, Matrix> priceMatrix;
     private Map<Mode, Matrix> transferMatrix;
+    private Map<Mode, Matrix> distanceMatrix;
 
     public Map<Mode, Matrix> getTravelTimeMatrix() {
         return travelTimeMatrix;
@@ -78,7 +80,7 @@ public class DataSet {
     private Map<Integer, Household> households = new HashMap<>();
 
     //TRIPS
-    private ArrayList<LongDistanceTripOntario> allTrips = new ArrayList<>();
+    private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
 
     public Map<Integer, Zone> getZones() {
         return zones;
@@ -132,10 +134,17 @@ public class DataSet {
         return households.get(hhId);
     }
 
-    public ArrayList<LongDistanceTripOntario> getAllTrips() {
+    public ArrayList<LongDistanceTrip> getAllTrips() {
         return allTrips;
     }
 
+    public Map<Mode, Matrix> getDistanceMatrix() {
+        return distanceMatrix;
+    }
+
+    public void setDistanceMatrix(Map<Mode, Matrix> distanceMatrix) {
+        this.distanceMatrix = distanceMatrix;
+    }
 
 
     //airports

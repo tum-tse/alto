@@ -1,28 +1,33 @@
 package de.tum.bgu.msm;
 
-import de.tum.bgu.msm.longDistance.AirportAnalysisModel;
-import de.tum.bgu.msm.longDistance.airportAnalysis.AirportAnalysis;
+import de.tum.bgu.msm.longDistance.LDModelGermany;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.io.OutputWriterOntario;
+import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoiceGermany;
+import de.tum.bgu.msm.longDistance.emissions.Emissions;
+import de.tum.bgu.msm.longDistance.io.OutputWriterGermany;
 import de.tum.bgu.msm.longDistance.io.reader.*;
+import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermany;
+import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoiceGermany;
+import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 
 /**
- * Ontario Provincial Model
+ * Germany Model
  * Module to simulate long-distance travel
- * Author: Rolf Moeckel, Technische Universität München (TUM), rolf.moeckel@tum.de
- * Date: 11 December 2015
+ * Author: Ana Moreno, Technische Universität München (TUM), ana.moreno@tum.de
+ * Date: 11 December 2020
  * Version 1
+ * Adapted from Ontario Provincial Model
  */
 
-public class RunAirportAnalysis {
+public class RunModelGermany {
     // main class
-    private static Logger logger = Logger.getLogger(RunAirportAnalysis.class);
+    private static Logger logger = Logger.getLogger(RunModelGermany.class);
     private JSONObject prop;
 
-    private RunAirportAnalysis(JSONObject prop) {
+    private RunModelGermany(JSONObject prop) {
         // constructor
         this.prop = prop;
     }
@@ -33,10 +38,10 @@ public class RunAirportAnalysis {
 
         logger.info("MITO Long distance model");
         long startTime = System.currentTimeMillis();
-        JsonUtilMto jsonUtilMto = new JsonUtilMto(args[1]);
+        JsonUtilMto jsonUtilMto = new JsonUtilMto(args[0]);
         JSONObject prop = jsonUtilMto.getJsonProperties();
 
-        RunAirportAnalysis model = new RunAirportAnalysis(prop);
+        RunModelGermany model = new RunModelGermany(prop);
         model.runLongDistModel();
         float endTime = Util.rounder(((System.currentTimeMillis() - startTime) / 60000), 1);
         int hours = (int) (endTime / 60);
@@ -55,10 +60,13 @@ public class RunAirportAnalysis {
 
 
 
-        AirportAnalysisModel ldModel = new AirportAnalysisModel(new ZoneReaderGermany(), new SkimsReaderGermany(), new AirportAnalysis(), new OutputWriterOntario());
-        ldModel.setup(prop, inputFolder, outputFolder);
-        ldModel.load(dataSet);
-        ldModel.run(dataSet, -1);
+        LDModelGermany ldModelGermany = new LDModelGermany(new ZoneReaderGermany(), new SkimsReaderGermany(),
+                new SyntheticPopulationReaderGermany(),new EconomicStatusReader(),
+                new TripGenerationGermany(), new DestinationChoiceGermany(), new ModeChoiceGermany(),
+                new TimeOfDayChoiceGermany(), new Emissions(), new OutputWriterGermany());
+        ldModelGermany.setup(prop, inputFolder, outputFolder);
+        ldModelGermany.load(dataSet);
+        ldModelGermany.run(dataSet, -1);
         logger.info("Module runLongDistModel completed.");
 
     }

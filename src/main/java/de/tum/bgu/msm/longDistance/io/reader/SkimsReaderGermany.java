@@ -7,6 +7,7 @@ import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.data.trips.ModeGermany;
 import de.tum.bgu.msm.longDistance.data.trips.ModeOntario;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -59,10 +60,8 @@ public class SkimsReaderGermany implements SkimsReader {
     @Override
     public void load(DataSet dataSet) {
         this.dataSet = dataSet;
-
-
         readSkims();
-        // ANA: removed for airport! //readSkimByMode(dataSet, prop, inputFolder);
+        readSkimByMode(dataSet, prop, inputFolder);
     }
 
     @Override
@@ -73,13 +72,13 @@ public class SkimsReaderGermany implements SkimsReader {
     public void readSkims() {
         Matrix autoTravelTime = convertSkimToMatrix(autoFileMatrixLookup);
         //dataSet.setAutoTravelTime(autoTravelTime);
-        dataSet.setAutoTravelTime(assignIntrazonalValues(autoTravelTime));
+        dataSet.setAutoTravelTime(assignIntrazonalTravelTimes(autoTravelTime, ModeGermany.AUTO));
 
         //convertMatrixToSkim(autoFileMatrixLookup, autoTravelTime);
 
         Matrix autoTravelDistance = convertSkimToMatrix(distanceFileMatrixLookup);
         //dataSet.setAutoTravelDistance(autoTravelDistance);
-        dataSet.setAutoTravelDistance(assignIntrazonalValues(autoTravelDistance));
+        dataSet.setAutoTravelDistance(assignIntrazonalDistances(autoTravelDistance, ModeGermany.AUTO));
 
         //convertMatrixToSkim(distanceFileMatrixLookup, autoTravelDistance);
 
@@ -136,15 +135,34 @@ public class SkimsReaderGermany implements SkimsReader {
 
     }
 
-    private Matrix assignIntrazonalValues(Matrix matrix) {
-        for (int i : matrix.getExternalRowNumbers()) {
-            float minDistance = 999;
-            for (int j : matrix.getExternalRowNumbers()) {
-                if (i != j && minDistance > matrix.getValueAt(i, j) && matrix.getValueAt(i, j) != 0) {
-                    minDistance = matrix.getValueAt(i, j);
-                }
+    private Matrix assignIntrazonalDistances(Matrix matrix, Mode mode) {
+        //For air, the intrazonal should be not possible. Keep the big number from the skim
+        if (!ModeGermany.AIR.equals(mode)) {
+            for (int zoneId : dataSet.getZones().keySet()) {
+                int minDistance =  ((ZoneGermany) dataSet.getZones().get(zoneId)).getArea();
+                matrix.setValueAt(zoneId, zoneId, (float) Math.sqrt(minDistance / 3.14));
             }
-            matrix.setValueAt(i, i, minDistance / 2);
+        }
+        logger.info("Calculated intrazonal values - nearest neighbour");
+        return matrix;
+    }
+
+
+    private Matrix assignIntrazonalTravelTimes(Matrix matrix, Mode mode) {
+
+        if (!ModeGermany.AIR.equals(mode)) {
+            float speed = 30; //km/h
+            if (ModeGermany.AUTO.equals(mode)) {
+                speed = 30;
+            } else if (ModeGermany.RAIL.equals(mode)) {
+                speed = 25;
+            } else if (ModeGermany.BUS.equals(mode)) {
+                speed = 15;
+            }
+            for (int zoneId : dataSet.getZones().keySet()) {
+                int minDistance =  ((ZoneGermany) dataSet.getZones().get(zoneId)).getArea();
+                matrix.setValueAt(zoneId, zoneId, (float) Math.sqrt(minDistance / 3.14) / speed);
+            }
         }
         logger.info("Calculated intrazonal values - nearest neighbour");
         return matrix;
@@ -154,21 +172,16 @@ public class SkimsReaderGermany implements SkimsReader {
     private void readSkimByMode(DataSet dataSet, JSONObject prop, String inputFolder) {
 
         Map<Mode, Matrix> travelTimeMatrix = new HashMap<>();
-        Map<Mode, Matrix> priceMatrix = new HashMap<>();
-        Map<Mode, Matrix> transferMatrix = new HashMap<>();
-        Map<Mode, Matrix> frequencyMatrix = new HashMap<>();
+        Map<Mode, Matrix> distanceMatrix = new HashMap<>();
 
-
-        String travelTimeFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file");
-        String priceFileName =  inputFolder +  JsonUtilMto.getStringProp(prop, "mode_choice.skim.price_file");
-        String transfersFileName =  inputFolder +  JsonUtilMto.getStringProp(prop, "mode_choice.skim.transfer_file");
-        String freqFileName =  inputFolder +  JsonUtilMto.getStringProp(prop, "mode_choice.skim.frequency_file");
-        String lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
 
         // read skim file
         for (Mode m : ModeGermany.values()) {
 
-            String matrixName = m.toString().toLowerCase();
+            String travelTimeFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m);
+            String distanceFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.distance_file_" + m);
+            String lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
+            String matrixName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName");
 
             OmxFile skim = new OmxFile(travelTimeFileName);
             skim.openReadOnly();
@@ -177,35 +190,30 @@ public class SkimsReaderGermany implements SkimsReader {
             OmxLookup omxLookUp = skim.getLookup(lookUpName);
             int[] externalNumbers = (int[]) omxLookUp.getLookup();
             travelTime.setExternalNumbersZeroBased(externalNumbers);
+            assignIntrazonalTravelTimes(travelTime, m);
             travelTimeMatrix.put(m, travelTime);
 
-            skim = new OmxFile(priceFileName);
-            skim.openReadOnly();
-            omxMatrix = skim.getMatrix(matrixName);
-            Matrix price = Util.convertOmxToMatrix(omxMatrix);
-            price.setExternalNumbersZeroBased(externalNumbers);
-            priceMatrix.put(m, price);
+            float scaler = 1;
+            if (m.equals(ModeGermany.BUS)) {
+                scaler = 70 / 3.6f; //convert time to distance using an average speed of 70 km/h - in m/s
+            } else if (m.equals(ModeGermany.RAIL)) {
+                scaler = 100 / 3.6f; //convert time to distance using an average speed of 100 km/h - in m/s
+            }
+            OmxFile skimDistance = new OmxFile(distanceFileName);
+            skimDistance.openReadOnly();
+            OmxMatrix omxMatrixDistance = skim.getMatrix(matrixName);
+            Matrix distance = Util.convertOmxToMatrix(omxMatrixDistance, scaler);
+            OmxLookup omxLookUpDistance = skim.getLookup(lookUpName);
+            int[] externalNumbersDistance = (int[]) omxLookUpDistance.getLookup();
+            distance.setExternalNumbersZeroBased(externalNumbersDistance);
+            assignIntrazonalDistances(distance, m);
+            distanceMatrix.put(m, distance);
 
-            skim = new OmxFile(transfersFileName);
-            skim.openReadOnly();
-            omxMatrix = skim.getMatrix(matrixName);
-            Matrix transfers = Util.convertOmxToMatrix(omxMatrix);
-            transfers.setExternalNumbersZeroBased(externalNumbers);
-            transferMatrix.put(m, transfers);
-
-            skim = new OmxFile(freqFileName);
-            skim.openReadOnly();
-            omxMatrix = skim.getMatrix(matrixName);
-            Matrix freq = Util.convertOmxToMatrix(omxMatrix);
-            freq.setExternalNumbersZeroBased(externalNumbers);
-            frequencyMatrix.put(m, freq);
-
+            logger.info("Finished reading " + m + " skims.");
         }
 
         dataSet.setTravelTimeMatrix(travelTimeMatrix);
-        dataSet.setPriceMatrix(priceMatrix);
-        dataSet.setTransferMatrix(transferMatrix);
-        dataSet.setFrequencyMatrix(frequencyMatrix);
+        dataSet.setDistanceMatrix(distanceMatrix);
 
     }
 

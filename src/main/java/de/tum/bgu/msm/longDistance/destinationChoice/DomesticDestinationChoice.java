@@ -84,7 +84,7 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
 
 
     //given a trip, calculate the utility of each destination
-    public int selectDestination(LongDistanceTripOntario trip) {
+    public int selectDestination(LongDistanceTrip t) {
 
         //        switch (trip.getTripPurpose()) {
 //            case 2:
@@ -97,6 +97,7 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
 //                tripPurpose = "business";
 //                break;
 //        }
+        LongDistanceTripOntario trip = (LongDistanceTripOntario) t;
         Purpose tripPurpose = trip.getTripPurpose();
 
         double[] expUtilities = Arrays.stream(alternatives)

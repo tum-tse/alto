@@ -1,7 +1,7 @@
 package de.tum.bgu.msm;
 
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.LDModel;
+import de.tum.bgu.msm.longDistance.LDModelOntario;
 
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoiceOntario;
 import de.tum.bgu.msm.longDistance.destinationChoice.ZoneDisaggregatorOntario;
@@ -62,12 +62,12 @@ public class RunModel {
 
 
 
-        LDModel ldModel = new LDModel(new ZoneReaderOntario(), new SkimsReaderOntario(), new SyntheticPopulationReaderOntario(),
+        LDModelOntario ldModelOntario = new LDModelOntario(new ZoneReaderOntario(), new SkimsReaderOntario(), new SyntheticPopulationReaderOntario(),
                 new TripGenerationOntario(), new DestinationChoiceOntario(), new ModeChoiceOntario(), new ZoneDisaggregatorOntario(),
                 new TimeOfDayChoiceOntario(), new OutputWriterOntario());
-        ldModel.setup(prop, inputFolder, outputFolder);
-        ldModel.load(dataSet);
-        ldModel.run(dataSet, -1);
+        ldModelOntario.setup(prop, inputFolder, outputFolder);
+        ldModelOntario.load(dataSet);
+        ldModelOntario.run(dataSet, -1);
         logger.info("Module runLongDistModel completed.");
 
     }

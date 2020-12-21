@@ -5,18 +5,18 @@ import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.data.trips.ModeOntario;
-
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
-import org.json.simple.JSONObject;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
+
 import java.util.ArrayList;
 
 /**
  * Created by carlloga on 8/2/2017.
  */
-public class ModeChoiceOntario implements ModeChoice {
+public class ModeChoiceGermany implements ModeChoice {
 
-    static Logger logger = Logger.getLogger(ModeChoiceOntario.class);
+    static Logger logger = Logger.getLogger(ModeChoiceGermany.class);
 
     private DomesticModeChoice mcDomesticModel;
     private IntModeChoice intModeChoice;

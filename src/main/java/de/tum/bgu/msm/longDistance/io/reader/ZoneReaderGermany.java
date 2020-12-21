@@ -5,6 +5,7 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.*;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -95,14 +96,19 @@ public class ZoneReaderGermany implements ZoneReader {
             int combinedZone = (int) zoneTable.getIndexedValueAt(zone, "TAZ_id");
             int population = (int) zoneTable.getIndexedValueAt(zone, "pop");
             String zoneTypeStr = zoneTable.getIndexedStringValueAt(zone,"type");
+            int areaType = (int) zoneTable.getIndexedValueAt(zone, "areaType");
+            int distanceToTransit = (int) zoneTable.getIndexedValueAt(zone, "distanceToTransit");
+            int hotels = (int) zoneTable.getIndexedValueAt(zone, "hotels");
             ZoneTypeGermany zoneType = ZoneTypeGermany.GERMANY;
             if (zoneTypeStr.equals("eu")){
                 zoneType = ZoneTypeGermany.EXTEU;
             } else if (zoneTypeStr.equals("ov")){
                 zoneType = ZoneTypeGermany.EXTOVERSEAS;
             }
+            int area = (int) zoneTable.getIndexedValueAt(zone, "Area");
             //zones are created as empty as they are filled out using sp
-            Zone internalZone = new ZoneGermany(zone, population, 0, zoneType, combinedZone);
+            Zone internalZone = new ZoneGermany(zone, population, 0, zoneType, area, AreaTypeGermany.valueOf(areaType), distanceToTransit);
+            ((ZoneGermany)internalZone).setHotels(hotels);
             internalZoneList.add(internalZone);
         }
 

@@ -4,7 +4,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.*;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.LDModel;
+import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.HouseholdOntario;
@@ -99,7 +99,7 @@ public class DomesticTripGeneration{
 
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(((HouseholdOntario) hhold).getPersonsOfThisHousehold()));
-            Collections.shuffle(membersList, LDModel.rand);
+            Collections.shuffle(membersList, LDModelOntario.rand);
 
             for (Person person : membersList) {
                 //array to store 3 x 3 trip probabilities for later use in international
@@ -128,7 +128,7 @@ public class DomesticTripGeneration{
                             tgProbabilities.get(tripPurpose).put(tripState, probabilities.get(tripState));
                         }
                         //select the trip state
-                        double randomNumber1 = LDModel.rand.nextDouble();
+                        double randomNumber1 = LDModelOntario.rand.nextDouble();
                         int tripStateChoice = 3;
                         Type tripState = null;
 
@@ -338,9 +338,9 @@ public class DomesticTripGeneration{
     @Deprecated
     public static int estimateTripDuration(double[] probability) {
         int tripDuration = 1;
-        double randomChoice4 = LDModel.rand.nextDouble();
+        double randomChoice4 = LDModelOntario.rand.nextDouble();
         while (tripDuration < 30 && randomChoice4 < probability[0] / (probability[0] + probability[2])) {
-            randomChoice4 = LDModel.rand.nextDouble();
+            randomChoice4 = LDModelOntario.rand.nextDouble();
             tripDuration++;
         }
         return tripDuration;
@@ -357,7 +357,7 @@ public class DomesticTripGeneration{
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         int hhmember = 0;
         hhTravelParty.add(0, pers);
-        double randomChoice2 = LDModel.rand.nextDouble();
+        double randomChoice2 = LDModelOntario.rand.nextDouble();
         HouseholdOntario hhold = pers.getHousehold();
         for (PersonOntario pers2 : hhold.getPersonsOfThisHousehold()) {
             if (pers2 != pers && !pers2.isAway() && !pers2.isDaytrip() && !pers2.isInOutTrip() && pers2.getAge() > 17) {
@@ -378,7 +378,7 @@ public class DomesticTripGeneration{
     public static ArrayList<Person> addKidsHhTravelParty(PersonOntario pers, String tripPurpose, TableDataSet travelPartyProbabilities) {
         ArrayList<Person> hhTravelParty = new ArrayList<>();
         int hhmember = 0;
-        double randomChoice2 = LDModel.rand.nextDouble();
+        double randomChoice2 = LDModelOntario.rand.nextDouble();
         HouseholdOntario hhold = pers.getHousehold();
         for (PersonOntario pers2 : hhold.getPersonsOfThisHousehold()) {
             if (pers2 != pers && !pers2.isAway() && !pers2.isDaytrip() && !pers2.isInOutTrip() && pers2.getAge() < 18) {
@@ -399,7 +399,7 @@ public class DomesticTripGeneration{
     public static int addNonHhTravelPartySize(String tripPurpose, TableDataSet travelPartyProbabilities) {
         // methods selects party size for travel groups that are composed of non-household members
         // note that additional travelers on this trip are not specified in the synthetic population (simplified approach)
-        double randomChoice3 = LDModel.rand.nextDouble();
+        double randomChoice3 = LDModelOntario.rand.nextDouble();
         int k = 0;
         String column = tripPurpose + ".nonHh";
         while (randomChoice3 < travelPartyProbabilities.getIndexedValueAt(k + 1, column) && k < 10)

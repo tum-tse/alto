@@ -14,7 +14,7 @@ package de.tum.bgu.msm.longDistance.data.trips;
 
 public enum TypeGermany implements Type {
 
-    AWAY, DAYTRIP, INOUT;
+    AWAY, DAYTRIP, OVERNIGHT;
 
 //    public static final List<String> tripStates = Arrays.asList("away", "daytrip", "inout");
 
@@ -30,7 +30,7 @@ public enum TypeGermany implements Type {
                 return 0;
             case DAYTRIP:
                 return 1;
-            case INOUT:
+            case OVERNIGHT:
                 return 2;
             default:
                 throw new RuntimeException("Type not defined");

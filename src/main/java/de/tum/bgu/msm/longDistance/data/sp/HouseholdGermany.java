@@ -23,22 +23,18 @@ public class HouseholdGermany implements Household {
     private int id;
     private int hhSize;
     private int hhInc;
-    private int ddType;
-    private int numWrks;
-    private int numKids;
     private int taz;
     private ZoneGermany zone;
     private PersonGermany[] persons;
+    private EconomicStatus hhEconomicStatus;
+    private int hhAutos;
 
 
-    public HouseholdGermany(int id, int hhInc, int ddType, int taz, ZoneGermany zone) {
+    public HouseholdGermany(int id, int taz, int hhAutos, ZoneGermany zone) {
         this.id      = id;
+        this.hhAutos = hhAutos;
         this.hhSize  = 0;
-        this.hhInc   = hhInc;
-        this.ddType  = ddType;
-//        this.numWrks = numWrks;
-//        this.numKids = numKids;
-//        persons = new Person[hhSize];
+        this.hhInc   = 0;
         this.taz = taz;
         this.zone = zone;
         this.persons = new PersonGermany[0];
@@ -77,5 +73,49 @@ public class HouseholdGermany implements Household {
 
     public PersonGermany[] getPersonsOfThisHousehold() {
         return persons;
+    }
+
+    public EconomicStatus getEconomicStatus() {
+        return hhEconomicStatus;
+    }
+
+    public void setEconomicStatus(EconomicStatus hhEconomicStatus) {
+        this.hhEconomicStatus = hhEconomicStatus;
+    }
+
+    public int getHhAutos() {
+        return hhAutos;
+    }
+
+    public void setHhAutos(int hhAutos) {
+        this.hhAutos = hhAutos;
+    }
+
+    public int getMonthlyIncome_EUR() {
+        return hhInc;
+    }
+
+    public void addIncome(int inc) {
+        hhInc += inc;
+    }
+
+    public int getAdultsEconomicStatusHh() {
+        int adultsHh = 0;
+        for (PersonGermany p : persons) {
+            if (p.getAge() > 14) {
+                adultsHh++;
+            }
+        }
+        return adultsHh;
+    }
+
+    public int getChildrenEconomicStatusHh() {
+        int childrenHh = 0;
+        for (PersonGermany p : persons) {
+            if (p.getAge() <= 14) {
+                childrenHh++;
+            }
+        }
+        return childrenHh;
     }
 }

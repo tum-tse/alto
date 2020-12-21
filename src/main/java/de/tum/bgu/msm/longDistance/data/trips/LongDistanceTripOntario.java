@@ -9,6 +9,7 @@ import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Created by Carlos Llorca  on 7/5/2016.
@@ -72,14 +73,6 @@ public class LongDistanceTripOntario implements LongDistanceTrip {
         return international;
     }
 
-    public Type getTripState() {
-        return tripState;
-    }
-
-    public Purpose getTripPurpose() {
-        return tripPurpose;
-    }
-
     public int getNights() {
         return nights;
     }
@@ -104,9 +97,26 @@ public class LongDistanceTripOntario implements LongDistanceTrip {
         this.travelMode = travelMode;
     }
 
+    @Override
     public Mode getMode() {
         return travelMode;
     }
+
+    @Override
+    public Type getTripState() {
+        return tripState;
+    }
+
+    @Override
+    public Purpose getTripPurpose() {
+        return tripPurpose;
+    }
+
+    @Override
+    public Map<Pollutant, Float> getEmissions() {
+        return null;
+    }
+
 
     public ZoneTypeOntario getDestZoneType() {
         return destZoneType;

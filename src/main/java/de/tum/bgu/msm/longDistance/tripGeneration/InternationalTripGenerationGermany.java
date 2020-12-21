@@ -2,27 +2,31 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
-import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.LDModelOntario;
-import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.LDModelOntario;
+import de.tum.bgu.msm.longDistance.data.DataSet;
+import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.data.sp.PersonOntario;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.destinationChoice.IntOutboundDestinationChoice;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.log4j.Logger;
 
 
 /**
- * Created by Carlos on 7/19/2016.
- * Based on number of trips and increased later with travel parties.
+ * Germany Model
+ * Module to simulate long-distance travel
+ * Author: Ana Moreno, Technische Universität München (TUM), ana.moreno@tum.de
+ * Date: 17 December 2020
+ * Version 1
+ * Adapted from Ontario Provincial Model
  */
-public class InternationalTripGeneration {
+public class InternationalTripGenerationGermany {
 
-    private static Logger logger = Logger.getLogger(InternationalTripGeneration.class);
+    private static Logger logger = Logger.getLogger(InternationalTripGenerationGermany.class);
     private final JSONObject prop;
     private Map<Purpose, Map<Type, Double>> sumProbabilities;
     private Map<Purpose, Map<Type, Map<Integer, Double>>> probabilityMatrix;
@@ -37,7 +41,7 @@ public class InternationalTripGeneration {
     private AtomicInteger atomicInteger;
 
 
-    public InternationalTripGeneration(JSONObject prop, String inputFolder, String outputFolder) {
+    public InternationalTripGenerationGermany(JSONObject prop, String inputFolder, String outputFolder) {
 //        this.synPop = synPop;
 //        this.rb = rb;
         this.prop = prop;

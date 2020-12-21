@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.data.zoneSystem;
 
 
+import java.awt.geom.Area;
 
 /**
  *
@@ -20,19 +21,24 @@ public class ZoneGermany implements Zone {
     private int households = 0;
     private ZoneTypeGermany zoneType;
     private double accessibility;
-    private int combinedZoneId;
     private long staticAttraction;
     private int closestAirport = 0;
     private int closestHub = 0;
     private int closestMainAirport = 0;
+    private int area;
+    private int distanceToTransit;
+    private AreaTypeGermany areatype;
+    private int hotels = 0;
 
-
-    public ZoneGermany(int id, int population, int employment, ZoneTypeGermany zoneType, int combinedZoneId) {
+    public ZoneGermany(int id, int population, int employment, ZoneTypeGermany zoneType, int area,
+                       AreaTypeGermany areaType, int distanceToTransit) {
         this.id = id;
         this.population = population;
         this.employment = employment;
         this.zoneType = zoneType;
-        this.combinedZoneId = combinedZoneId;
+        this.area = area;
+        this.areatype = areaType;
+        this.distanceToTransit = distanceToTransit;
     }
 
     @Override
@@ -81,10 +87,6 @@ public class ZoneGermany implements Zone {
         this.accessibility = accessibility;
     }
 
-    public int getCombinedZoneId() {
-        return combinedZoneId;
-    }
-
     public long getStaticAttraction() {
         return staticAttraction;
     }
@@ -115,6 +117,26 @@ public class ZoneGermany implements Zone {
 
     public void setClosestMainAirportId(int closestMainAirport) {
         this.closestMainAirport = closestMainAirport;
+    }
+
+    public int getArea() {
+        return area;
+    }
+
+    public int getDistanceToTransit() {
+        return distanceToTransit;
+    }
+
+    public AreaTypeGermany getAreatype() {
+        return areatype;
+    }
+
+    public int getHotels() {
+        return hotels;
+    }
+
+    public void setHotels(int hotels) {
+        this.hotels = hotels;
     }
 }
 

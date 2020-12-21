@@ -5,7 +5,8 @@ import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.*;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -23,11 +24,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     private boolean international;
     private Purpose tripPurpose;
     private Type tripState;
-    private int nights;
-    private ArrayList<Person> hhTravelParty;
-    private int nonHhTravelPartySize;
     private ZoneGermany origZone;
-    private int destCombinedZoneId = -1;
     private ZoneTypeGermany destZoneType;
     private Zone destZone;
     private Mode travelMode;
@@ -37,22 +34,16 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     private int departureTimeInHours = -999;
     private int departureTimeInHoursSecondSegment = -999; //this is the return trip of daytrips
     private boolean returnOvernightTrip = false;
+    private Map<Pollutant, Float> emissions = new HashMap<>();
 
 
-    public void setHhTravelParty(ArrayList<Person> hhTravelParty) {
-        this.hhTravelParty = hhTravelParty;
-    }
-
-    public LongDistanceTripGermany(int tripId, PersonGermany traveller, boolean international, Purpose tripPurpose, Type tripState, ZoneGermany origZone, int nights, int nonHhTravelPartySize ) {
+    public LongDistanceTripGermany(int tripId, PersonGermany traveller, boolean international, Purpose tripPurpose, Type tripState, ZoneGermany origZone ) {
         this.tripId = tripId;
         this.traveller = traveller;
         this.international = international;
         this.tripPurpose = tripPurpose;
         this.tripState = tripState;
         this.origZone = origZone;
-        this.nights = nights;
-        this.hhTravelParty = new ArrayList<>();
-        this.nonHhTravelPartySize = nonHhTravelPartySize;
     }
 
     public int getTripId() {
@@ -71,40 +62,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         return international;
     }
 
-    public Type getTripState() {
-        return tripState;
-    }
-
-    public Purpose getTripPurpose() {
-        return tripPurpose;
-    }
-
-    public int getNights() {
-        return nights;
-    }
-
     public int getAdultsHhTravelPartySize() { return 0; }
 
     public int getKidsHhTravelPartySize() { return 0; }
 
-    public int getNonHhTravelPartySize() {
-        return nonHhTravelPartySize;
-    }
-
     public ZoneGermany getOrigZone() { return origZone; }
-
-    public int getDestCombinedZoneId() { return destCombinedZoneId; }
-
-    public void setCombinedDestZoneId(int destinationZoneId) {
-        this.destCombinedZoneId = destinationZoneId;
-    }
 
     public void setMode(Mode travelMode) {
         this.travelMode = travelMode;
-    }
-
-    public Mode getMode() {
-        return travelMode;
     }
 
     public ZoneTypeGermany getDestZoneType() {
@@ -193,14 +158,10 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.tripPurpose.toString()
                     + "," + tr.tripState.toString()
                     + "," + tr.getOrigZone().getId()
-                    + "," + tr.getOrigZone().getCombinedZoneId()
                     + "," + tr.getOrigZone().getZoneType()
-                    + "," + tr.getDestCombinedZoneId()
                     + "," + tr.getMode()
-                    + "," + tr.getNights()
                     + "," + tr.getAdultsHhTravelPartySize()
                     + "," + tr.getKidsHhTravelPartySize()
-                    + "," + tr.getNonHhTravelPartySize()
                     + "," + tr.getDestZoneType()
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getTravelDistanceLevel2()
@@ -224,14 +185,10 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.tripPurpose.toString()
                     + "," + tr.tripState.toString()
                     + "," + tr.getOrigZone().getId()
-                    + "," + tr.getOrigZone().getCombinedZoneId()
                     + "," + tr.getOrigZone().getZoneType()
-                    + "," + tr.getDestCombinedZoneId()
                     + "," + tr.getMode()
-                    + "," + tr.getNights()
                     + "," + tr.getAdultsHhTravelPartySize()
                     + "," + tr.getKidsHhTravelPartySize()
-                    + "," + tr.getNonHhTravelPartySize()
                     + "," + tr.getDestZoneType()
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getTravelDistanceLevel2()
@@ -247,4 +204,27 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         return str;
     }
 
+    @Override
+    public Mode getMode() {
+        return travelMode;
+    }
+
+    @Override
+    public Type getTripState() {
+        return tripState;
+    }
+
+    @Override
+    public Purpose getTripPurpose() {
+        return tripPurpose;
+    }
+
+    @Override
+    public Map<Pollutant, Float> getEmissions() {
+        return emissions;
+    }
+
+    public void setEmissions(Map<Pollutant, Float>  emissions) {
+        this.emissions = emissions;
+    }
 }

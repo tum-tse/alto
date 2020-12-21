@@ -5,6 +5,7 @@ import de.tum.bgu.msm.longDistance.data.trips.Purpose;
 import de.tum.bgu.msm.longDistance.data.trips.Type;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  *
@@ -22,10 +23,7 @@ public class PersonGermany implements Person {
 
     private int id;
     private int age;
-    private char gender;
-    private int education;
-    private int workStatus;
-    private int occupation;
+    private Gender gender;
 
     private HouseholdGermany hh;
 
@@ -41,44 +39,30 @@ public class PersonGermany implements Person {
     private boolean isYoung;
     private boolean isRetired;
     private boolean isFemale;
-    private boolean isHighSchool;
-    private boolean isPostSecondary;
-    private boolean isUniversity;
+    private boolean isStudent;
     private boolean isEmployed;
-    private boolean isIncome2 = false;
-    private boolean isIncome3 = false;
-    private boolean isIncome4 = false;
+    private boolean isEconomicStatusLow = false;
+    private boolean isEconomicStatusMedium = false;
+    private boolean isEconomicStatusHigh = false;
+    private boolean isEconomicStatusVeryHigh = false;
+    private boolean driversLicense;
+    private int workplace;
 
 
-    public PersonGermany(int id, int hhId, int age, char gender, int occupation, int education, int workStatus, HouseholdGermany hh) {
+    public PersonGermany(int id, int hhId, int age, Gender gender, OccupationStatus occupation, int workplace, boolean driversLicense, HouseholdGermany hh) {
         this.id = id;
         this.age = age;
         this.gender = gender;
-        this.occupation = occupation;
-        this.education = education;
-        this.workStatus = workStatus;
+        this.workplace = workplace;
+        this.driversLicense = driversLicense;
         this.hh = hh;
         if (hh != null) hh.addPersonForInitialSetup(this);
 
         this.isYoung  = age < 25 ? true : false;
         this.isRetired = age > 64 ? true : false;
-        this.isFemale = gender == 'F' ? true : false;
-        this.isHighSchool = education == 2 ? true : false;
-        this.isPostSecondary = education > 2 && education < 6 ? true : false;
-        this.isUniversity = education > 5 ? true : false;
-        this.isEmployed = workStatus < 3? true : false;
-
-        if (hh.getHhInc() >= 100000) {
-            //is in income group 4
-            isIncome4= true;
-        } else if (hh.getHhInc() >= 70000) {
-            //is in income gorup 3
-            isIncome3 = true;
-        } else if (hh.getHhInc() >= 50000) {
-            //is in income group 2
-            isIncome2 = true;
-        }
-
+        this.isFemale = gender == Gender.FEMALE ? true : false;
+        this.isEmployed = occupation == OccupationStatus.WORKER? true : false;
+        this.isStudent = occupation ==  OccupationStatus.STUDENT ? true : false;
     }
 
 
@@ -86,7 +70,7 @@ public class PersonGermany implements Person {
     @Override
     public int getPersonId() {return id;}
 
-    public char getGender() {
+    public Gender getGender() {
         return gender;}
 
     public int getAge() {return age;}
@@ -106,10 +90,6 @@ public class PersonGermany implements Person {
     public int getKidsHh() {
         return hh.getHhSize()- getAdultsHh();
     }
-
-    public int getEducation() {return education;}
-
-    public int getWorkStatus() {return workStatus;}
 
     public HouseholdGermany getHousehold() {return hh;}
 
@@ -157,31 +137,20 @@ public class PersonGermany implements Person {
         return isFemale;
     }
 
-    public boolean isHighSchool() {
-        return isHighSchool;
-    }
-
-    public boolean isPostSecondary() {
-        return isPostSecondary;
-    }
-
-    public boolean isUniversity() {
-        return isUniversity;
-    }
-
-    public boolean isIncome2() {
-        return isIncome2;
-    }
-
-    public boolean isIncome3() {
-        return isIncome3;
-    }
-
-    public boolean isIncome4() {
-        return isIncome4;
-    }
-
     public boolean isEmployed() {
         return isEmployed;
     }
+
+    public boolean isDriversLicense() {
+        return driversLicense;
+    }
+
+    public boolean isStudent() {
+        return isStudent;
+    }
+
+    public int getPersonWorkplace() {
+        return workplace;
+    }
+
 }

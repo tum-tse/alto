@@ -2,20 +2,19 @@ package de.tum.bgu.msm.longDistance.timeOfDay;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
-import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.LDModelOntario;
+import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
-
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.log4j.Logger;
 
-public class TimeOfDayChoiceOntario implements TimeOfDayChoice {
+public class TimeOfDayChoiceGermany implements TimeOfDayChoice {
 
-    private static Logger logger = Logger.getLogger(TimeOfDayChoiceOntario.class);
+    private static Logger logger = Logger.getLogger(TimeOfDayChoiceGermany.class);
     private int[] departureTimesInHours; //float to use fractions of hour if needed
     private double[] correctionFactorDayTripOutbound;
     private double[] correctionFactorDayTripInbound;
@@ -50,9 +49,10 @@ public class TimeOfDayChoiceOntario implements TimeOfDayChoice {
         ArrayList<LongDistanceTrip> trips = dataSet.getAllTrips();
         logger.info("Running time-of-day choice for " + trips.size() + " trips");
 
-        trips.parallelStream().forEach(trip -> {
+        trips.parallelStream().forEach(tripFromArray -> {
             int departureTime;
-            if (trip.getTripState().equals(TypeOntario.AWAY)){
+            LongDistanceTripGermany trip = (LongDistanceTripGermany) tripFromArray;
+            if (trip.getTripState().equals(TypeGermany.AWAY)){
                 //away
             } else {
                 calculateDepartureTime(trip, convertMode(trip), convertPurpose(trip));
@@ -63,7 +63,7 @@ public class TimeOfDayChoiceOntario implements TimeOfDayChoice {
 
     private void calculateDepartureTime(LongDistanceTrip tripToCast, String mode, String purpose) {
 
-        LongDistanceTripOntario trip = (LongDistanceTripOntario) tripToCast;
+        LongDistanceTripGermany trip = (LongDistanceTripGermany) tripToCast;
         if( trip.getTripState().equals(TypeOntario.AWAY)){
             //daytrip
             trip.setDepartureTimeInHours(Util.select(multiply(probabilities.get("departure." + mode + "." + purpose),correctionFactorDayTripOutbound), departureTimesInHours));
