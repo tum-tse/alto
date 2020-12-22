@@ -41,6 +41,10 @@ public class SkimsReaderGermany implements SkimsReader {
 
     private String[] autoFileMatrixLookup;
     private String[] distanceFileMatrixLookup;
+    private Map<Mode, String> travelTimeFileNames = new HashMap<>();
+    private Map<Mode, String> distanceFileNames = new HashMap<>();
+    private String lookUpName;
+    private String matrixName;
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
@@ -54,6 +58,15 @@ public class SkimsReaderGermany implements SkimsReader {
         distanceFileMatrixLookup = new String[]{inputFolder +  JsonUtilMto.getStringProp(prop, "zone_system.skim.distance.file"),
                 JsonUtilMto.getStringProp(prop, "zone_system.skim.distance.matrix"),
                 JsonUtilMto.getStringProp(prop, "zone_system.skim.distance.lookup")};
+
+        for (Mode m : ModeGermany.values()) {
+            String travelTimeFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m);
+            String distanceFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.distance_file_" + m);
+            travelTimeFileNames.put(m, travelTimeFileName);
+            distanceFileNames.put(m, distanceFileName);
+        }
+        lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
+        matrixName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName");
 
     }
 
@@ -71,17 +84,10 @@ public class SkimsReaderGermany implements SkimsReader {
 
     public void readSkims() {
         Matrix autoTravelTime = convertSkimToMatrix(autoFileMatrixLookup);
-        //dataSet.setAutoTravelTime(autoTravelTime);
-        dataSet.setAutoTravelTime(assignIntrazonalTravelTimes(autoTravelTime, ModeGermany.AUTO));
-
-        //convertMatrixToSkim(autoFileMatrixLookup, autoTravelTime);
+        dataSet.setAutoTravelTime(autoTravelTime);
 
         Matrix autoTravelDistance = convertSkimToMatrix(distanceFileMatrixLookup);
-        //dataSet.setAutoTravelDistance(autoTravelDistance);
-        dataSet.setAutoTravelDistance(assignIntrazonalDistances(autoTravelDistance, ModeGermany.AUTO));
-
-        //convertMatrixToSkim(distanceFileMatrixLookup, autoTravelDistance);
-
+        dataSet.setAutoTravelDistance(autoTravelDistance);
     }
 
     private Matrix convertSkimToMatrix(String[] fileMatrixLookupName) {
@@ -148,6 +154,44 @@ public class SkimsReaderGermany implements SkimsReader {
     }
 
 
+    private void readSkimByMode(DataSet dataSet, JSONObject prop, String inputFolder) {
+
+        Map<Mode, Matrix> travelTimeMatrix = new HashMap<>();
+        Map<Mode, Matrix> distanceMatrix = new HashMap<>();
+
+
+        // read skim file
+        for (Mode m : ModeGermany.values()) {
+
+            String travelTimeFileName = travelTimeFileNames.get(m);
+            String distanceFileName = distanceFileNames.get(m);
+
+            OmxFile skim = new OmxFile(travelTimeFileName);
+            skim.openReadOnly();
+            OmxMatrix omxMatrix = skim.getMatrix(matrixName);
+            Matrix travelTime = Util.convertOmxToMatrix(omxMatrix);
+            OmxLookup omxLookUp = skim.getLookup(lookUpName);
+            int[] externalNumbers = (int[]) omxLookUp.getLookup();
+            travelTime.setExternalNumbersZeroBased(externalNumbers);
+            travelTimeMatrix.put(m, travelTime);
+
+            OmxFile skimDistance = new OmxFile(distanceFileName);
+            skimDistance.openReadOnly();
+            OmxMatrix omxMatrixDistance = skim.getMatrix(matrixName);
+            Matrix distance = Util.convertOmxToMatrix(omxMatrixDistance);
+            OmxLookup omxLookUpDistance = skim.getLookup(lookUpName);
+            int[] externalNumbersDistance = (int[]) omxLookUpDistance.getLookup();
+            distance.setExternalNumbersZeroBased(externalNumbersDistance);
+            distanceMatrix.put(m, distance);
+
+            logger.info("Finished reading " + m + " skims.");
+        }
+
+        dataSet.setTravelTimeMatrix(travelTimeMatrix);
+        dataSet.setDistanceMatrix(distanceMatrix);
+
+    }
+
     private Matrix assignIntrazonalTravelTimes(Matrix matrix, Mode mode) {
 
         if (!ModeGermany.AIR.equals(mode)) {
@@ -166,55 +210,6 @@ public class SkimsReaderGermany implements SkimsReader {
         }
         logger.info("Calculated intrazonal values - nearest neighbour");
         return matrix;
-    }
-
-
-    private void readSkimByMode(DataSet dataSet, JSONObject prop, String inputFolder) {
-
-        Map<Mode, Matrix> travelTimeMatrix = new HashMap<>();
-        Map<Mode, Matrix> distanceMatrix = new HashMap<>();
-
-
-        // read skim file
-        for (Mode m : ModeGermany.values()) {
-
-            String travelTimeFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m);
-            String distanceFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.distance_file_" + m);
-            String lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
-            String matrixName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName");
-
-            OmxFile skim = new OmxFile(travelTimeFileName);
-            skim.openReadOnly();
-            OmxMatrix omxMatrix = skim.getMatrix(matrixName);
-            Matrix travelTime = Util.convertOmxToMatrix(omxMatrix);
-            OmxLookup omxLookUp = skim.getLookup(lookUpName);
-            int[] externalNumbers = (int[]) omxLookUp.getLookup();
-            travelTime.setExternalNumbersZeroBased(externalNumbers);
-            assignIntrazonalTravelTimes(travelTime, m);
-            travelTimeMatrix.put(m, travelTime);
-
-            float scaler = 1;
-            if (m.equals(ModeGermany.BUS)) {
-                scaler = 70 / 3.6f; //convert time to distance using an average speed of 70 km/h - in m/s
-            } else if (m.equals(ModeGermany.RAIL)) {
-                scaler = 100 / 3.6f; //convert time to distance using an average speed of 100 km/h - in m/s
-            }
-            OmxFile skimDistance = new OmxFile(distanceFileName);
-            skimDistance.openReadOnly();
-            OmxMatrix omxMatrixDistance = skim.getMatrix(matrixName);
-            Matrix distance = Util.convertOmxToMatrix(omxMatrixDistance, scaler);
-            OmxLookup omxLookUpDistance = skim.getLookup(lookUpName);
-            int[] externalNumbersDistance = (int[]) omxLookUpDistance.getLookup();
-            distance.setExternalNumbersZeroBased(externalNumbersDistance);
-            assignIntrazonalDistances(distance, m);
-            distanceMatrix.put(m, distance);
-
-            logger.info("Finished reading " + m + " skims.");
-        }
-
-        dataSet.setTravelTimeMatrix(travelTimeMatrix);
-        dataSet.setDistanceMatrix(distanceMatrix);
-
     }
 
 
