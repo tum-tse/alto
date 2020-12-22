@@ -177,9 +177,9 @@ public class SkimsReaderGermany implements SkimsReader {
 
             OmxFile skimDistance = new OmxFile(distanceFileName);
             skimDistance.openReadOnly();
-            OmxMatrix omxMatrixDistance = skim.getMatrix(matrixName);
+            OmxMatrix omxMatrixDistance = skimDistance.getMatrix(matrixName);
             Matrix distance = Util.convertOmxToMatrix(omxMatrixDistance);
-            OmxLookup omxLookUpDistance = skim.getLookup(lookUpName);
+            OmxLookup omxLookUpDistance = skimDistance.getLookup(lookUpName);
             int[] externalNumbersDistance = (int[]) omxLookUpDistance.getLookup();
             distance.setExternalNumbersZeroBased(externalNumbersDistance);
             distanceMatrix.put(m, distance);

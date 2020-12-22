@@ -30,6 +30,7 @@ public class HouseholdGermany implements Household {
     private int hhAutos;
 
 
+
     public HouseholdGermany(int id, int taz, int hhAutos, ZoneGermany zone) {
         this.id      = id;
         this.hhAutos = hhAutos;

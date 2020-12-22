@@ -41,19 +41,16 @@ public class PersonGermany implements Person {
     private boolean isFemale;
     private boolean isStudent;
     private boolean isEmployed;
-    private boolean isEconomicStatusLow = false;
-    private boolean isEconomicStatusMedium = false;
-    private boolean isEconomicStatusHigh = false;
-    private boolean isEconomicStatusVeryHigh = false;
     private boolean driversLicense;
-    private int workplace;
+    private boolean isBetween18and39;
+    private boolean isBetween40and59;
+    private boolean isOver60;
 
 
-    public PersonGermany(int id, int hhId, int age, Gender gender, OccupationStatus occupation, int workplace, boolean driversLicense, HouseholdGermany hh) {
+    public PersonGermany(int id, int hhId, int age, Gender gender, OccupationStatus occupation, boolean driversLicense, HouseholdGermany hh) {
         this.id = id;
         this.age = age;
         this.gender = gender;
-        this.workplace = workplace;
         this.driversLicense = driversLicense;
         this.hh = hh;
         if (hh != null) hh.addPersonForInitialSetup(this);
@@ -63,6 +60,9 @@ public class PersonGermany implements Person {
         this.isFemale = gender == Gender.FEMALE ? true : false;
         this.isEmployed = occupation == OccupationStatus.WORKER? true : false;
         this.isStudent = occupation ==  OccupationStatus.STUDENT ? true : false;
+        this.isBetween18and39 = age < 40 && age > 17 ? true : false;
+        this.isBetween40and59 = age < 60 && age > 39 ? true : false;
+        this.isOver60 = age > 59 ? true : false;
     }
 
 
@@ -149,8 +149,15 @@ public class PersonGermany implements Person {
         return isStudent;
     }
 
-    public int getPersonWorkplace() {
-        return workplace;
+    public boolean isBetween18and39() {
+        return isBetween18and39;
     }
 
+    public boolean isBetween40and59() {
+        return isBetween40and59;
+    }
+
+    public boolean isOver60() {
+        return isOver60;
+    }
 }

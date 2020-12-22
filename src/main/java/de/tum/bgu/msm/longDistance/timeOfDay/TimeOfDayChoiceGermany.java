@@ -75,7 +75,7 @@ public class TimeOfDayChoiceGermany implements TimeOfDayChoice {
                 trip.setDepartureTimeInHours(Util.select(probabilities.get("departure." + mode + "." + purpose), departureTimesInHours));
                 trip.setReturnOvernightTrip(false);
             } else {
-                int arrivalTime = Util.select(probabilities.get("arrival." + mode + "." + purpose), departureTimesInHours) - Math.round(trip.getTravelTimeLevel2())/60;
+                int arrivalTime = Util.select(probabilities.get("arrival." + mode + "." + purpose), departureTimesInHours) - Math.round(trip.getTravelTime())/60;
                 trip.setDepartureTimeInHours(arrivalTime);
                 trip.setReturnOvernightTrip(true);
             }

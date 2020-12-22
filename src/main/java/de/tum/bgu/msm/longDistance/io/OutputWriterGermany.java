@@ -4,6 +4,7 @@ import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import org.json.simple.JSONObject;
 
@@ -42,7 +43,7 @@ public class OutputWriterGermany implements OutputWriter {
     @Override
     public void run(DataSet dataSet, int nThreads) {
         PrintWriter pw = Util.openFileForSequentialWriting(outputFile, false);
-        pw.println(LongDistanceTripOntario.getHeader());
+        pw.println(LongDistanceTripGermany.getHeader());
         for (LongDistanceTrip tr : dataSet.getAllTrips()) {
             pw.println(tr.toString());
         }

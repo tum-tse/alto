@@ -1,20 +1,17 @@
 package de.tum.bgu.msm.longDistance.destinationChoice;
 
-import de.tum.bgu.msm.Util;
+import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
-import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
+import de.tum.bgu.msm.longDistance.data.trips.ModeGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
-import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.IntModeChoice;
+
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,6 +23,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
 
     private DomesticDestinationChoiceGermany dcModel;
     private Map<Integer, Zone> zonesMap;
+    private Matrix distanceByAuto;
 
     public DestinationChoiceGermany() {
     }
@@ -43,6 +41,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
         //load submodels
         dcModel.load(dataSet);
         zonesMap = dataSet.getZones();
+        distanceByAuto = dataSet.getDistanceMatrix().get(ModeGermany.AUTO);
         //TODO. code the international destination choice model
         // replace the commented the lines for inbound and outbound models by the new model
 
@@ -59,14 +58,13 @@ public class DestinationChoiceGermany implements DestinationChoice {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
         //AtomicInteger counter = new AtomicInteger(0);
 
-        trips.parallelStream().forEach(tripToCast -> {
-            LongDistanceTripGermany t = (LongDistanceTripGermany) tripToCast;
-            if (!t.isInternational()) {
+        trips.parallelStream().forEach(t -> {
+            if (! ((LongDistanceTripGermany)t).isInternational()) {
                 int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
-                t.setDestZoneType(ZoneTypeGermany.GERMANY);
-                t.setDestZone(zonesMap.get(destZoneId));
-                //TODO: Set destination
-                //t.setDestZone();
+                ((LongDistanceTripGermany)t).setDestZoneType(ZoneTypeGermany.GERMANY);
+                ((LongDistanceTripGermany)t).setDestZone(zonesMap.get(destZoneId));
+                float distance = distanceByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
+                ((LongDistanceTripGermany)t).setTravelDistance(distance);
             } else {
                 //TODO. Replace by the international destination choice model
 /*                if (t.getOrigZone().getZoneType() == ZoneTypeOntario.ONTARIO || t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTCANADA) {

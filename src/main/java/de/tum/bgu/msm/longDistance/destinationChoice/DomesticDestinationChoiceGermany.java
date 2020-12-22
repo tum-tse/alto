@@ -5,13 +5,9 @@ import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LDModelGermany;
-import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
-import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -29,7 +25,8 @@ import java.util.*;
 public class DomesticDestinationChoiceGermany implements DestinationChoiceModule {
     private ResourceBundle rb;
     private static Logger logger = Logger.getLogger(DomesticDestinationChoiceGermany.class);
-    public static int choice_set_size = 117;
+    public static int choice_set_size;
+    public static int longDistanceThreshold;
     private TableDataSet coefficients;
     protected Matrix autoDist;
     private boolean calibration;
@@ -43,6 +40,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         coefficients.buildStringIndex(1);
 
         choice_set_size = JsonUtilMto.getIntProp(prop, "destination_choice.choice_set_size");
+        longDistanceThreshold = JsonUtilMto.getIntProp(prop, "threshold_long_distance");
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
         this.domDcCalibrationV = new HashMap<>();
@@ -53,7 +51,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
 
     public void load(DataSet dataSet) {
 
-        autoDist = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO);
+        autoDist = dataSet.getDistanceMatrix().get(ModeGermany.AUTO);
         destinations = dataSet.getZones().keySet().stream().mapToInt(Integer::intValue).toArray();
         this.dataSet = dataSet;
         logger.info("Domestic DC loaded");
@@ -72,7 +70,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
 
 
         Purpose tripPurpose = trip.getTripPurpose();
-        int[] alternatives = selectRandomDestinations(choice_set_size, trip.getOrigZone().getId());
+        int[] alternatives = selectRandomDestinations(trip.getOrigZone().getId());
         double[] expUtilities = Arrays.stream(alternatives)
                 //calculate exp(Ui) for each destination
                 .mapToDouble(a -> Math.exp(calculateUtility(trip, tripPurpose, a))).toArray();
@@ -88,13 +86,13 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
 
     }
 
-    private int[] selectRandomDestinations(int choice_set_size, int origin) {
+    private int[] selectRandomDestinations(int origin) {
         int[] alternatives = new int[choice_set_size];
         int chosen = 0;
         while(chosen < choice_set_size){
             int r = (int) (destinations.length * LDModelGermany.rand.nextFloat());
             int destination = destinations[r];
-            if (autoDist.getValueAt(origin, destination) > 40){
+            if (autoDist.getValueAt(origin, destination) > longDistanceThreshold * 1000 ){
                 alternatives[chosen] = destination;
                 chosen++;
             }

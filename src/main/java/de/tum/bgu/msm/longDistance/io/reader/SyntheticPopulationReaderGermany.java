@@ -36,6 +36,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
     private DataSet dataSet;
     private String hhFilename;
     private String ppFilename;
+    private String jjFilename;
     private String travellersFilename;
     private double scaleFactor;
 
@@ -50,6 +51,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
         this.prop = prop;
         hhFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.households_file");
         ppFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.persons_file");
+        jjFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.jobs_file");
         travellersFilename = outputFolder +  JsonUtilMto.getStringProp(prop, "output.travellers_file");
         scaleFactor =  JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
 
@@ -63,6 +65,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
         this.zoneLookup = dataSet.getZones();
         readSyntheticPopulation();
         populateZones();
+        addEmploymentToZones();
         logger.info("Synthetic population loaded");
     }
 
@@ -76,7 +79,6 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             zone.addHouseholds(1);
             zone.addPopulation(((HouseholdGermany) hh).getHhSize());
         }
-
     }
 
 
@@ -85,9 +87,6 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
         Map<Integer, Household> households = readSyntheticHouseholds();
         dataSet.setHouseholds(households);
         dataSet.setPersons(readSyntheticPersons(households));
-        //estimateEconomicStatus(households);
-
-
     }
 
 
@@ -159,7 +158,6 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             int posOccupation = Util.findPositionInArray("occupation", header);
             int posIncome = Util.findPositionInArray("income", header);
             int posLicense = Util.findPositionInArray("driversLicense", header);
-            int posWorkplaceId = Util.findPositionInArray("workplace", header);
 
             // read line
             while ((recString = in.readLine()) != null) {
@@ -172,15 +170,10 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
                 OccupationStatus occupation = OccupationStatus.valueOf(Integer.parseInt(lineElements[posOccupation]));
                 HouseholdGermany hh = (HouseholdGermany) householdMap.get(hhId);
                 int income = Integer.parseInt(lineElements[posIncome]);
-                hh.addIncome(income / 12);
-                String workplaceStr = lineElements[posWorkplaceId];
-                int workplace = -1;
-                if (!workplaceStr.equals("NA")){
-                    workplace = Integer.parseInt(lineElements[posWorkplaceId]);
-                }
+                hh.addIncome(income);
                 boolean license = Boolean.parseBoolean(lineElements[posLicense]);
                 if (hh != null) {
-                    Person pp = new PersonGermany(id, hhId, age, gender, occupation, workplace, license, hh);  // this automatically puts it in id->household map in Household class
+                    Person pp = new PersonGermany(id, hhId, age, gender, occupation, license, hh);  // this automatically puts it in id->household map in Household class
                     personMap.put(id, pp);
                 } else {
                     if (logUnmatchedHh) {
@@ -216,6 +209,40 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             }
         }
         pw2.close();
+    }
+
+    private void addEmploymentToZones() {
+
+
+
+        String recString = "";
+        int recCount = 0;
+        try (BufferedReader in = new BufferedReader(new FileReader(jjFilename))) {
+            recString = in.readLine();
+
+            // read header
+            String[] header = recString.split(",");
+            // Remove quotation marks if they are available in the header columns (after splitting by commas)
+            for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
+
+            int posTaz = Util.findPositionInArray("zone", header); /*is the new sp*/
+
+            // read line
+            while ((recString = in.readLine()) != null) {
+                recCount++;
+                String[] lineElements = recString.split(",");
+                int taz = Integer.parseInt(lineElements[posTaz]);
+                ZoneGermany zone = (ZoneGermany) zoneLookup.get(taz);
+                int jobs = zone.getEmployment() + 1;
+                zone.setEmployment(jobs);
+
+            }
+        } catch (IOException e) {
+            logger.fatal("IO Exception caught reading synpop household file: " + hhFilename);
+            logger.fatal("recCount = " + recCount + ", recString = <" + recString + ">");
+        }
+        logger.info("  Finished reading " + recCount + " jobs.");
+
     }
 
 }

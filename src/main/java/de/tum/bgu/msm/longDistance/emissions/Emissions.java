@@ -54,7 +54,7 @@ public class Emissions implements ModelComponent {
         for (Pollutant pollutant : Pollutant.values()){
             String columnModePollutant = mode.toString() + "." + pollutant.toString();
             float emissionPollutant = (float) (coefficients.getStringIndexedValueAt("alpha", columnModePollutant) *
-                        Math.pow(t.getTravelDistanceLevel1(),coefficients.getStringIndexedValueAt("beta", columnModePollutant)));
+                        Math.pow(t.getTravelDistance(),coefficients.getStringIndexedValueAt("beta", columnModePollutant)));
             emissions.put(pollutant, emissionPollutant);
         }
         t.setEmissions(emissions);

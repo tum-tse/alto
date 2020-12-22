@@ -56,9 +56,7 @@ public class RunModelGermany {
         logger.info("Started runLongDistModel for the year " + JsonUtilMto.getIntProp(prop, "year"));
         DataSet dataSet = new DataSet();
         String inputFolder =  JsonUtilMto.getStringProp(prop, "work_folder");
-        String outputFolder = JsonUtilMto.getStringProp(prop, "work_folder");
-
-
+        String outputFolder = inputFolder +  JsonUtilMto.getStringProp(prop, "scenario") + "/";
 
         LDModelGermany ldModelGermany = new LDModelGermany(new ZoneReaderGermany(), new SkimsReaderGermany(),
                 new SyntheticPopulationReaderGermany(),new EconomicStatusReader(),

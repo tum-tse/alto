@@ -28,9 +28,8 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     private ZoneTypeGermany destZoneType;
     private Zone destZone;
     private Mode travelMode;
-    private float travelDistanceLevel2 = -1;
-    private float travelTimeLevel2 = -1;
-    private float travelDistanceLevel1 = -1;
+    private float travelDistance = -1;
+    private float travelTime = -1;
     private int departureTimeInHours = -999;
     private int departureTimeInHoursSecondSegment = -999; //this is the return trip of daytrips
     private boolean returnOvernightTrip = false;
@@ -88,20 +87,12 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         this.destZone = destZone;
     }
 
-    public float getTravelDistanceLevel2() {
-        return travelDistanceLevel2;
+    public float getTravelDistance() {
+        return travelDistance;
     }
 
-    public void setTravelDistanceLevel2(float travelDistanceLevel2) {
-        this.travelDistanceLevel2 = travelDistanceLevel2;
-    }
-
-    public float getTravelDistanceLevel1() {
-        return travelDistanceLevel1;
-    }
-
-    public void setTravelDistanceLevel1(float travelDistanceLevel1) {
-        this.travelDistanceLevel1 = travelDistanceLevel1;
+    public void setTravelDistance(float travelDistance) {
+        this.travelDistance = travelDistance;
     }
 
     public int getDepartureTimeInHours() {
@@ -128,19 +119,20 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         this.returnOvernightTrip = returnOvernightTrip;
     }
 
-    public float getTravelTimeLevel2() {
-        return travelTimeLevel2;
+    public float getTravelTime() {
+        return travelTime;
     }
 
-    public void setTravelTimeLevel2(float travelTimeLevel2) {
-        this.travelTimeLevel2 = travelTimeLevel2;
+    public void setTravelTime(float travelTime) {
+        this.travelTime = travelTime;
     }
 
     public static String getHeader() {
-        return "tripId,personId,international,tripPurpose,tripState,tripOriginZone,tripOriginCombinedZone,tripOriginType," +
-                "tripDestCombinedZone,tripMode,"
-                + "numberOfNights,hhAdultsTravelParty,hhKidsTravelParty,nonHhTravelParty,destZoneType,destZone,travelDistanceLvl2,travelDistanceLvl1" +
-                ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip,travelTimeLevel2ByMode"
+        return "tripId,personId" +
+                ",international,tripPurpose,tripState,tripOriginZone,tripOriginType" +
+                ",tripDestZone,tripDestType,travelDistance" +
+                ",tripMode,travelTimeByMode"+
+                ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip"
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
@@ -159,17 +151,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.tripState.toString()
                     + "," + tr.getOrigZone().getId()
                     + "," + tr.getOrigZone().getZoneType()
-                    + "," + tr.getMode()
-                    + "," + tr.getAdultsHhTravelPartySize()
-                    + "," + tr.getKidsHhTravelPartySize()
-                    + "," + tr.getDestZoneType()
                     + "," + tr.getDestZone().getId()
-                    + "," + tr.getTravelDistanceLevel2()
-                    + "," + tr.getTravelDistanceLevel1()
+                    + "," + tr.getDestZone().getZoneType()
+                    + "," + tr.getTravelDistance()
+                    + "," + tr.getMode()
+                    + "," + tr.getTravelTime()
                     + "," + tr.getDepartureTimeInHours()
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()
-                    + "," + tr.getTravelTimeLevel2()
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()
@@ -191,12 +180,11 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getKidsHhTravelPartySize()
                     + "," + tr.getDestZoneType()
                     + "," + tr.getDestZone().getId()
-                    + "," + tr.getTravelDistanceLevel2()
-                    + "," + tr.getTravelDistanceLevel1()
+                    + "," + tr.getTravelDistance()
                     + "," + tr.getDepartureTimeInHours()
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()
-                    + "," + tr.getTravelTimeLevel2()
+                    + "," + tr.getTravelTime()
                     //+ ",-1,,-1,-1,-1,-1,-1"
             );
 
