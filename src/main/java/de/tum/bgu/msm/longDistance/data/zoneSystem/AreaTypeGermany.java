@@ -2,9 +2,10 @@ package de.tum.bgu.msm.longDistance.data.zoneSystem;
 
 public enum AreaTypeGermany {
     CORE_CITY(10),
-    MEDIUM_SIZED_CITY(20),
-    TOWN(30),
-    RURAL(40);
+    CITY (20),
+    MEDIUM_SIZED_CITY(30),
+    TOWN(40),
+    RURAL(50);
 
     private final int code;
 
@@ -17,10 +18,12 @@ public enum AreaTypeGermany {
             case 10:
                 return CORE_CITY;
             case 20:
-                return MEDIUM_SIZED_CITY;
+                return CITY;
             case 30:
-                return TOWN;
+                return MEDIUM_SIZED_CITY;
             case 40:
+                return TOWN;
+            case 50:
                 return RURAL;
             default:
                 throw new RuntimeException("Area Type for code " + code + " not specified in SGtyp classification.");

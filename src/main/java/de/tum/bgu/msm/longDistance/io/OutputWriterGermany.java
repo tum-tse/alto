@@ -32,7 +32,7 @@ public class OutputWriterGermany implements OutputWriter {
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
-        outputFile = JsonUtilMto.getStringProp(prop, "output.trip_file");
+        outputFile = outputFolder + JsonUtilMto.getStringProp(prop, "output.trip_file");
     }
 
     @Override

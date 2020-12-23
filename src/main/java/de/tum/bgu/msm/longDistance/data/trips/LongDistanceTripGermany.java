@@ -132,7 +132,8 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",international,tripPurpose,tripState,tripOriginZone,tripOriginType" +
                 ",tripDestZone,tripDestType,travelDistance" +
                 ",tripMode,travelTimeByMode"+
-                ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip"
+                ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip"+
+                ",CO2emissions"
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
@@ -159,6 +160,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getDepartureTimeInHours()
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()
+                    + "," + tr.getEmissions().get(Pollutant.CO2)
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()

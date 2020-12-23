@@ -38,11 +38,7 @@ public class Emissions implements ModelComponent {
 
         trips.parallelStream().forEach(tripFromArray -> {
             LongDistanceTripGermany trip = (LongDistanceTripGermany) tripFromArray;
-            if (trip.getTripState().equals(TypeGermany.AWAY)){
-                //away
-            } else {
-                calculateEmissions(trip);
-            }
+            calculateEmissions(trip);
         });
         logger.info("Finished emission calculator");
 
@@ -50,12 +46,22 @@ public class Emissions implements ModelComponent {
 
     private void calculateEmissions(LongDistanceTripGermany t) {
         ModeGermany mode = (ModeGermany) t.getMode();
+        float distance = t.getTravelDistance() / 1000; // convert to km
         HashMap<Pollutant, Float> emissions = new HashMap<>();
         for (Pollutant pollutant : Pollutant.values()){
             String columnModePollutant = mode.toString() + "." + pollutant.toString();
-            float emissionPollutant = (float) (coefficients.getStringIndexedValueAt("alpha", columnModePollutant) *
-                        Math.pow(t.getTravelDistance(),coefficients.getStringIndexedValueAt("beta", columnModePollutant)));
-            emissions.put(pollutant, emissionPollutant);
+            float emissionFactor = (float) (coefficients.getStringIndexedValueAt("alpha", columnModePollutant) *
+                    Math.pow(distance,coefficients.getStringIndexedValueAt("beta", columnModePollutant)));
+
+            float emissionPerTrip = 0;
+            if (t.getTripState().equals(TypeGermany.AWAY)) {
+                emissionPerTrip = 0; // have not travelled
+            } else if (t.getTripState().equals(TypeGermany.OVERNIGHT)) {
+                emissionPerTrip = emissionFactor * distance;
+            } else if (t.getTripState().equals(TypeGermany.DAYTRIP)) {
+                emissionPerTrip = emissionFactor * distance * 2; //also account for the emissions of the return trip
+            }
+            emissions.put(pollutant, emissionPerTrip);
         }
         t.setEmissions(emissions);
     }

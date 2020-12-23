@@ -26,19 +26,18 @@ public class ZoneGermany implements Zone {
     private int closestHub = 0;
     private int closestMainAirport = 0;
     private int area;
-    private int distanceToTransit;
     private AreaTypeGermany areatype;
     private int hotels = 0;
+    private float timeToLongDistanceRail = 0;
 
     public ZoneGermany(int id, int population, int employment, ZoneTypeGermany zoneType, int area,
-                       AreaTypeGermany areaType, int distanceToTransit) {
+                       AreaTypeGermany areaType) {
         this.id = id;
         this.population = population;
         this.employment = employment;
         this.zoneType = zoneType;
         this.area = area;
         this.areatype = areaType;
-        this.distanceToTransit = distanceToTransit;
     }
 
     @Override
@@ -123,10 +122,6 @@ public class ZoneGermany implements Zone {
         return area;
     }
 
-    public int getDistanceToTransit() {
-        return distanceToTransit;
-    }
-
     public AreaTypeGermany getAreatype() {
         return areatype;
     }
@@ -137,6 +132,14 @@ public class ZoneGermany implements Zone {
 
     public void setHotels(int hotels) {
         this.hotels = hotels;
+    }
+
+    public float getTimeToLongDistanceRail() {
+        return timeToLongDistanceRail;
+    }
+
+    public void setTimeToLongDistanceRail(float timeToLongDistanceRail) {
+        this.timeToLongDistanceRail = timeToLongDistanceRail;
     }
 }
 

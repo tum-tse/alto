@@ -102,7 +102,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
         destinationChoice.run(dataSet, -1);
         mcModel.run(dataSet, -1);
         //timeOfDayChoice.run(dataSet, -1);
-        //emissions.run(dataSet, -1);
+        emissions.run(dataSet, -1);
         outputWriter.run(dataSet, -1);
         //print outputs
 

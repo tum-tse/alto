@@ -12,6 +12,8 @@ import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
+import java.io.File;
+
 
 /**
  * Germany Model
@@ -56,7 +58,8 @@ public class RunModelGermany {
         logger.info("Started runLongDistModel for the year " + JsonUtilMto.getIntProp(prop, "year"));
         DataSet dataSet = new DataSet();
         String inputFolder =  JsonUtilMto.getStringProp(prop, "work_folder");
-        String outputFolder = inputFolder +  JsonUtilMto.getStringProp(prop, "scenario") + "/";
+        String outputFolder = inputFolder + "output/" +  JsonUtilMto.getStringProp(prop, "scenario") + "/";
+        createDirectoryIfNotExistingYet(outputFolder);
 
         LDModelGermany ldModelGermany = new LDModelGermany(new ZoneReaderGermany(), new SkimsReaderGermany(),
                 new SyntheticPopulationReaderGermany(),new EconomicStatusReader(),
@@ -68,4 +71,14 @@ public class RunModelGermany {
         logger.info("Module runLongDistModel completed.");
 
     }
+
+    public static void createDirectoryIfNotExistingYet (String directory) {
+        File test = new File (directory);
+        test.mkdirs();
+        if(!test.exists()) {
+            logger.error("Could not create scenarios directory " + directory);
+            throw new RuntimeException();
+        }
+    }
+
 }

@@ -12,11 +12,14 @@ import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
 import omx.hdf5.OmxConstants;
+import omx.hdf5.OmxHdf5Datatype;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.lang.System.exit;
 
 /**
  *
@@ -45,6 +48,7 @@ public class SkimsReaderGermany implements SkimsReader {
     private Map<Mode, String> distanceFileNames = new HashMap<>();
     private String lookUpName;
     private String matrixName;
+    private String accessToTrainFileName;
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
@@ -67,6 +71,7 @@ public class SkimsReaderGermany implements SkimsReader {
         }
         lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
         matrixName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName");
+        accessToTrainFileName = JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
 
     }
 
@@ -74,8 +79,10 @@ public class SkimsReaderGermany implements SkimsReader {
     public void load(DataSet dataSet) {
         this.dataSet = dataSet;
         readSkims();
-        readSkimByMode(dataSet, prop, inputFolder);
+        readSkimByMode(dataSet);
+        readTimeToRail(dataSet);
     }
+
 
     @Override
     public void run(DataSet dataSet, int nThreads) {
@@ -154,7 +161,7 @@ public class SkimsReaderGermany implements SkimsReader {
     }
 
 
-    private void readSkimByMode(DataSet dataSet, JSONObject prop, String inputFolder) {
+    private void readSkimByMode(DataSet dataSet) {
 
         Map<Mode, Matrix> travelTimeMatrix = new HashMap<>();
         Map<Mode, Matrix> distanceMatrix = new HashMap<>();
@@ -213,4 +220,41 @@ public class SkimsReaderGermany implements SkimsReader {
     }
 
 
+    private void readTimeToRail(DataSet dataSet) {
+
+        OmxFile skim = new OmxFile(accessToTrainFileName);
+        skim.openReadOnly();
+        OmxMatrix omxMatrix = skim.getMatrix(matrixName);
+        OmxLookup omxLookUp = skim.getLookup(lookUpName);
+        int[] externalNumbers = (int[]) omxLookUp.getLookup();
+
+        OmxHdf5Datatype.OmxJavaType type = omxMatrix.getOmxJavaType();
+        int[] dimensions = omxMatrix.getShape();
+        if (type.equals(OmxHdf5Datatype.OmxJavaType.FLOAT)) {
+            float[][] fArray = (float[][]) omxMatrix.getData();
+            float minDistance;
+            for (int i = 0; i < dimensions[0]; i++){
+                minDistance = 100000f;
+                for (int j = 0; j < dimensions[1]; j++){
+                    if (fArray[i][j] > 0 && fArray[i][j] < minDistance){
+                        minDistance = fArray[i][j];
+                    }
+                }
+                ((ZoneGermany)dataSet.getZones().get(externalNumbers[i])).setTimeToLongDistanceRail(minDistance);
+            }
+        } else if (type.equals(OmxHdf5Datatype.OmxJavaType.DOUBLE)) {
+            double[][] dArray = (double[][]) omxMatrix.getData();
+            double minDistance;
+            for (int i = 0; i < dataSet.getZones().keySet().size() - 1; i++){
+                minDistance = 100000f;
+                for (int j = 0; j < dimensions[1]; j++){
+                    if (dArray[i][j] > 0 && dArray[i][j] < minDistance){
+                        minDistance = dArray[i][j];
+                    }
+                }
+                ((ZoneGermany)dataSet.getZones().get(externalNumbers[i])).setTimeToLongDistanceRail((float)minDistance);
+            }
+        }
+
+    }
 }

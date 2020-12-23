@@ -93,11 +93,8 @@ public class ZoneReaderGermany implements ZoneReader {
 
         zones = zoneTable.getColumnAsInt("TAZ_id");
         for (int zone : zones) {
-            int combinedZone = (int) zoneTable.getIndexedValueAt(zone, "TAZ_id");
-            int population = (int) zoneTable.getIndexedValueAt(zone, "pop");
             String zoneTypeStr = zoneTable.getIndexedStringValueAt(zone,"type");
             int areaType = (int) zoneTable.getIndexedValueAt(zone, "areaType");
-            int distanceToTransit = (int) zoneTable.getIndexedValueAt(zone, "distanceToTransit");
             int hotels = (int) zoneTable.getIndexedValueAt(zone, "hotels");
             ZoneTypeGermany zoneType = ZoneTypeGermany.GERMANY;
             if (zoneTypeStr.equals("eu")){
@@ -107,7 +104,7 @@ public class ZoneReaderGermany implements ZoneReader {
             }
             int area = (int) zoneTable.getIndexedValueAt(zone, "Area");
             //zones are created as empty as they are filled out using sp
-            Zone internalZone = new ZoneGermany(zone, population, 0, zoneType, area, AreaTypeGermany.valueOf(areaType), distanceToTransit);
+            Zone internalZone = new ZoneGermany(zone, 0, 0, zoneType, area, AreaTypeGermany.valueOf(areaType));
             ((ZoneGermany)internalZone).setHotels(hotels);
             internalZoneList.add(internalZone);
         }

@@ -104,7 +104,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         // Method to calculate utility of all possible destinations for LongDistanceTrip trip
 
         int origin = trip.getOrigZone().getId();
-        float distance = autoDist.getValueAt(origin, destination);
+        float distance = autoDist.getValueAt(origin, destination) / 1000; //to convert meters to km
 
         ZoneGermany destinationZone =  (ZoneGermany) dataSet.getZones().get(destination);
         double population = destinationZone.getPopulation();
@@ -124,8 +124,8 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         double u =
                 //b_distance * Math.exp(-alpha * distance)
                 b_distance_log * log_distance
-                        + b_hotel * hotels
-                        + b_popEmployment * (population + employment);
+                        + b_hotel * hotels / 1000 //hotels in thousands
+                        + b_popEmployment * (population + employment) / 1000000; //population and employment in millions
 
         return u;
     }
