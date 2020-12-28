@@ -113,9 +113,6 @@ public class OutputWriterGermany implements OutputWriter {
 
         Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistribution"+ purpose, travelDistancesArray, "Travel Distance Distribution " + purpose, "Distance", "Frequency", 120, 0, 1200);
 
-
-
-
         Map<Purpose, List<LongDistanceTrip>> tripsByPurpose = (Map<Purpose, List<LongDistanceTrip>>) dataSet.getAllTrips().stream()
                 .collect(Collectors.groupingBy(LongDistanceTrip::getTripPurpose));
 
@@ -130,8 +127,32 @@ public class OutputWriterGermany implements OutputWriter {
                                 modes.add((Comparable) mode, (int) (((double) count / totalTrips) * 100.));
                                     }
                             );
-                    PieChart.createPieChart(outputFolder + purpose, modes, "Mode Choice " + purpose);
+                    PieChart.createPieChart(outputFolder  + "modeChoice" + purpose, modes, "Mode Choice " + purpose);
                 }
         );
+        TreeMultiset<Comparable> purposes = TreeMultiset.create();
+        for (Purpose purpose1 : PurposeGermany.values()){
+            purposes.add((Comparable) purpose1,tripsByPurpose.get(purpose1).size());
+        }
+        PieChart.createPieChart(outputFolder + "tripGeneration", purposes, "Generated Trips By Purpose ");
+
+        Map<Type, List<LongDistanceTrip>> tripsByPurpose1 = (Map<Type, List<LongDistanceTrip>>) dataSet.getAllTrips().stream()
+                .collect(Collectors.groupingBy(LongDistanceTrip::getTripState));
+
+        tripsByPurpose1.forEach((statePurpose, trips) -> {
+                    TreeMultiset<Comparable> purposesTree = TreeMultiset.create();
+                    final long totalTrips = trips.size();
+                    trips.parallelStream()
+                            //group number of trips by mode
+                            .collect(Collectors.groupingBy(LongDistanceTrip::getTripPurpose, Collectors.counting()))
+                            //calculate and add share to data set table
+                            .forEach((purpose1, count) -> {
+                                purposesTree.add((Comparable) purpose1, (int) (((double) count / totalTrips) * 100.));
+                                    }
+                            );
+                    PieChart.createPieChart(outputFolder  + "tripGeneration" + statePurpose, purposesTree, "Trip Generation " + statePurpose);
+                }
+        );
+
     }
 }
