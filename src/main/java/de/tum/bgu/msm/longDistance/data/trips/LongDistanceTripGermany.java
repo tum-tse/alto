@@ -130,10 +130,10 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     public static String getHeader() {
         return "tripId,personId" +
                 ",international,tripPurpose,tripState,tripOriginZone,tripOriginType" +
-                ",tripDestZone,tripDestType,travelDistance" +
-                ",tripMode,travelTimeByMode"+
+                ",tripDestZone,tripDestType,travelDistance_km" +
+                ",tripMode,travelTimeByMode_h"+
                 ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip"+
-                ",CO2emissions"
+                ",CO2emissions_kg"
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
@@ -154,9 +154,9 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getOrigZone().getZoneType()
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getDestZone().getZoneType()
-                    + "," + tr.getTravelDistance()
+                    + "," + tr.getTravelDistance() / 1000
                     + "," + tr.getMode()
-                    + "," + tr.getTravelTime()
+                    + "," + tr.getTravelTime() / 3600
                     + "," + tr.getDepartureTimeInHours()
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()

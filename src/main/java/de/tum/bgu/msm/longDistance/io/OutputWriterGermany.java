@@ -66,7 +66,7 @@ public class OutputWriterGermany implements OutputWriter {
         for (PurposeGermany purpose : PurposeGermany.values()){
             writeCharts(dataSet, purpose, outputFolder);
         }
-
+        generatePieCharts();
     }
 
     private static void writeCharts(DataSet dataSet, PurposeGermany purpose, String outputFolder) {
@@ -74,6 +74,9 @@ public class OutputWriterGermany implements OutputWriter {
 
         List<Double> travelTimes = new ArrayList<>();
         List<Double> travelDistances = new ArrayList<>();
+        List<Double> travelDistancesAway = new ArrayList<>();
+        List<Double> travelDistancesOvernight = new ArrayList<>();
+        List<Double> travelDistancesDaytrip = new ArrayList<>();
         Map<Integer, List<Double>> distancesByZone = new HashMap<>();
         Multiset<Zone> tripsByZone = HashMultiset.create();
 
@@ -85,6 +88,13 @@ public class OutputWriterGermany implements OutputWriter {
                 travelTimes.add((double) dataSet.getAutoTravelTime(tripOrigin, tripDestination));
                 double travelDistance = dataSet.getAutoTravelDistance(tripOrigin, tripDestination);
                 travelDistances.add(travelDistance);
+                if (trip.getTripState().equals(TypeGermany.DAYTRIP)){
+                    travelDistancesDaytrip.add(travelDistance);
+                } else if (trip.getTripState().equals(TypeGermany.OVERNIGHT)){
+                    travelDistancesOvernight.add(travelDistance);
+                } else if (trip.getTripState().equals(TypeGermany.AWAY)){
+                    travelDistancesAway.add(travelDistance);
+                }
                 tripsByZone.add(dataSet.getZones().get(tripOrigin));
                 if(distancesByZone.containsKey(tripOrigin)){
                     distancesByZone.get(tripOrigin).add(travelDistance);
@@ -104,16 +114,41 @@ public class OutputWriterGermany implements OutputWriter {
         }
 
         double[] travelDistancesArray = new double[travelTimes.size()];
+        double[] travelDistancesOvernightArray = new double[travelTimes.size()];
+        double[] travelDistancesDaytripArray = new double[travelTimes.size()];
+        double[] travelDistancesAwayArray = new double[travelTimes.size()];
         i= 0;
         for(Double value: travelDistances) {
             travelDistancesArray[i] = value / 1000; //convert meters to km
+            travelDistancesOvernightArray[i] = value / 1000; //convert meters to km
+            travelDistancesDaytripArray[i] = value / 1000; //convert meters to km
+            travelDistancesAwayArray[i] = value / 1000; //convert meters to km
             i++;
         }
-        Histogram.createFrequencyHistogram(outputFolder + "tripTimeDistribution"+ purpose, travelTimesArray, "Travel Time Distribution " + purpose, "Time", "Frequency", 12, 0, 12);
+        Histogram.createFrequencyHistogram(outputFolder + "tripTimeDistribution"+ purpose, travelTimesArray, "Travel Time Distribution " + purpose, "Auto Travel Time (h)", "Frequency", 6, 0, 6);
 
-        Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistribution"+ purpose, travelDistancesArray, "Travel Distance Distribution " + purpose, "Distance", "Frequency", 120, 0, 1200);
+        Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistribution"+ purpose, travelDistancesArray, "Travel Distance Distribution " + purpose, "Distance (km)", "Frequency", 60, 0, 600);
+
+        Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionDaytrip"+ purpose, travelDistancesDaytripArray, "Travel Distance Distribution for daytrips " + purpose, "Distance (km)", "Frequency", 60, 0, 600);
+
+        Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionOvernighttrip"+ purpose, travelDistancesOvernightArray, "Travel Distance Distribution for overnighttrips " + purpose, "Distance (km)", "Frequency", 60, 0, 600);
+
+        Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionAwaytrip"+ purpose, travelDistancesAwayArray, "Travel Distance Distribution for away " + purpose, "Distance (km)", "Frequency", 60, 0, 600);
 
         Map<Purpose, List<LongDistanceTrip>> tripsByPurpose = (Map<Purpose, List<LongDistanceTrip>>) dataSet.getAllTrips().stream()
+                .filter(trip -> {
+                    try {
+                        TypeGermany tripState = (TypeGermany) ((LongDistanceTripGermany)trip).getTripState();
+                        if (tripState.equals(TypeGermany.DAYTRIP)) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                })
                 .collect(Collectors.groupingBy(LongDistanceTrip::getTripPurpose));
 
         tripsByPurpose.forEach((purposeMode, trips) -> {
@@ -124,35 +159,54 @@ public class OutputWriterGermany implements OutputWriter {
                             .collect(Collectors.groupingBy(LongDistanceTrip::getMode, Collectors.counting()))
                             //calculate and add share to data set table
                             .forEach((mode, count) -> {
-                                modes.add((Comparable) mode, (int) (((double) count / totalTrips) * 100.));
+                                        modes.add((Comparable) mode, (int) (((double) count / totalTrips) * 100.));
                                     }
                             );
-                    PieChart.createPieChart(outputFolder  + "modeChoice" + purpose, modes, "Mode Choice " + purpose);
+                    PieChart.createPieChart(outputFolder  + "modeChoice" + purpose, modes, "Mode Choice of daytrips " + purpose);
                 }
         );
-        TreeMultiset<Comparable> purposes = TreeMultiset.create();
-        for (Purpose purpose1 : PurposeGermany.values()){
-            purposes.add((Comparable) purpose1,tripsByPurpose.get(purpose1).size());
-        }
-        PieChart.createPieChart(outputFolder + "tripGeneration", purposes, "Generated Trips By Purpose ");
+    }
 
-        Map<Type, List<LongDistanceTrip>> tripsByPurpose1 = (Map<Type, List<LongDistanceTrip>>) dataSet.getAllTrips().stream()
-                .collect(Collectors.groupingBy(LongDistanceTrip::getTripState));
+    private void generatePieCharts() {
 
-        tripsByPurpose1.forEach((statePurpose, trips) -> {
-                    TreeMultiset<Comparable> purposesTree = TreeMultiset.create();
-                    final long totalTrips = trips.size();
-                    trips.parallelStream()
-                            //group number of trips by mode
-                            .collect(Collectors.groupingBy(LongDistanceTrip::getTripPurpose, Collectors.counting()))
-                            //calculate and add share to data set table
-                            .forEach((purpose1, count) -> {
-                                purposesTree.add((Comparable) purpose1, (int) (((double) count / totalTrips) * 100.));
-                                    }
-                            );
-                    PieChart.createPieChart(outputFolder  + "tripGeneration" + statePurpose, purposesTree, "Trip Generation " + statePurpose);
-                }
+        Map<Purpose, List<LongDistanceTrip>> tripsByPurpose = (Map<Purpose, List<LongDistanceTrip>>) dataSet.getAllTrips().stream()
+                .filter(trip -> {
+                    try {
+                        TypeGermany tripState = (TypeGermany) ((LongDistanceTripGermany)trip).getTripState();
+                        if (tripState.equals(TypeGermany.DAYTRIP)) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                })
+                .collect(Collectors.groupingBy(LongDistanceTrip::getTripPurpose));
+
+            TreeMultiset<Comparable> purposes = TreeMultiset.create();
+                for (Purpose purpose1 : PurposeGermany.values()){
+                purposes.add((Comparable) purpose1,tripsByPurpose.get(purpose1).size());
+            }
+                PieChart.createPieChart(outputFolder + "tripGeneration", purposes, "Generated Trips By Purpose ");
+
+            Map<Type, List<LongDistanceTrip>> tripsByPurpose1 = (Map<Type, List<LongDistanceTrip>>) dataSet.getAllTrips().stream()
+                    .collect(Collectors.groupingBy(LongDistanceTrip::getTripState));
+
+                tripsByPurpose1.forEach((statePurpose, trips) -> {
+                TreeMultiset<Comparable> purposesTree = TreeMultiset.create();
+                final long totalTrips = trips.size();
+                trips.parallelStream()
+                        //group number of trips by mode
+                        .collect(Collectors.groupingBy(LongDistanceTrip::getTripPurpose, Collectors.counting()))
+                        //calculate and add share to data set table
+                        .forEach((purpose1, count) -> {
+                                    purposesTree.add((Comparable) purpose1, (int) (((double) count / totalTrips) * 100.));
+                                }
+                        );
+                PieChart.createPieChart(outputFolder  + "tripGeneration" + statePurpose, purposesTree, "Trip Generation " + statePurpose);
+            }
         );
-
     }
 }

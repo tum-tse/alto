@@ -73,7 +73,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         int[] alternatives = selectRandomDestinations(trip.getOrigZone().getId());
         double[] expUtilities = Arrays.stream(alternatives)
                 //calculate exp(Ui) for each destination
-                .mapToDouble(a -> Math.exp(calculateUtility(trip, tripPurpose, a))).toArray();
+                .mapToDouble(a -> Math.exp(calculateUtility(trip, a))).toArray();
         //calculate the probability for each trip, based on the destination utilities
         double probability_denominator = Arrays.stream(expUtilities).sum();
 
@@ -100,7 +100,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         return alternatives;
     }
 
-    private double calculateUtility(LongDistanceTripGermany trip, Purpose tripPurpose, int destination) {
+    private double calculateUtility(LongDistanceTripGermany trip, int destination) {
         // Method to calculate utility of all possible destinations for LongDistanceTrip trip
 
         int origin = trip.getOrigZone().getId();
@@ -111,11 +111,13 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         double employment = destinationZone.getEmployment();
         double hotels = destinationZone.getHotels();
 
-
+        Purpose tripPurpose = trip.getTripPurpose();
+        TypeGermany tripState = (TypeGermany) trip.getTripState();
         //Coefficients
-        double b_distance_log = coefficients.getStringIndexedValueAt("log_distance", tripPurpose.toString());
-        double b_popEmployment = coefficients.getStringIndexedValueAt("popEmployment", tripPurpose.toString());
-        double b_hotel = coefficients.getStringIndexedValueAt("hotel", tripPurpose.toString());
+        String coefficientColumn = tripState + "." + tripPurpose;
+        double b_distance_log = coefficients.getStringIndexedValueAt("log_distance", coefficientColumn);
+        double b_popEmployment = coefficients.getStringIndexedValueAt("popEmployment", coefficientColumn);
+        double b_hotel = coefficients.getStringIndexedValueAt("hotel", coefficientColumn);
 
         //log conversions
         double log_distance = distance > 0 ? Math.log(distance) : 0;
