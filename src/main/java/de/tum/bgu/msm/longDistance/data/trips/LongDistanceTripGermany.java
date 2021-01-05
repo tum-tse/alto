@@ -34,7 +34,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     private int departureTimeInHoursSecondSegment = -999; //this is the return trip of daytrips
     private boolean returnOvernightTrip = false;
     private Map<Pollutant, Float> emissions = new HashMap<>();
-
+    private Map<String, Float> additionalAttributes = new HashMap<>();
 
     public LongDistanceTripGermany(int tripId, PersonGermany traveller, boolean international, Purpose tripPurpose, Type tripState, ZoneGermany origZone ) {
         this.tripId = tripId;
@@ -133,7 +133,23 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",tripDestZone,tripDestType,travelDistance_km" +
                 ",tripMode,travelTimeByMode_h"+
                 ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip"+
-                ",CO2emissions_kg"
+                ",CO2emissions_kg" +
+                 ",utility_" + ModeGermany.getMode(0)+
+                ",utility_" + ModeGermany.getMode(1)+
+                ",utility_" + ModeGermany.getMode(2)+
+                ",utility_" + ModeGermany.getMode(3)+
+                ",cost_" + ModeGermany.getMode(0)+
+                ",cost_" + ModeGermany.getMode(1)+
+                ",cost_" + ModeGermany.getMode(2)+
+                ",cost_" + ModeGermany.getMode(3)+
+                ",time_" + ModeGermany.getMode(0)+
+                ",time_" + ModeGermany.getMode(1)+
+                ",time_" + ModeGermany.getMode(2)+
+                ",time_" + ModeGermany.getMode(3)
+                //"utility_auto", "tt_auto", ""cost_auto" +,
+                //"utility_rail, "tt_rail", ""cost_rail" +,
+                //"utility_bus", "tt_bus", ""cost_bus" +,
+                //"utility_air", "tt_air", ""cost_air",
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
@@ -161,6 +177,18 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()
                     + "," + tr.getEmissions().get(Pollutant.CO2)
+                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("cost_auto")
+                    + "," + tr.getAdditionalAttributes().get("cost_air")
+                    + "," + tr.getAdditionalAttributes().get("cost_rail")
+                    + "," + tr.getAdditionalAttributes().get("cost_bus")
+                    + "," + tr.getAdditionalAttributes().get("time_auto")
+                    + "," + tr.getAdditionalAttributes().get("time_air")
+                    + "," + tr.getAdditionalAttributes().get("time_rail")
+                    + "," + tr.getAdditionalAttributes().get("time_bus")
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()
@@ -212,6 +240,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     @Override
     public Map<Pollutant, Float> getEmissions() {
         return emissions;
+    }
+
+    public Map<String, Float> getAdditionalAttributes() {
+        return additionalAttributes;
+    }
+
+    public void setAdditionalAttributes(Map<String, Float> additionalAttributes) {
+        this.additionalAttributes = additionalAttributes;
     }
 
     public void setEmissions(Map<Pollutant, Float>  emissions) {

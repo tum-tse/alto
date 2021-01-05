@@ -62,17 +62,26 @@ public class DomesticModeChoiceGermany {
     public Mode selectModeDomestic(LongDistanceTrip t) {
         LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
         double[] expUtilities;
+        Map<String, Float> attributes = new HashMap<>();
 
         //calculate exp(Ui) for each destination
         expUtilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> Math.exp(calculateUtilityFromGermany(trip, m))).toArray();
 
         double probability_denominator = Arrays.stream(expUtilities).sum();
 
+        attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
         //if there is no access by any mode for the selected OD pair, just go by car
         if (probability_denominator == 0) {
             expUtilities[0] = 1;
+            for (int mode = 0; mode < expUtilities.length; mode++){
+                attributes.put("utility_" + ModeGermany.getMode(mode), (float) expUtilities[mode]);
+            }
+        } else {
+            for (int mode = 0; mode < expUtilities.length; mode++){
+                attributes.put("utility_" + ModeGermany.getMode(mode), (float) (expUtilities[mode]/probability_denominator));
+            }
         }
-
+        ((LongDistanceTripGermany) t).setAdditionalAttributes(attributes);
         //choose one destination, weighted at random by the probabilities
         return (Mode) Util.select(expUtilities, ModeGermany.values());
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
@@ -91,15 +100,21 @@ public class DomesticModeChoiceGermany {
         int origin = trip.getOrigZone().getId();
         int destination = trip.getDestZone().getId();
 
+        Map<String, Float> attr = trip.getAdditionalAttributes();
         double impedance = 0;
         double vot = mcGermany.getStringIndexedValueAt("vot", column);
         double time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
         if (vot != 0) {
             double distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
             double cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
-                    Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()) );
+                    Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()) )
+                    * distance;
             impedance = cost / (vot) + time;
+            attr.put("cost_"+ m.toString(), (float) cost);
+            attr.put("time_" + m.toString(), (float) time);
         }
+        trip.setAdditionalAttributes(attr);
+
 
         //person-related variables
         PersonGermany pers = trip.getTraveller();
