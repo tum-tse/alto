@@ -45,6 +45,8 @@ public class SkimsReaderGermany implements SkimsReader {
     private String[] autoFileMatrixLookup;
     private String[] distanceFileMatrixLookup;
     private Map<Mode, String> travelTimeFileNames = new HashMap<>();
+    private Map<Mode, String> accessTimeFileNames = new HashMap<>();
+    private Map<Mode, String> egressTimeFileNames = new HashMap<>();
     private Map<Mode, String> distanceFileNames = new HashMap<>();
     private String lookUpName;
     private String matrixName;
@@ -68,6 +70,15 @@ public class SkimsReaderGermany implements SkimsReader {
             String distanceFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.distance_file_" + m);
             travelTimeFileNames.put(m, travelTimeFileName);
             distanceFileNames.put(m, distanceFileName);
+
+            if (m.equals(ModeGermany.RAIL )){
+                accessTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_access"));
+                egressTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_egress"));
+            }
+            if (m.equals(ModeGermany.BUS )){
+                accessTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_access"));
+                egressTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_egress"));
+            }
         }
         lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
         matrixName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName");
@@ -180,6 +191,8 @@ public class SkimsReaderGermany implements SkimsReader {
             OmxLookup omxLookUp = skim.getLookup(lookUpName);
             int[] externalNumbers = (int[]) omxLookUp.getLookup();
             travelTime.setExternalNumbersZeroBased(externalNumbers);
+            travelTime = addBigTravelTimeToSameAirportCatchmentAreaTrips(travelTime, m);
+            travelTime = addAccessAndEgress(travelTime, m);
             travelTimeMatrix.put(m, travelTime);
 
             OmxFile skimDistance = new OmxFile(distanceFileName);
@@ -199,6 +212,28 @@ public class SkimsReaderGermany implements SkimsReader {
 
     }
 
+    private Matrix addAccessAndEgress(Matrix travelTime, Mode m) {
+        if (ModeGermany.RAIL.equals(m) || ModeGermany.BUS.equals(m)) {
+            OmxFile skimA = new OmxFile(accessTimeFileNames.get(m));
+            skimA.openReadOnly();
+            OmxMatrix omxMatrixA = skimA.getMatrix(matrixName);
+            Matrix access = Util.convertOmxToMatrix(omxMatrixA);
+            OmxFile skimE = new OmxFile(egressTimeFileNames.get(m));
+            skimE.openReadOnly();
+            OmxMatrix omxMatrixE = skimE.getMatrix(matrixName);
+            Matrix egress = Util.convertOmxToMatrix(omxMatrixE);
+            for (int zoneId : dataSet.getZones().keySet()) {
+                for (int zoneDestination : dataSet.getZones().keySet()) {
+                    float travelTimeAll = travelTime.getValueAt(zoneId, zoneDestination) +
+                            access.getValueAt(zoneId, zoneDestination) +
+                            egress.getValueAt(zoneId, zoneDestination);
+                    travelTime.setValueAt(zoneId, zoneDestination, travelTimeAll);
+                }
+            }
+        }
+        return travelTime;
+    }
+
     private Matrix assignIntrazonalTravelTimes(Matrix matrix, Mode mode) {
 
         if (!ModeGermany.AIR.equals(mode)) {
@@ -213,6 +248,24 @@ public class SkimsReaderGermany implements SkimsReader {
             for (int zoneId : dataSet.getZones().keySet()) {
                 int minDistance =  ((ZoneGermany) dataSet.getZones().get(zoneId)).getArea();
                 matrix.setValueAt(zoneId, zoneId, (float) Math.sqrt(minDistance / 3.14) / speed);
+            }
+        }
+        logger.info("Calculated intrazonal values - nearest neighbour");
+        return matrix;
+    }
+
+
+    private Matrix addBigTravelTimeToSameAirportCatchmentAreaTrips(Matrix matrix, Mode mode) {
+
+        if (ModeGermany.AIR.equals(mode)) {
+            for (int zoneId : dataSet.getZones().keySet()) {
+                for (int zoneDestination : dataSet.getZones().keySet()) {
+                    float travelTime = matrix.getValueAt(zoneId, zoneDestination);
+                    if (travelTime == 0){ //they are in the same airport catchment area - penalize travel time to 1000 hours
+                        travelTime = 1000 * 3600;
+                    }
+                    matrix.setValueAt(zoneId, zoneDestination, travelTime);
+                }
             }
         }
         logger.info("Calculated intrazonal values - nearest neighbour");
