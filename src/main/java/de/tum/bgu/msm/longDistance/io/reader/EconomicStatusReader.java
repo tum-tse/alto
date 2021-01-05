@@ -174,12 +174,11 @@ public class EconomicStatusReader implements ModelComponent {
      */
         int countAdults = (int) hh.getAdultsEconomicStatusHh();
         int countChildren = (int) hh.getChildrenEconomicStatusHh();
-        // Mobilität in Deutschland 2008, Variablenaufbereitung Haushaltsdatensatz:
-        // In Anlehnung an die neue Berechnungsskala der OECD gingen bei der Berechnung
-        // Kinder bis zu 14 Jahren mit dem Faktor 0,3 ein. Von den Personen ab 15 Jahren
-        // im Haushalt wurde eine Person mit dem Faktor 1, alle weiteren Personen ab 15
-        // Jahren mit dem Faktor 0,5 gewichtet.
-        float weightedHhSize = Util.rounder(Math.min(3.5f, 1.0f + (countAdults - 1f) * 0.5f + countChildren * 0.3f), 1);
+        // Mobilität in Deutschland 2017
+        // Die gewichtete Haushaltsgrösse wird aus der Anzahl un dem Alter der Haushaltsmitglieder bestimmt.
+        //Kinder unter 14 Jahren gehen mit dem Faktor 0,3 ein. Die erste Person ab 14 Jahren im Haushalt erhält
+        //den Gewichtungsfaktor 1, alle weiteren Personen ab 14 Jahren den Faktor 0,5.
+        float weightedHhSize = Util.rounder(Math.min(4.4f, 1.0f + (countAdults - 1f) * 0.5f + countChildren * 0.3f), 1);
         String incomeCategory = getMidIncomeCategory(hh.getMonthlyIncome_EUR());
         int codeInc = economicStatusDefinition.get(weightedHhSize+"_"+incomeCategory);
         return EconomicStatus.getEconomicStatusFromCode(codeInc);

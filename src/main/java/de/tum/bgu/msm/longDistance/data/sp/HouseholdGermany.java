@@ -103,7 +103,7 @@ public class HouseholdGermany implements Household {
     public int getAdultsEconomicStatusHh() {
         int adultsHh = 0;
         for (PersonGermany p : persons) {
-            if (p.getAge() > 14) {
+            if (p.getAge() >= 14) { //threshold changed from previous MiD 2008
                 adultsHh++;
             }
         }
@@ -113,7 +113,7 @@ public class HouseholdGermany implements Household {
     public int getChildrenEconomicStatusHh() {
         int childrenHh = 0;
         for (PersonGermany p : persons) {
-            if (p.getAge() <= 14) {
+            if (p.getAge() < 14) {
                 childrenHh++;
             }
         }
