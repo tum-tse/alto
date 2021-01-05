@@ -32,7 +32,7 @@ public class DestinationChoiceOntario implements DestinationChoice {
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
-        dcModel = new DomesticDestinationChoice(prop);
+        dcModel = new DomesticDestinationChoice(prop, inputFolder);
         dcOutboundModel = new IntOutboundDestinationChoice(prop);
         dcInBoundModel = new IntInboundDestinationChoice(prop);
     }

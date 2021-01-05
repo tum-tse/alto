@@ -38,12 +38,12 @@ public class DomesticModeChoiceGermany {
     private Map<Purpose, Map<Mode, Double>> calibrationMatrixVisitors;
 
 
-    public DomesticModeChoiceGermany(JSONObject prop) {
+    public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
         this.rb = rb;
 
-        mcGermany = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mode_choice.domestic.germany.coef_file"));
+        mcGermany = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"mode_choice.domestic.germany.coef_file"));
         mcGermany.buildStringIndex(1);
-        costsPerKm = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"mode_choice.costPerKm_file"));
+        costsPerKm = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"mode_choice.costPerKm_file"));
         costsPerKm.buildStringIndex(2);
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration");
 

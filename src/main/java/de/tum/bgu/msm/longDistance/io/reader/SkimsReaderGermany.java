@@ -222,7 +222,7 @@ public class SkimsReaderGermany implements SkimsReader {
 
     private void readTimeToRail(DataSet dataSet) {
 
-        OmxFile skim = new OmxFile(accessToTrainFileName);
+        OmxFile skim = new OmxFile(inputFolder+accessToTrainFileName);
         skim.openReadOnly();
         OmxMatrix omxMatrix = skim.getMatrix(matrixName);
         OmxLookup omxLookUp = skim.getLookup(lookUpName);

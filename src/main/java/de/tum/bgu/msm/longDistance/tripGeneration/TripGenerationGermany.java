@@ -69,16 +69,16 @@ public class TripGenerationGermany implements TripGeneration {
     public void generateTrips() {
 
         //initialize list of trips
-        ArrayList<LongDistanceTripGermany> trips_dom_ontarian; //trips from Ontario to all Canada - sp based
+        ArrayList<LongDistanceTripGermany> trips_dom_germany; //trips from Ontario to all Canada - sp based
         ArrayList<LongDistanceTripGermany> trips_int_ontarian; //trips from Ontario to other countries - sp based
         //ArrayList<LongDistanceTrip> trips_int_canadian; //trips from non-Ontario to other countries
         ArrayList<LongDistanceTripGermany> trips_visitors; //trips from non-Ontario to all Canada, and trips from other country to Canada
 
 
         //generate domestic trips
-        trips_dom_ontarian = domesticTripGeneration.run();
-        dataSet.getAllTrips().addAll(trips_dom_ontarian);
-        logger.info("  " + trips_dom_ontarian.size() + " domestic trips from Ontario generated");
+        trips_dom_germany = domesticTripGeneration.run();
+        dataSet.getAllTrips().addAll(trips_dom_germany);
+        logger.info("  " + trips_dom_germany.size() + " domestic trips from Ontario generated");
 
         //generate international trips (must be done after domestic)
         //trips_int_ontarian = internationalTripGeneration.run();

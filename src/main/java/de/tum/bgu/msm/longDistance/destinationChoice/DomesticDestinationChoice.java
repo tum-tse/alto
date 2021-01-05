@@ -32,7 +32,7 @@ public class DomesticDestinationChoice implements DestinationChoiceModule {
 
 
 
-    public DomesticDestinationChoice(JSONObject prop) {
+    public DomesticDestinationChoice(JSONObject prop, String inputFolder) {
         coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.domestic.coef_file"));
         coefficients.buildStringIndex(1);
 

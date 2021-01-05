@@ -20,7 +20,7 @@ public class ModeChoiceGermany implements ModeChoice {
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
-        mcDomesticModel = new DomesticModeChoiceGermany(prop);
+        mcDomesticModel = new DomesticModeChoiceGermany(prop, inputFolder);
         //intModeChoice = new IntModeChoice(prop);
     }
 

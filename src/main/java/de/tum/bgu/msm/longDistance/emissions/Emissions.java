@@ -20,7 +20,7 @@ public class Emissions implements ModelComponent {
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
-        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "emissions.coef_file"));
+        coefficients = Util.readCSVfile(inputFolder+JsonUtilMto.getStringProp(prop, "emissions.coef_file"));
         coefficients.buildStringIndex(2);
         logger.info("Domestic DC set up");
     }

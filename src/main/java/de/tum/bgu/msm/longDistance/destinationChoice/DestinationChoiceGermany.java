@@ -31,7 +31,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
-        dcModel = new DomesticDestinationChoiceGermany(prop);
+        dcModel = new DomesticDestinationChoiceGermany(prop, inputFolder);
 
     }
 

@@ -27,6 +27,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
     private static Logger logger = Logger.getLogger(DomesticDestinationChoiceGermany.class);
     public static int choice_set_size;
     public static int longDistanceThreshold;
+    public static float scaleFactor;
     private TableDataSet coefficients;
     protected Matrix autoDist;
     private boolean calibration;
@@ -35,12 +36,13 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
     private DataSet dataSet;
 
 
-    public DomesticDestinationChoiceGermany(JSONObject prop) {
-        coefficients = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "destination_choice.domestic.coef_file"));
+    public DomesticDestinationChoiceGermany(JSONObject prop, String inputFolder) {
+        coefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "destination_choice.domestic.coef_file"));
         coefficients.buildStringIndex(1);
 
         choice_set_size = JsonUtilMto.getIntProp(prop, "destination_choice.choice_set_size");
         longDistanceThreshold = JsonUtilMto.getIntProp(prop, "threshold_long_distance");
+        scaleFactor = JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
         this.domDcCalibrationV = new HashMap<>();
@@ -107,8 +109,8 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         float distance = autoDist.getValueAt(origin, destination) / 1000; //to convert meters to km
 
         ZoneGermany destinationZone =  (ZoneGermany) dataSet.getZones().get(destination);
-        double population = destinationZone.getPopulation();
-        double employment = destinationZone.getEmployment();
+        double population = destinationZone.getPopulation()*scaleFactor;
+        double employment = destinationZone.getEmployment()*scaleFactor;
         double hotels = destinationZone.getHotels();
 
         Purpose tripPurpose = trip.getTripPurpose();
@@ -120,7 +122,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         double b_hotel = coefficients.getStringIndexedValueAt("hotel", coefficientColumn);
 
         //log conversions
-        double log_distance = distance > 0 ? Math.log(distance) : 0;
+        double log_distance = distance > 0 ? Math.log10(distance) : 0;
 
 
         double u =

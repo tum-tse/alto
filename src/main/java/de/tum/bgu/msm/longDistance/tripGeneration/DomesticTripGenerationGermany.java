@@ -79,7 +79,7 @@ public class DomesticTripGenerationGermany {
 
                 Map<Purpose, Map<Type ,Double>> tgProbabilities = new HashMap<>();
 
-                if (!pers.isAway() && !pers.isDaytrip() && !pers.isInOutTrip() && pers.getAge() > 17) {
+                if (!pers.isAway() && !pers.isDaytrip() && !pers.isInOutTrip()) {
 
                     for (Purpose tripPurpose : PurposeGermany.values()) {
                         tgProbabilities.put(tripPurpose, new HashMap<>());
@@ -127,14 +127,14 @@ public class DomesticTripGenerationGermany {
 
             }
 
-        };
+        }
         return trips;
     }
 
     public double calculateUtility(PersonGermany pers, String tripPurpose, String tripState) {
 
 
-        int holiday = JsonUtilMto.getBooleanProp(prop, "holiday" )? 0:1;
+        int holiday = JsonUtilMto.getBooleanProp(prop, "holiday" )? 1:0;
 
 
         //read coefficients
@@ -163,12 +163,12 @@ public class DomesticTripGenerationGermany {
                 b_econStHigh * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.HIGH), false) +
                 b_econStVeryHigh * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYHIGH), false) +
                 b_adult18_60 * Boolean.compare(pers.getAge() < 60 && pers.getAge() >= 18, false) +
-                b_olderThan60 * Boolean.compare(pers.getAge() > 60, false) +
-                b_male * Boolean.compare(pers.isFemale(), true) +
+                b_olderThan60 * Boolean.compare(pers.getAge() >= 60, false) +
+                b_male * Boolean.compare(pers.isMale(), false) +
                 b_holiday * holiday +
                 b_employed * Boolean.compare(pers.isEmployed(), false) +
                 b_student * Boolean.compare(pers.isStudent(), false) +
-                b_distanceLog * Math.log(hh.getZone().getTimeToLongDistanceRail() / 60) + //convert travel time in minutes
+                b_distanceLog * Math.log10(hh.getZone().getTimeToLongDistanceRail() / 60) + //convert travel time in minutes
                 b_midSizeCity * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.MEDIUM_SIZED_CITY), false) +
                 b_ruralOrTown * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.RURAL), false) +
                 b_ruralOrTown * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.TOWN), false);
