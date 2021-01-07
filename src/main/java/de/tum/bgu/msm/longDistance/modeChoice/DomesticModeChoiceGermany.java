@@ -112,6 +112,7 @@ public class DomesticModeChoiceGermany {
             impedance = cost / (vot) + time;
             attr.put("cost_"+ m.toString(), (float) cost);
             attr.put("time_" + m.toString(), (float) time);
+
         }
         trip.setAdditionalAttributes(attr);
 
@@ -134,6 +135,8 @@ public class DomesticModeChoiceGermany {
         double b_veryLowStatus = mcGermany.getStringIndexedValueAt("isVeryLowEconomicStatus", column);
         double b_impedance = mcGermany.getStringIndexedValueAt("impedance", column);
         double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
+
+        attr.put("impedance_" + m.toString(), (float) Math.exp(alpha_impedance * impedance));
 
         utility = b_intercept +
                 b_female * Boolean.compare(pers.isFemale(), false) +

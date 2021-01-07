@@ -138,6 +138,10 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",utility_" + ModeGermany.getMode(1)+
                 ",utility_" + ModeGermany.getMode(2)+
                 ",utility_" + ModeGermany.getMode(3)+
+                ",impedance_" + ModeGermany.getMode(0)+
+                ",impedance_" + ModeGermany.getMode(1)+
+                ",impedance_" + ModeGermany.getMode(2)+
+                ",impedance_" + ModeGermany.getMode(3)+
                 ",cost_" + ModeGermany.getMode(0)+
                 ",cost_" + ModeGermany.getMode(1)+
                 ",cost_" + ModeGermany.getMode(2)+
@@ -181,6 +185,10 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("impedance_auto")
+                    + "," + tr.getAdditionalAttributes().get("impedance_air")
+                    + "," + tr.getAdditionalAttributes().get("impedance_rail")
+                    + "," + tr.getAdditionalAttributes().get("impedance_bus")
                     + "," + tr.getAdditionalAttributes().get("cost_auto")
                     + "," + tr.getAdditionalAttributes().get("cost_air")
                     + "," + tr.getAdditionalAttributes().get("cost_rail")
