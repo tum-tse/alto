@@ -83,7 +83,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         double[] probabilities = Arrays.stream(expUtilities).map(u -> u / probability_denominator).toArray();
 
         //choose one destination, weighted at random by the probabilities
-        return Util.select(probabilities, alternatives);
+        return Util.selectGermany(probabilities, alternatives);
         //return new EnumeratedIntegerDistribution(alternatives, probabilities).sample();
 
     }

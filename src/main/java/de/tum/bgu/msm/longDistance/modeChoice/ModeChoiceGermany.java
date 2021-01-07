@@ -41,11 +41,19 @@ public class ModeChoiceGermany implements ModeChoice {
     public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Mode Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach(t -> {
-            if (!((LongDistanceTripGermany)t).isInternational()) {
-                //domestic mode choice for synthetic persons in Ontario
-                Mode mode = mcDomesticModel.selectModeDomestic(t);
-                ((LongDistanceTripGermany)t).setMode(mode);
-                ((LongDistanceTripGermany)t).setTravelTime(mcDomesticModel.getDomesticModalTravelTime(t));
+            if (!((LongDistanceTripGermany)t).isInternational() ) {
+                if (!((LongDistanceTripGermany)t).getTripState().equals(TypeGermany.AWAY)) {
+                //domestic mode choice for synthetic persons in Germany
+                    Mode mode = mcDomesticModel.selectModeDomestic(t);
+                    ((LongDistanceTripGermany)t).setMode(mode);
+                    ((LongDistanceTripGermany)t).setTravelTime(mcDomesticModel.getDomesticModalTravelTime(t));
+                } else {
+                    //for trips away we do not assign any mode because they are not travelling that they.
+                    //to avoid issues on the pie chart generation, we assign now auto mode to all
+                    Mode mode = ModeGermany.AUTO;
+                    ((LongDistanceTripGermany)t).setMode(mode);
+                    ((LongDistanceTripGermany)t).setTravelTime(mcDomesticModel.getDomesticModalTravelTime(t));
+                }
                 // international mode choice
             } /*else if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTCANADA)) {
                 //residents

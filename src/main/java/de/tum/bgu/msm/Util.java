@@ -228,6 +228,36 @@ public class Util {
         return id[probabilities.length - 1];
     }
 
+    //select method to avoid randomization of enumIntegerDistr object
+    public static Object selectGermany(double[] probabilities, Object[] id) {
+        // select item based on probabilities (for zero-based float array)
+        double selPos = Arrays.stream(probabilities).sum() * LDModelGermany.rand.nextFloat();
+        double sum = 0;
+        for (int i = 0; i < probabilities.length; i++) {
+            sum += probabilities[i];
+            if (sum > selPos) {
+                //return i;
+                return id[i];
+            }
+        }
+        return id[probabilities.length - 1];
+    }
+
+    public static int selectGermany(double[] probabilities, int[] id) {
+        // select item based on probabilities (for zero-based float array)
+        double selPos = Arrays.stream(probabilities).sum() * LDModelGermany.rand.nextFloat();
+        double sum = 0;
+        for (int i = 0; i < probabilities.length; i++) {
+            sum += probabilities[i];
+            if (sum > selPos) {
+                //return i;
+                return id[i];
+            }
+        }
+        return id[probabilities.length - 1];
+    }
+
+
 
     public static boolean isPowerOfFour(int number){
         double pow = Math.pow(number, 0.25);

@@ -43,6 +43,7 @@ public class PersonGermany implements Person {
     private boolean isStudent;
     private boolean isEmployed;
     private boolean driversLicense;
+    private boolean isBelow18;
     private boolean isBetween18and39;
     private boolean isBetween40and59;
     private boolean isOver60;
@@ -62,6 +63,7 @@ public class PersonGermany implements Person {
         this.isMale = gender == Gender.MALE ? true : false;
         this.isEmployed = occupation == OccupationStatus.WORKER? true : false;
         this.isStudent = occupation ==  OccupationStatus.STUDENT ? true : false;
+        this.isBelow18 = age < 17 ? true : false;
         this.isBetween18and39 = age < 40 && age > 17 ? true : false;
         this.isBetween40and59 = age < 60 && age > 39 ? true : false;
         this.isOver60 = age > 59 ? true : false;
@@ -165,5 +167,9 @@ public class PersonGermany implements Person {
 
     public boolean isOver60() {
         return isOver60;
+    }
+
+    public boolean isBelow18() {
+        return isBelow18;
     }
 }

@@ -21,8 +21,14 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
- * Created by carlloga on 15.03.2017.
+ * Germany wide travel demand model
+ * Class to select the mode of travel of long distance trips
+ * Author: Ana Moreno, Technical University of Munich (TUM), ana.moreno@tum.de
+ * Date: 7 January 2021
+ * Version 1
+ * Adapted from Mode Choice Model from Carlos.
  */
+
 public class DomesticModeChoiceGermany {
     private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
 
@@ -83,7 +89,7 @@ public class DomesticModeChoiceGermany {
         }
         ((LongDistanceTripGermany) t).setAdditionalAttributes(attributes);
         //choose one destination, weighted at random by the probabilities
-        return (Mode) Util.select(expUtilities, ModeGermany.values());
+        return (Mode) Util.selectGermany(expUtilities, ModeGermany.values());
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
 
     }
@@ -94,7 +100,8 @@ public class DomesticModeChoiceGermany {
 
         double utility;
         String tripPurpose = trip.getTripPurpose().toString().toLowerCase();
-        String column = m.toString() + "." + tripPurpose;
+        String tripState = trip.getTripState().toString().toLowerCase();
+        String column = m.toString() + "." + tripPurpose+ "." + tripState;
 
         //zone-related variables
         int origin = trip.getOrigZone().getId();
@@ -104,55 +111,62 @@ public class DomesticModeChoiceGermany {
         double impedance = 0;
         double vot = mcGermany.getStringIndexedValueAt("vot", column);
         double time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
-        if (vot != 0) {
-            double distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
-            double cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
-                    Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()) )
-                    * distance;
-            impedance = cost / (vot) + time;
-            attr.put("cost_"+ m.toString(), (float) cost);
-            attr.put("time_" + m.toString(), (float) time);
+        if (time < 1000000000 / 3600){
+            if (vot != 0) {
+                double distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
+                double cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
+                        Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()) )
+                        * distance;
+                impedance = cost / (vot) + time;
+                attr.put("cost_"+ m.toString(), (float) cost);
+                attr.put("time_" + m.toString(), (float) time);
 
+            }
+            trip.setAdditionalAttributes(attr);
+
+
+            //person-related variables
+            PersonGermany pers = trip.getTraveller();
+            HouseholdGermany hh = pers.getHousehold();
+
+            //getCoefficients
+            double b_intercept = mcGermany.getStringIndexedValueAt("intercept", column);
+            double b_male = mcGermany.getStringIndexedValueAt("isMale", column);
+            double b_employed = mcGermany.getStringIndexedValueAt("isEmployed", column);
+            double b_hhSize1 = mcGermany.getStringIndexedValueAt("isHhSize1", column);
+            double b_hhSize2 = mcGermany.getStringIndexedValueAt("isHhSize2", column);
+            double b_hhSize3 = mcGermany.getStringIndexedValueAt("isHhSize3", column);
+            double b_hhSize4 = mcGermany.getStringIndexedValueAt("isHhSize4+", column);
+            double b_below18 = mcGermany.getStringIndexedValueAt("isBelow18", column);
+            double b_between18and39 = mcGermany.getStringIndexedValueAt("isBetween18and39", column);
+            double b_between40and59 = mcGermany.getStringIndexedValueAt("isBetween40and59", column);
+            double b_over60 = mcGermany.getStringIndexedValueAt("isOver60", column);
+            double b_lowEconomicStatus = mcGermany.getStringIndexedValueAt("isLowEconomicStatus", column);
+            double b_veryLowStatus = mcGermany.getStringIndexedValueAt("isVeryLowEconomicStatus", column);
+            double b_impedance = mcGermany.getStringIndexedValueAt("impedance", column);
+            double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
+
+            double impedance_exp = Math.exp(alpha_impedance * impedance);
+            attr.put("impedance_" + m.toString(), (float) impedance_exp);
+
+            utility = b_intercept +
+                    b_male * Boolean.compare(pers.isMale(), false) +
+                    b_employed * Boolean.compare(pers.isEmployed(), false) +
+                    b_hhSize1 * Boolean.compare(hh.getHhSize() == 1, false) +
+                    b_hhSize2 * Boolean.compare(hh.getHhSize() == 2, false) +
+                    b_hhSize3 * Boolean.compare(hh.getHhSize() == 3, false) +
+                    b_hhSize4 * Boolean.compare(hh.getHhSize() > 3, false) +
+                    b_below18 * Boolean.compare(pers.isBelow18(), false) +
+                    b_between18and39 * Boolean.compare(pers.isBetween18and39(), false) +
+                    b_between40and59 * Boolean.compare(pers.isBetween40and59(), false) +
+                    b_over60 * Boolean.compare(pers.isOver60(), false) + +
+                    b_veryLowStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYLOW), false) +
+                    b_lowEconomicStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.LOW), false) +
+                    b_impedance * Math.exp(alpha_impedance * impedance);
+
+        } else {
+            utility = Double.NEGATIVE_INFINITY;
         }
-        trip.setAdditionalAttributes(attr);
-
-
-        //person-related variables
-        PersonGermany pers = trip.getTraveller();
-        HouseholdGermany hh = pers.getHousehold();
-
-        //getCoefficients
-        double b_intercept = mcGermany.getStringIndexedValueAt("intercept", column);
-        double b_female = - mcGermany.getStringIndexedValueAt("isMale", column);
-        double b_employed = mcGermany.getStringIndexedValueAt("isEmployed", column);
-        double b_hhSize2 = mcGermany.getStringIndexedValueAt("isHhSize2", column);
-        double b_hhSize3 = mcGermany.getStringIndexedValueAt("isHhSize3", column);
-        double b_hhSize4 = mcGermany.getStringIndexedValueAt("isHhSize4+", column);
-        double b_between18and39 = mcGermany.getStringIndexedValueAt("isBetween18and39", column);
-        double b_between40and59 = mcGermany.getStringIndexedValueAt("isBetween40and59", column);
-        double b_over60 = mcGermany.getStringIndexedValueAt("isOver60", column);
-        double b_lowEconomicStatus = mcGermany.getStringIndexedValueAt("isLowEconomicStatus", column);
-        double b_veryLowStatus = mcGermany.getStringIndexedValueAt("isVeryLowEconomicStatus", column);
-        double b_impedance = mcGermany.getStringIndexedValueAt("impedance", column);
-        double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
-
-        attr.put("impedance_" + m.toString(), (float) Math.exp(alpha_impedance * impedance));
-
-        utility = b_intercept +
-                b_female * Boolean.compare(pers.isFemale(), false) +
-                b_employed * Boolean.compare(pers.isEmployed(), false) +
-                b_hhSize2 * Boolean.compare(hh.getHhSize() == 2, false) +
-                b_hhSize3 * Boolean.compare(hh.getHhSize() == 3, false) +
-                b_hhSize4 * Boolean.compare(hh.getHhSize() > 3, false) +
-                b_between18and39 * Boolean.compare(pers.isBetween18and39(), false) +
-                b_between40and59 * Boolean.compare(pers.isBetween40and59(), false) +
-                b_over60 * Boolean.compare(pers.isOver60(), false) + +
-                b_veryLowStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYLOW), false) +
-                b_lowEconomicStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.LOW), false) +
-                b_impedance * Math.exp(alpha_impedance * impedance);
-
-
-        if (time < 0) utility = Double.NEGATIVE_INFINITY;
 
         return utility;
 
