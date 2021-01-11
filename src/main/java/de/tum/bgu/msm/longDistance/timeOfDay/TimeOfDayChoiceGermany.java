@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.timeOfDay;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.LDModelGermany;
 import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
@@ -66,16 +67,16 @@ public class TimeOfDayChoiceGermany implements TimeOfDayChoice {
         LongDistanceTripGermany trip = (LongDistanceTripGermany) tripToCast;
         if( trip.getTripState().equals(TypeOntario.AWAY)){
             //daytrip
-            trip.setDepartureTimeInHours(Util.select(multiply(probabilities.get("departure." + mode + "." + purpose),correctionFactorDayTripOutbound), departureTimesInHours));
-            trip.setDepartureTimeInHoursSecondSegment(Util.select(multiply(probabilities.get("departure." + mode + "." + purpose),correctionFactorDayTripInbound), departureTimesInHours));
+            trip.setDepartureTimeInHours(Util.selectGermany(multiply(probabilities.get("departure." + mode + "." + purpose),correctionFactorDayTripOutbound), departureTimesInHours));
+            trip.setDepartureTimeInHoursSecondSegment(Util.selectGermany(multiply(probabilities.get("departure." + mode + "." + purpose),correctionFactorDayTripInbound), departureTimesInHours));
 
         } else {
             //overnight trip inbound or outbound
-            if (LDModelOntario.rand.nextBoolean()) {
-                trip.setDepartureTimeInHours(Util.select(probabilities.get("departure." + mode + "." + purpose), departureTimesInHours));
+            if (LDModelGermany.rand.nextBoolean()) {
+                trip.setDepartureTimeInHours(Util.selectGermany(probabilities.get("departure." + mode + "." + purpose), departureTimesInHours));
                 trip.setReturnOvernightTrip(false);
             } else {
-                int arrivalTime = Util.select(probabilities.get("arrival." + mode + "." + purpose), departureTimesInHours) - Math.round(trip.getTravelTime())/60;
+                int arrivalTime = Util.selectGermany(probabilities.get("arrival." + mode + "." + purpose), departureTimesInHours) - Math.round(trip.getTravelTime())/60;
                 trip.setDepartureTimeInHours(arrivalTime);
                 trip.setReturnOvernightTrip(true);
             }

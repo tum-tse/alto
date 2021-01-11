@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.io.reader;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.LDModelGermany;
 import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.sp.*;
@@ -118,7 +119,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
 
                 ZoneGermany zone = (ZoneGermany) zoneLookup.get(taz);
 
-                if (LDModelOntario.rand.nextDouble() < scaleFactor) {
+                if (LDModelGermany.rand.nextDouble() < scaleFactor) {
                     Household hh = new HouseholdGermany(id, taz, hhAutos, zone);
                     ((HouseholdGermany) hh).setHhAutos(hhAutos);
                     householdMap.put(id, hh);
