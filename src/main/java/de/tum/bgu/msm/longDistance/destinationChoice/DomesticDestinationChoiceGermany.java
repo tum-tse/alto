@@ -31,7 +31,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
     private TableDataSet coefficients;
     protected Matrix autoDist;
     private boolean calibration;
-    private Map<Purpose, Double> domDcCalibrationV;
+    private Map<Purpose, Map<Type, Double>> domDcCalibration;
     private int[] destinations;
     private DataSet dataSet;
 
@@ -45,7 +45,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         scaleFactor = JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
         calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
-        this.domDcCalibrationV = new HashMap<>();
+        this.domDcCalibration = new HashMap<>();
 
         logger.info("Domestic DC set up");
 
@@ -134,6 +134,23 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         return u;
     }
 
+    public Map<Purpose, Map<Type, Double>> getDomesticDcCalibration() {
+        return domDcCalibration;
+    }
 
+    public void updateDomesticDcCalibration(Map<Purpose, Map<Type, Double>> b_calibrationVector) {
+
+        for (Purpose purpose : PurposeGermany.values()){
+            for (Type tripState : TypeGermany.values()){
+                double newValue = domDcCalibration.get(purpose).get(tripState) * b_calibrationVector.get(purpose).get(tripState);
+                domDcCalibration.get(purpose).put(tripState, newValue);
+            }
+        }
+    }
+
+    @Deprecated
+    public Matrix getAutoDist() {
+        return autoDist;
+    }
 }
 

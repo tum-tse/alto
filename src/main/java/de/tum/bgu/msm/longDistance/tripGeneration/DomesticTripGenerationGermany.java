@@ -9,6 +9,7 @@ import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.sp.*;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.AreaTypeGermany;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -36,6 +37,8 @@ public class DomesticTripGenerationGermany {
 
     private AtomicInteger atomicInteger = new AtomicInteger(0);
 
+    private boolean calibration;
+    private Map<Purpose, Map<Type, Double>> calibrationMatrix;
 
 
     public DomesticTripGenerationGermany(JSONObject prop, String inputFolder, String outputFolder) {
@@ -46,6 +49,7 @@ public class DomesticTripGenerationGermany {
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
         tripGenerationCoefficients.buildStringIndex(tripGenerationCoefficients.getColumnPosition("factorName"));
 
+        calibration = JsonUtilMto.getBooleanProp(prop,"trip_generation.calibration");
 
     }
 
@@ -140,6 +144,7 @@ public class DomesticTripGenerationGermany {
         //read coefficients
         String coefficientColumn = tripState + "." + tripPurpose;
 
+        double k_calibration = tripGenerationCoefficients.getStringIndexedValueAt("k_calibration", coefficientColumn);
         double intercept = tripGenerationCoefficients.getStringIndexedValueAt("(intercept)", coefficientColumn);
         double b_autos = tripGenerationCoefficients.getStringIndexedValueAt("autos", coefficientColumn);
         double b_econStMedium = tripGenerationCoefficients.getStringIndexedValueAt("economicStatusMedium", coefficientColumn);
@@ -157,6 +162,8 @@ public class DomesticTripGenerationGermany {
 
         HouseholdGermany hh = pers.getHousehold();
 
+        if (calibration) k_calibration = calibrationMatrix.get(tripPurpose).get(tripState);
+
         return intercept +
                 b_autos * hh.getHhAutos() +
                 b_econStMedium * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.MEDIUM), false) +
@@ -171,11 +178,10 @@ public class DomesticTripGenerationGermany {
                 b_distanceLog * Math.log10(hh.getZone().getTimeToLongDistanceRail() / 60) + //convert travel time in minutes
                 b_midSizeCity * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.MEDIUM_SIZED_CITY), false) +
                 b_ruralOrTown * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.RURAL), false) +
-                b_ruralOrTown * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.TOWN), false);
-
+                b_ruralOrTown * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.TOWN), false)+
+                k_calibration;
 
     }
-
 
     private LongDistanceTripGermany createLongDistanceTrip(PersonGermany pers, Purpose tripPurpose, Type tripState) {
 
@@ -192,10 +198,18 @@ public class DomesticTripGenerationGermany {
 
     }
 
+    public void updateDomesticTgCalibration(Map<Purpose, Map<Type, Double>> updatedMatrix) {
+
+        for(Purpose purpose : PurposeGermany.values()){
+            for (Type tripState : TypeGermany.values()){
+                double newValue = this.calibrationMatrix.get(purpose).get(tripState) + updatedMatrix.get(purpose).get(tripState);
+                calibrationMatrix.get(purpose).put(tripState, newValue);
+            }
+        }
+    }
+
+    public Map<Purpose, Map<Type, Double>> getDomesticTgCalibrationMatrix() {
+        return calibrationMatrix;
+    }
 
 }
-
-
-
-
-

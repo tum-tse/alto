@@ -10,7 +10,6 @@ import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
 import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -34,9 +33,7 @@ public class DomesticModeChoiceGermany {
     private TableDataSet costsPerKm;
 
     private boolean calibration;
-    private Map<Purpose, Map<Mode, Double>> calibrationMatrix;
-    private Map<Purpose, Map<Mode, Double>> calibrationMatrixVisitors;
-
+    private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationMatrix;
 
     public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
         this.rb = rb;
@@ -169,6 +166,22 @@ public class DomesticModeChoiceGermany {
             Mode mode = trip.getMode();
             return dataSet.getTravelTimeMatrix().get(mode).getValueAt(origin, destination);
         }
+    }
+
+    public void updateDomesticMcCalibration(Map<Purpose, Map<Type, Map<Mode, Double>>> updatedMatrix) {
+
+        for(Purpose purpose : PurposeGermany.values()){
+            for (Type tripState : TypeGermany.values()){
+                for (Mode mode : ModeGermany.values()){
+                    double newValue = this.calibrationMatrix.get(purpose).get(tripState).get(mode) + updatedMatrix.get(purpose).get(tripState).get(mode);
+                    calibrationMatrix.get(purpose).get(tripState).put(mode, newValue);
+                }
+            }
+        }
+    }
+
+    public Map<Purpose, Map<Type,  Map<Mode, Double>>> getCalibrationMatrix() {
+        return calibrationMatrix;
     }
 
 }
