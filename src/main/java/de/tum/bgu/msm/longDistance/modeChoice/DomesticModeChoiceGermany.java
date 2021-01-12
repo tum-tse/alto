@@ -39,7 +39,7 @@ public class DomesticModeChoiceGermany {
     private TableDataSet costsPerKm;
 
     private boolean calibration;
-    private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationMatrix;
+    private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
 
     public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
         this.rb = rb;
@@ -57,6 +57,15 @@ public class DomesticModeChoiceGermany {
 
     public void loadDomesticModeChoice(DataSet dataSet){
         this.dataSet = dataSet;
+        for(Purpose purpose : PurposeGermany.values()){
+            this.calibrationDomesticMcMatrix.put(purpose, new HashMap<>());
+            for (Type tripState : TypeGermany.values()){
+                this.calibrationDomesticMcMatrix.get(purpose).put(tripState,new HashMap<>());
+                for (Mode mode : ModeGermany.values()){
+                    this.calibrationDomesticMcMatrix.get(purpose).get(tripState).putIfAbsent(mode, .0);
+                }
+            }
+        }
         logger.info("Domestic MC loaded");
     }
 
@@ -142,9 +151,12 @@ public class DomesticModeChoiceGermany {
             double b_veryLowStatus = mcGermany.getStringIndexedValueAt("isVeryLowEconomicStatus", column);
             double b_impedance = mcGermany.getStringIndexedValueAt("impedance", column);
             double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
+            double k_calibration = mcGermany.getStringIndexedValueAt("k_calibration", column);
 
             double impedance_exp = Math.exp(alpha_impedance * impedance);
             attr.put("impedance_" + m.toString(), (float) impedance_exp);
+
+            if (calibration) k_calibration = k_calibration + calibrationDomesticMcMatrix.get(tripPurpose).get(tripState).get(m);
 
             utility = b_intercept +
                     b_male * Boolean.compare(pers.isMale(), false) +
@@ -159,7 +171,9 @@ public class DomesticModeChoiceGermany {
                     b_over60 * Boolean.compare(pers.isOver60(), false) + +
                     b_veryLowStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYLOW), false) +
                     b_lowEconomicStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.LOW), false) +
-                    b_impedance * Math.exp(alpha_impedance * impedance);
+                    b_impedance * Math.exp(alpha_impedance * impedance) +
+                    k_calibration
+            ;
 
         } else {
             utility = Double.NEGATIVE_INFINITY;
@@ -187,15 +201,17 @@ public class DomesticModeChoiceGermany {
         for(Purpose purpose : PurposeGermany.values()){
             for (Type tripState : TypeGermany.values()){
                 for (Mode mode : ModeGermany.values()){
-                    double newValue = this.calibrationMatrix.get(purpose).get(tripState).get(mode) + updatedMatrix.get(purpose).get(tripState).get(mode);
-                    calibrationMatrix.get(purpose).get(tripState).put(mode, newValue);
+                    double newValue = this.calibrationDomesticMcMatrix.get(purpose).get(tripState).get(mode) + updatedMatrix.get(purpose).get(tripState).get(mode);
+                    this.calibrationDomesticMcMatrix.get(purpose).get(tripState).put(mode, newValue);
+                    System.out.println("k-factor: " + purpose + "\t" + tripState + "\t" + mode + "\t" + calibrationDomesticMcMatrix.get(purpose).get(tripState).get(mode));
+
                 }
             }
         }
     }
 
     public Map<Purpose, Map<Type,  Map<Mode, Double>>> getCalibrationMatrix() {
-        return calibrationMatrix;
+        return calibrationDomesticMcMatrix;
     }
 
 }

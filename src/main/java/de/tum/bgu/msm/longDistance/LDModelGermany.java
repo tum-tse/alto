@@ -42,6 +42,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
     private OutputWriter outputWriter;
     private EconomicStatusReader economicStatusReader;
     private Emissions emissions;
+    private CalibrationGermany calibrationGermany;
 
     public LDModelGermany(ZoneReader zoneReader, SkimsReader skimsReader,
                           SyntheticPopulationReader syntheticPopulationReader,
@@ -51,7 +52,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
                           ModeChoice mcModel,
                           TimeOfDayChoice timeOfDayChoice,
                           Emissions emissions,
-                          OutputWriter outputWriter) {
+                          OutputWriter outputWriter, CalibrationGermany calibrationGermany) {
         this.zoneReader = zoneReader;
         this.skimsReader = skimsReader;
         this.syntheticPopulationReader = syntheticPopulationReader;
@@ -62,6 +63,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
         this.timeOfDayChoice = timeOfDayChoice;
         this.emissions = emissions;
         this.outputWriter = outputWriter;
+        this.calibrationGermany = calibrationGermany;
     }
 
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
@@ -80,6 +82,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
         timeOfDayChoice.setup(prop, inputFolder, outputFolder);
         emissions.setup(prop, inputFolder, outputFolder);
         outputWriter.setup(prop, inputFolder, outputFolder);
+        calibrationGermany.setup(prop, inputFolder, outputFolder);
         logger.info("---------------------ALL MODULES SET UP---------------------");
     }
 
@@ -92,6 +95,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
         mcModel.load(dataSet);
         destinationChoice.load(dataSet);
         tripGenModel.load(dataSet);
+        calibrationGermany.load(dataSet);
         emissions.load(dataSet);
         outputWriter.load(dataSet);
         logger.info("---------------------ALL MODULES LOADED---------------------");
@@ -106,6 +110,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
         destinationChoice.run(dataSet, -1);
         mcModel.run(dataSet, -1);
         //timeOfDayChoice.run(dataSet, -1);
+        calibrationGermany.run(dataSet,-1);
         emissions.run(dataSet, -1);
         outputWriter.run(dataSet, -1);
         //print outputs

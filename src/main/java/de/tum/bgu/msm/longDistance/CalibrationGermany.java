@@ -10,6 +10,7 @@ import de.tum.bgu.msm.longDistance.destinationChoice.*;
 import de.tum.bgu.msm.longDistance.modeChoice.*;
 import de.tum.bgu.msm.longDistance.tripGeneration.DomesticTripGenerationGermany;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationGermany;
+import ncsa.hdf.object.Dataset;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -27,6 +28,10 @@ public class CalibrationGermany implements ModelComponent {
     private boolean calibrationMC;
     private boolean holiday;
 
+    private JSONObject prop;
+    String inputFolder;
+    String outputFolder;
+
     private int maxIter;
 
     private TripGenerationGermany tgM;
@@ -40,7 +45,7 @@ public class CalibrationGermany implements ModelComponent {
 
     static Logger logger = Logger.getLogger(CalibrationGermany.class);
 
-    private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
+    private ArrayList<LongDistanceTripGermany> allTrips = new ArrayList<>();
     private Map<Integer, Zone> zonesMap;
     private Matrix distanceByAuto;
 
@@ -62,11 +67,14 @@ public class CalibrationGermany implements ModelComponent {
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
+        this.prop = prop;
+        this.inputFolder =  JsonUtilMto.getStringProp(prop, "work_folder");
+        this.outputFolder = inputFolder + "output/" +  JsonUtilMto.getStringProp(prop, "scenario") + "/";
         calibrationTG = JsonUtilMto.getBooleanProp(prop, "trip_generation.calibration");
         calibrationDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
         calibrationMC = JsonUtilMto.getBooleanProp(prop, "mode_choice.calibration");
         holiday = JsonUtilMto.getBooleanProp(prop, "holiday");
-        maxIter = 50;
+        maxIter = 100;
 
     }
 
@@ -96,11 +104,18 @@ public class CalibrationGermany implements ModelComponent {
         Map<DcModelName, Map<Purpose, Map<Type, Double>>> calibrationMatrixDc;
         Map<McModelName, Map<Purpose, Map<Type, Map<Mode, Double>>>> calibrationMatrixMc;
 
+        tgDomesticModel = new DomesticTripGenerationGermany(prop, inputFolder, outputFolder);
+        tgDomesticModel.load(dataSet);
+
+        dcDomesticModel = new DomesticDestinationChoiceGermany(prop, inputFolder);
+        dcDomesticModel.load(dataSet);
+
         for (int iteration = 0; iteration < maxIter; iteration++) {
 
             if (tg){
                 logger.info("Calibration of trip generation: Iteration = " + iteration);
-                calibrationMatrixTg = calculateTGCalibrationFactors(allTrips);
+                int totalPopulation = dataSet.getPersons().size();
+                calibrationMatrixTg = calculateTGCalibrationFactors(allTrips, totalPopulation);
                 tgDomesticModel.updateDomesticTgCalibration(calibrationMatrixTg.get(TgModelName.residenceTg));
                 runTg();
             }
@@ -122,10 +137,10 @@ public class CalibrationGermany implements ModelComponent {
         printOutCalibrationResults(tgDomesticModel, dcDomesticModel, mcDomesticModel);
     }
 
-    public Map<TgModelName, Map<Purpose, Map<Type, Double>>> calculateTGCalibrationFactors(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<TgModelName, Map<Purpose, Map<Type, Double>>> calculateTGCalibrationFactors(ArrayList<LongDistanceTripGermany> allTrips, int totalPopulation) {
 
         Map<TgModelName, Map<Purpose, Map<Type, Double>>> calibrationMatrix = new HashMap<>();
-        Map<TgModelName, Map<Purpose, Map<Type, Double>>> simulatedTripStateShares = getAverageTripStateShares(allTrips);
+        Map<TgModelName, Map<Purpose, Map<Type, Double>>> simulatedTripStateShares = getAverageTripStateShares(allTrips, totalPopulation);
         Map<TgModelName, Map<Purpose, Map<Type, Double>>> surveyShares = new HashMap<>();
 
         double stepFactor = 1;
@@ -173,7 +188,7 @@ public class CalibrationGermany implements ModelComponent {
                 for (Type tripState : TypeGermany.values()) {
                     double observedShare = surveyShares.get(name).get(purpose).get(tripState);
                     double simulatedShare = simulatedTripStateShares.get(name).get(purpose).get(tripState);
-                    double factor = stepFactor * (simulatedShare - observedShare);
+                    double factor = stepFactor * (observedShare - simulatedShare); //obtain a negative value if simulation larger than observation
                     calibrationMatrix.get(name).get(purpose).putIfAbsent(tripState, factor);
                     logger.info(name + "\t" + purpose + " \t" + tripState + "\t" + factor);
                 }
@@ -182,7 +197,7 @@ public class CalibrationGermany implements ModelComponent {
         return calibrationMatrix;
     }
 
-    public Map<TgModelName, Map<Purpose, Map<Type, Double>>> getAverageTripStateShares(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<TgModelName, Map<Purpose, Map<Type, Double>>> getAverageTripStateShares(ArrayList<LongDistanceTripGermany> allTrips, int totalPopulation) {
 
         Map<TgModelName, Map<Purpose, Map<Type, Double>>> countsByTripState = new HashMap<>();
 
@@ -212,12 +227,8 @@ public class CalibrationGermany implements ModelComponent {
             tripStateShares.putIfAbsent(name, new HashMap<>());
             for (Purpose purpose : PurposeGermany.values()) {
                 tripStateShares.get(name).put(purpose, new HashMap<>());
-                double total = 0;
                 for (Type tripState : TypeGermany.values()) {
-                    total += countsByTripState.get(name).get(purpose).get(tripState);
-                }
-                for (Type tripState : TypeGermany.values()) {
-                    double tripStateShare = countsByTripState.get(name).get(purpose).get(tripState) / total;
+                    double tripStateShare = countsByTripState.get(name).get(purpose).get(tripState) / totalPopulation;
                     tripStateShares.get(name).get(purpose).put(tripState, tripStateShare);
                     logger.info(name + "\t" + purpose + " \t" + tripState + "\t" + tripStateShare);
                 }
@@ -231,12 +242,12 @@ public class CalibrationGermany implements ModelComponent {
         countsByTripState.get(name).get(t.getTripPurpose()).put(t.getTripState(), currentCount + 1);
     }
 
-    private void runTg() {
+    private void  runTg() {
         logger.info("Running Trip Generation Model for " + allTrips.size() + " trips during model calibration");
-        tgDomesticModel.run();
+        this.allTrips = tgDomesticModel.runCalibration();
     }
 
-    public Map<DcModelName, Map<Purpose, Map<Type, Double>>> calculateDCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<DcModelName, Map<Purpose, Map<Type, Double>>> calculateDCCalibrationFactors(ArrayList<LongDistanceTripGermany> allTrips) {
 
         Map<DcModelName, Map<Purpose, Map<Type, Double>>> averageDistances = getAverageTripDistances(allTrips);
         Map<DcModelName, Map<Purpose, Map<Type, Double>>> calibrationMatrix = new HashMap<>();
@@ -254,17 +265,17 @@ public class CalibrationGermany implements ModelComponent {
             }
         }
 
-        calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.BUSINESS).put(TypeGermany.DAYTRIP, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP) / 179.78 - 1) * stepFactor + 1); //domestic visit
-        calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.LEISURE).put(TypeGermany.DAYTRIP, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP) / 176.09 - 1) * stepFactor + 1); //domestic visit
+        calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.PRIVATE).put(TypeGermany.AWAY, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY) / 204.94 - 1) * stepFactor + 1); //domestic visit
         calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.PRIVATE).put(TypeGermany.DAYTRIP, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP) / 204.94 - 1) * stepFactor + 1); //domestic visit
-
-        calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.BUSINESS).put(TypeGermany.OVERNIGHT, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT) / 258.21 - 1) * stepFactor + 1); //domestic visit
-        calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.LEISURE).put(TypeGermany.OVERNIGHT, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT) / 229.18 - 1) * stepFactor + 1); //domestic visit
         calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.PRIVATE).put(TypeGermany.OVERNIGHT, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT) / 226.69 - 1) * stepFactor + 1); //domestic visit
 
         calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.BUSINESS).put(TypeGermany.AWAY, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY) / 179.78 - 1) * stepFactor + 1); //domestic visit
+        calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.BUSINESS).put(TypeGermany.DAYTRIP, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP) / 179.78 - 1) * stepFactor + 1); //domestic visit
+        calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.BUSINESS).put(TypeGermany.OVERNIGHT, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT) / 258.21 - 1) * stepFactor + 1); //domestic visit
+
         calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.LEISURE).put(TypeGermany.AWAY, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY) / 176.09 - 1) * stepFactor + 1); //domestic visit
-        calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.PRIVATE).put(TypeGermany.AWAY, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY) / 204.94 - 1) * stepFactor + 1); //domestic visit
+        calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.LEISURE).put(TypeGermany.DAYTRIP, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP) / 176.09 - 1) * stepFactor + 1); //domestic visit
+        calibrationMatrix.get(DcModelName.domesticDc).get(PurposeGermany.LEISURE).put(TypeGermany.OVERNIGHT, (averageDistances.get(DcModelName.domesticDc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT) / 229.18 - 1) * stepFactor + 1); //domestic visit
 
         logger.info("Destination choice average calibration coefficients");
         logger.info("model" + "\t" + "purpose" + "\t" + "coefficient");
@@ -278,7 +289,7 @@ public class CalibrationGermany implements ModelComponent {
         return calibrationMatrix;
     }
 
-    public Map<DcModelName, Map<Purpose, Map<Type, Double>>> getAverageTripDistances(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<DcModelName, Map<Purpose, Map<Type, Double>>> getAverageTripDistances(ArrayList<LongDistanceTripGermany> allTrips) {
 
         Map<DcModelName, Map<Purpose, Map<Type, Double>>> averageDistances = new HashMap<>();
         Map<DcModelName, Map<Purpose, Map<Type, Double>>> counts = new HashMap<>();
@@ -329,7 +340,7 @@ public class CalibrationGermany implements ModelComponent {
         LongDistanceTripGermany t = tripToCast;
         double previousDistance = averageDistances.get(name).get(t.getTripPurpose()).get(t.getTripState());
         double previousCount = counts.get(name).get(t.getTripPurpose()).get(t.getTripState());
-        averageDistances.get(name).get(t.getTripPurpose()).put(t.getTripState(), previousDistance + t.getTravelDistance());
+        averageDistances.get(name).get(t.getTripPurpose()).put(t.getTripState(), previousDistance + t.getTravelDistance()/1000);
         counts.get(name).get(t.getTripPurpose()).put(t.getTripState(), previousCount + 1);
     }
 
@@ -357,7 +368,7 @@ public class CalibrationGermany implements ModelComponent {
         });
     }
 
-    public Map<McModelName, Map<Purpose, Map<Type, Map<Mode, Double>>>> calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<McModelName, Map<Purpose, Map<Type, Map<Mode, Double>>>> calculateMCCalibrationFactors(ArrayList<LongDistanceTripGermany> allTrips) {
 
         Map<McModelName, Map<Purpose, Map<Type, Map<Mode, Double>>>> calibrationMatrix = new HashMap<>();
 
@@ -374,54 +385,54 @@ public class CalibrationGermany implements ModelComponent {
 
         surveyShares.get(type).putIfAbsent(PurposeGermany.BUSINESS, new HashMap<>());
         surveyShares.get(type).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.90);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.05);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.03);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.02);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.8991);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.0004);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.0234);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.0771);
         surveyShares.get(type).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.90);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.05);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.03);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.02);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.8289);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.0146);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.0114);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.1451);
         surveyShares.get(type).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 0.90);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.05);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.03);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.02);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 0.8991);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.0004);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.0234);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.0771);
 
         surveyShares.get(type).putIfAbsent(PurposeGermany.LEISURE, new HashMap<>());
         surveyShares.get(type).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.90);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.05);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.03);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.02);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.9135);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.0001);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.0417);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.0447);
         surveyShares.get(type).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.90);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.05);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.03);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.02);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.9080);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.0043);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.0254);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.0623);
         surveyShares.get(type).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 0.90);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.05);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.03);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.02);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 0.9135);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.0001);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.0417);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.0447);
 
         surveyShares.get(type).putIfAbsent(PurposeGermany.PRIVATE, new HashMap<>());
         surveyShares.get(type).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.90);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.05);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.03);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.02);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.9348);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.0004);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.0440);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.0208);
         surveyShares.get(type).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.90);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.05);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.03);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.02);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.0033);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.8897);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.0926);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.0144);
         surveyShares.get(type).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 0.90);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.05);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.03);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.02);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 0.9348);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.0004);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.0440);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.0208);
 
         logger.info("Mode choice calibration factors");
         logger.info("model" + "\t" + "purpose" + " \t" + "mode" + "\t" + "factor");
@@ -435,7 +446,7 @@ public class CalibrationGermany implements ModelComponent {
                     for (Mode mode : ModeGermany.values()) {
                         double observedShare = surveyShares.get(name).get(purpose).get(tripState).get(mode);
                         double simulatedShare = simulatedModalShares.get(name).get(purpose).get(tripState).get(mode);
-                        double factor = stepFactor * (simulatedShare - observedShare);
+                        double factor = stepFactor * (observedShare - simulatedShare);
                         calibrationMatrix.get(name).get(purpose).get(tripState).putIfAbsent(mode, factor);
                         logger.info(name + "\t" + purpose + " \t" + mode + "\t" + factor);
                     }
@@ -445,7 +456,7 @@ public class CalibrationGermany implements ModelComponent {
         return calibrationMatrix;
     }
 
-    public Map<McModelName, Map<Purpose, Map<Type, Map<Mode, Double>>>> getAverageModalShares(ArrayList<LongDistanceTrip> allTrips) {
+    public Map<McModelName, Map<Purpose, Map<Type, Map<Mode, Double>>>> getAverageModalShares(ArrayList<LongDistanceTripGermany> allTrips) {
 
         Map<McModelName, Map<Purpose, Map<Type, Map<Mode, Double>>>> countsByMode = new HashMap<>();
 

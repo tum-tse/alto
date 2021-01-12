@@ -37,8 +37,8 @@ public class DomesticTripGenerationGermany {
 
     private AtomicInteger atomicInteger = new AtomicInteger(0);
 
-    private boolean calibration;
-    private Map<Purpose, Map<Type, Double>> calibrationMatrix;
+    private boolean calibrationTG;
+    private Map<Purpose, Map<Type, Double>> calibrationTgMatrix;
 
 
     public DomesticTripGenerationGermany(JSONObject prop, String inputFolder, String outputFolder) {
@@ -49,15 +49,22 @@ public class DomesticTripGenerationGermany {
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
         tripGenerationCoefficients.buildStringIndex(tripGenerationCoefficients.getColumnPosition("factorName"));
 
-        calibration = JsonUtilMto.getBooleanProp(prop,"trip_generation.calibration");
+        calibrationTG = JsonUtilMto.getBooleanProp(prop,"trip_generation.calibration");
 
     }
-
-
 
     public void load(DataSet dataSet){
 
         this.dataSet = dataSet;
+
+        this.calibrationTgMatrix = new HashMap<>();
+        for(Purpose purpose : PurposeGermany.values()){
+            this.calibrationTgMatrix.put(purpose, new HashMap<>());
+            for (Type tripState : TypeGermany.values()){
+                this.calibrationTgMatrix.get(purpose).putIfAbsent(tripState, .0);
+            }
+        }
+        logger.info("Domestic TG loaded");
     }
 
 
@@ -90,7 +97,7 @@ public class DomesticTripGenerationGermany {
 
                         for (Type tripState : TypeGermany.values()) {
                             //expUtilities[tripStates.indexOf(tripState)] = Math.exp(estimateMlogitUtility(personDescription, tripPurpose, tripState, tripGenerationCoefficients));
-                            expUtilities.put(tripState, Math.exp(calculateUtility(pers, tripPurpose.toString(), tripState.toString())));
+                            expUtilities.put(tripState, Math.exp(calculateUtility(pers, tripPurpose, tripState)));
                         }
 
                         double denominator = expUtilities.values().stream().mapToDouble(Double::doubleValue).sum() + doNotTravelExpUtility;
@@ -135,14 +142,78 @@ public class DomesticTripGenerationGermany {
         return trips;
     }
 
-    public double calculateUtility(PersonGermany pers, String tripPurpose, String tripState) {
+    public ArrayList<LongDistanceTripGermany> runCalibration() {
+        ArrayList<LongDistanceTripGermany> trips = new ArrayList<>();
+
+        //initialize utility vectors
+        Map<Type, Double> expUtilities = new HashMap<>();
+        double doNotTravelExpUtility = 1; //base case - or do not travel
+
+        //this option may give randomness to the results
+        //synPop.getHouseholds().forEach(hhold -> {
+        for (Household hhold : dataSet.getHouseholds().values()) {
+
+            //pick and shuffle the members of the household
+            ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(((HouseholdGermany) hhold).getPersonsOfThisHousehold()));
+            Collections.shuffle(membersList, LDModelGermany.rand);
+
+            for (Person person : membersList) {
+                //array to store 3 x 3 trip probabilities for later use in international
+                PersonGermany pers = (PersonGermany) person;
+                Map<Purpose, Map<Type ,Double>> tgProbabilities = new HashMap<>();
+
+                for (Purpose tripPurpose : PurposeGermany.values()) {
+                    tgProbabilities.put(tripPurpose, new HashMap<>());
+                    for (Type tripState : TypeGermany.values()) {
+                        //expUtilities[tripStates.indexOf(tripState)] = Math.exp(estimateMlogitUtility(personDescription, tripPurpose, tripState, tripGenerationCoefficients));
+                        expUtilities.put(tripState, Math.exp(calculateUtility(pers, tripPurpose, tripState)));
+                    }
+
+                    double denominator = expUtilities.values().stream().mapToDouble(Double::doubleValue).sum() + doNotTravelExpUtility;
+                    Map<Type, Double> probabilities = new HashMap<>();
+                    expUtilities.forEach((x,y)-> probabilities.put(x,y/denominator));
+
+
+                    //store the probability for later int trips
+                    for (Type tripState : TypeGermany.values()) {
+                        tgProbabilities.get(tripPurpose).put(tripState, probabilities.get(tripState));
+                    }
+                    //select the trip state
+                    double randomNumber1 = LDModelGermany.rand.nextDouble();
+                    int tripStateChoice = 3;
+                    Type tripState = null;
+
+                    if (randomNumber1 < probabilities.get(TypeGermany.AWAY)) {
+                        tripState = TypeGermany.AWAY;
+                        pers.setAway(true);
+                    } else if (randomNumber1 < probabilities.get(TypeGermany.AWAY) + probabilities.get(TypeGermany.DAYTRIP)) {
+                        tripState = TypeGermany.DAYTRIP;
+                        pers.setDaytrip(true);
+                    } else if (randomNumber1 < probabilities.get(TypeGermany.AWAY) + probabilities.get(TypeGermany.DAYTRIP) + probabilities.get(TypeGermany.OVERNIGHT)) {
+                        tripState = TypeGermany.OVERNIGHT;
+                        pers.setInOutTrip(true);
+                    }
+                    if (tripState != null) {
+                        LongDistanceTripGermany trip = createLongDistanceTrip(pers, tripPurpose, tripState);
+                        trips.add(trip);
+                        //tripCount++;
+                    }
+                }
+                //assign probabilities to the person
+                pers.setTravelProbabilities(tgProbabilities);
+            }
+        }
+        return trips;
+    }
+
+    public double calculateUtility(PersonGermany pers, Purpose tripPurpose, Type tripState) {
 
 
         int holiday = JsonUtilMto.getBooleanProp(prop, "holiday" )? 1:0;
 
 
         //read coefficients
-        String coefficientColumn = tripState + "." + tripPurpose;
+        String coefficientColumn = tripState.toString() + "." + tripPurpose.toString();
 
         double k_calibration = tripGenerationCoefficients.getStringIndexedValueAt("k_calibration", coefficientColumn);
         double intercept = tripGenerationCoefficients.getStringIndexedValueAt("(intercept)", coefficientColumn);
@@ -162,7 +233,8 @@ public class DomesticTripGenerationGermany {
 
         HouseholdGermany hh = pers.getHousehold();
 
-        if (calibration) k_calibration = calibrationMatrix.get(tripPurpose).get(tripState);
+        if (calibrationTG) k_calibration = k_calibration + calibrationTgMatrix.get(tripPurpose).get(tripState);
+        //System.out.println("k-factor: " + tripPurpose + "\t" + tripState + "\t" + k_calibration);
 
         return intercept +
                 b_autos * hh.getHhAutos() +
@@ -202,14 +274,15 @@ public class DomesticTripGenerationGermany {
 
         for(Purpose purpose : PurposeGermany.values()){
             for (Type tripState : TypeGermany.values()){
-                double newValue = this.calibrationMatrix.get(purpose).get(tripState) + updatedMatrix.get(purpose).get(tripState);
-                calibrationMatrix.get(purpose).put(tripState, newValue);
+                double newValue = this.calibrationTgMatrix.get(purpose).get(tripState) + updatedMatrix.get(purpose).get(tripState);
+                this.calibrationTgMatrix.get(purpose).put(tripState, newValue);
+                System.out.println("k-factor: " + purpose + "\t" + tripState + "\t" + calibrationTgMatrix.get(purpose).get(tripState));
             }
         }
     }
 
     public Map<Purpose, Map<Type, Double>> getDomesticTgCalibrationMatrix() {
-        return calibrationMatrix;
+        return calibrationTgMatrix;
     }
 
 }
