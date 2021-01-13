@@ -13,4 +13,15 @@ public enum Gender {
             throw new RuntimeException("Undefined gender code given!");
         }
     }
+
+    public int codeOf() {
+        Gender g = this;
+        if(g.equals(Gender.MALE)) {
+            return 1;
+        } else if(g.equals(Gender.FEMALE)) {
+            return 2;
+        } else {
+            throw new RuntimeException("Undefined gender code given!");
+        }
+    }
 }

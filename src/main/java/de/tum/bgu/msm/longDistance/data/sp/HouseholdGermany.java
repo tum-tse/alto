@@ -1,5 +1,7 @@
 package de.tum.bgu.msm.longDistance.data.sp;
 
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
+import de.tum.bgu.msm.longDistance.data.trips.ModeGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
 import org.apache.log4j.Logger;
@@ -118,5 +120,21 @@ public class HouseholdGermany implements Household {
             }
         }
         return childrenHh;
+    }
+
+    public static String getHeader() {
+        //return "id,hhid,age,gender,relationShip,occupation,driversLicense,workplace,income"
+        return "id,zone,hhSize,autos";
+    }
+
+    public String toString() {
+        HouseholdGermany hh = this;
+        String str = null;
+        str = (hh.getId()
+                + "," + hh.getZone().getId()
+                + "," + hh.getHhSize()
+                + "," + hh.getHhAutos()
+                );
+        return str;
     }
 }

@@ -188,7 +188,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             logger.fatal("recCount = " + recCount + ", recString = <" + recString + ">");
         }
         logger.info("  Finished reading " + recCount + " persons.");
-        logger.info("  The popualtion has " + personMap.size() + " persons in " + householdMap.size() + " households");
+        logger.info("  The population has " + personMap.size() + " persons in " + householdMap.size() + " households");
 
         return personMap;
     }

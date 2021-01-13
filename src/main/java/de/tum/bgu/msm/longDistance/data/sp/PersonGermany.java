@@ -31,6 +31,8 @@ public class PersonGermany implements Person {
     private boolean  isDaytrip = false ;
     private boolean  isInOutTrip = false;
 
+    private OccupationStatus occupation;
+
     private Map<Purpose, Map<Type, Double>> travelProbabilities = null;
 // rows 1 to 3: away, daytrip, inOutTrip, home
 // columns 1 to 3: visit, business, leisure
@@ -67,6 +69,7 @@ public class PersonGermany implements Person {
         this.isBetween18and39 = age < 40 && age > 17 ? true : false;
         this.isBetween40and59 = age < 60 && age > 39 ? true : false;
         this.isOver60 = age > 59 ? true : false;
+        this.occupation = occupation;
     }
 
 
@@ -171,5 +174,27 @@ public class PersonGermany implements Person {
 
     public boolean isBelow18() {
         return isBelow18;
+    }
+
+    public OccupationStatus getOccupation() {
+        return occupation;
+    }
+
+    public static String getHeader() {
+        return "id,hhid,age,gender,occupation,driversLicense,income";
+    }
+
+    public String toString() {
+        PersonGermany pp = this;
+        String str = null;
+        str = (pp.getPersonId()
+                + "," + pp.getHousehold().getId()
+                + "," + pp.getAge()
+                + "," + pp.getGender().codeOf()
+                + "," + pp.getOccupation().codeOf()
+                + "," + pp.isDriversLicense()
+                + "," + pp.getIncome()
+        );
+        return str;
     }
 }
