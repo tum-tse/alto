@@ -49,7 +49,7 @@ public class DomesticModeChoiceGermany {
         costsPerKm = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"mode_choice.costPerKm_file"));
         costsPerKm.buildStringIndex(2);
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration");
-
+        calibrationDomesticMcMatrix = new HashMap<>();
         logger.info("Domestic MC set up");
 
     }
@@ -177,7 +177,9 @@ public class DomesticModeChoiceGermany {
                     b_lowEconomicStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.LOW), false) +
                     b_highStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.HIGH), false) +
                     b_veryHighStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYHIGH), false) +
-                    b_impedance * Math.exp(alpha_impedance * impedance);
+                    b_impedance * Math.exp(alpha_impedance * impedance) +
+                    k_calibration
+            ;
 
         } else {
             utility = Double.NEGATIVE_INFINITY;

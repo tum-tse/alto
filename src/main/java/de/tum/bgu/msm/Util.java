@@ -1,5 +1,6 @@
 package de.tum.bgu.msm;
 
+import com.pb.common.datafile.CSVFileWriter;
 import com.pb.common.datafile.TableDataFileReader;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
@@ -270,7 +271,17 @@ public class Util {
     }
 
 
-
+    public static void writeTableDataSet (TableDataSet data, String fileName) {
+        try {
+            CSVFileWriter cfwWriter = new CSVFileWriter();
+            cfwWriter.writeFile(data, new File(fileName));
+            cfwWriter.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            logger.error("Could not write TableDataSet to file " + fileName + ".");
+        }
+    }
 
 
 
