@@ -73,28 +73,35 @@ public class DomesticModeChoiceGermany {
 
     public Mode selectModeDomestic(LongDistanceTrip t) {
         LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
-        double[] expUtilities;
+        double[] expUtilities = new double[ModeGermany.values().length];
         Map<String, Float> attributes = new HashMap<>();
-
-        //calculate exp(Ui) for each destination
-        expUtilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> Math.exp(calculateUtilityFromGermany(trip, m))).toArray();
-
-        double probability_denominator = Arrays.stream(expUtilities).sum();
-
-        attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
-        //if there is no access by any mode for the selected OD pair, just go by car
-        if (probability_denominator == 0) {
+        if (trip.getTripState().equals(TypeGermany.AWAY)) {
             expUtilities[0] = 1;
-            for (int mode = 0; mode < expUtilities.length; mode++){
-                attributes.put("utility_" + ModeGermany.getMode(mode), (float) expUtilities[mode]);
-            }
+            expUtilities[1] = 0;
+            expUtilities[2] = 0;
+            expUtilities[3] = 0;
         } else {
-            for (int mode = 0; mode < expUtilities.length; mode++){
-                attributes.put("utility_" + ModeGermany.getMode(mode), (float) (expUtilities[mode]/probability_denominator));
+
+            //calculate exp(Ui) for each destination
+            expUtilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> Math.exp(calculateUtilityFromGermany(trip, m))).toArray();
+
+            double probability_denominator = Arrays.stream(expUtilities).sum();
+
+            attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
+            //if there is no access by any mode for the selected OD pair, just go by car
+            if (probability_denominator == 0) {
+                expUtilities[0] = 1;
+                for (int mode = 0; mode < expUtilities.length; mode++) {
+                    attributes.put("utility_" + ModeGermany.getMode(mode), (float) expUtilities[mode]);
+                }
+            } else {
+                for (int mode = 0; mode < expUtilities.length; mode++) {
+                    attributes.put("utility_" + ModeGermany.getMode(mode), (float) (expUtilities[mode] / probability_denominator));
+                }
             }
+            ((LongDistanceTripGermany) t).setAdditionalAttributes(attributes);
+            //choose one destination, weighted at random by the probabilities
         }
-        ((LongDistanceTripGermany) t).setAdditionalAttributes(attributes);
-        //choose one destination, weighted at random by the probabilities
         return (Mode) Util.selectGermany(expUtilities, ModeGermany.values());
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
 
@@ -159,7 +166,7 @@ public class DomesticModeChoiceGermany {
             double impedance_exp = Math.exp(alpha_impedance * impedance);
             attr.put("impedance_" + m.toString(), (float) impedance_exp);
 
-            if (calibration) k_calibration = k_calibration + calibrationDomesticMcMatrix.get(tripPurpose).get(tripState).get(m);
+            if (calibration) k_calibration = k_calibration + calibrationDomesticMcMatrix.get(trip.getTripPurpose()).get(trip.getTripState()).get(m);
 
             utility = b_intercept +
                     b_male * Boolean.compare(pers.isMale(), false) +

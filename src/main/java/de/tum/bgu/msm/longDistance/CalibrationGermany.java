@@ -61,8 +61,8 @@ public class CalibrationGermany implements ModelComponent {
     }
 
     enum McModelName {
-        domesticMc, internationalMc
-    }
+        domesticMc
+    }//internationalMc
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
@@ -110,6 +110,9 @@ public class CalibrationGermany implements ModelComponent {
         dcDomesticModel = new DomesticDestinationChoiceGermany(prop, inputFolder);
         dcDomesticModel.load(dataSet);
 
+        mcDomesticModel = new DomesticModeChoiceGermany(prop, inputFolder);
+        mcDomesticModel.loadDomesticModeChoice(dataSet);
+
         for (int iteration = 0; iteration < maxIter; iteration++) {
 
             if (tg){
@@ -130,7 +133,8 @@ public class CalibrationGermany implements ModelComponent {
             if (mc){
                 logger.info("Calibration of mode choice: Iteration = " + iteration);
                 calibrationMatrixMc = calculateMCCalibrationFactors(allTrips);
-                mcDomesticModel.updateDomesticMcCalibration(calibrationMatrixMc.get(McModelName.domesticMc));
+                Map<Purpose, Map<Type, Map<Mode, Double>>> updatedMatrix = calibrationMatrixMc.get(McModelName.domesticMc);
+                mcDomesticModel.updateDomesticMcCalibration(updatedMatrix);
                 runMc();
             }
         }
@@ -395,10 +399,10 @@ public class CalibrationGermany implements ModelComponent {
         surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.0114);
         surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.1451);
         surveyShares.get(type).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 0.8991);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.0004);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.0234);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.0771);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
+        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
 
         surveyShares.get(type).putIfAbsent(PurposeGermany.LEISURE, new HashMap<>());
         surveyShares.get(type).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
@@ -412,10 +416,10 @@ public class CalibrationGermany implements ModelComponent {
         surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.0254);
         surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.0623);
         surveyShares.get(type).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 0.9135);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.0001);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.0417);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.0447);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
+        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
 
         surveyShares.get(type).putIfAbsent(PurposeGermany.PRIVATE, new HashMap<>());
         surveyShares.get(type).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
@@ -424,15 +428,15 @@ public class CalibrationGermany implements ModelComponent {
         surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.0440);
         surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.0208);
         surveyShares.get(type).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.0033);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.8897);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.0926);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.0144);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.8897);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.0033);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.0144);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.0926);
         surveyShares.get(type).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 0.9348);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.0004);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.0440);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.0208);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
+        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
 
         logger.info("Mode choice calibration factors");
         logger.info("model" + "\t" + "purpose" + " \t" + "mode" + "\t" + "factor");
