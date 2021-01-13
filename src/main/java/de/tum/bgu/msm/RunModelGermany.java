@@ -4,7 +4,7 @@ import de.tum.bgu.msm.longDistance.LDModelGermany;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoiceGermany;
 import de.tum.bgu.msm.longDistance.emissions.Emissions;
-import de.tum.bgu.msm.longDistance.io.OutputWriterGermany;
+import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermany;
 import de.tum.bgu.msm.longDistance.io.reader.*;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermany;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoiceGermany;

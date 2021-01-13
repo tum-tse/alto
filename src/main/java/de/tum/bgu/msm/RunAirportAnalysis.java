@@ -3,7 +3,7 @@ package de.tum.bgu.msm;
 import de.tum.bgu.msm.longDistance.AirportAnalysisModel;
 import de.tum.bgu.msm.longDistance.airportAnalysis.AirportAnalysis;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.io.OutputWriterOntario;
+import de.tum.bgu.msm.longDistance.io.writer.OutputWriterOntario;
 import de.tum.bgu.msm.longDistance.io.reader.*;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;

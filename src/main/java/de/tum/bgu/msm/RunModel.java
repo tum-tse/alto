@@ -5,7 +5,7 @@ import de.tum.bgu.msm.longDistance.LDModelOntario;
 
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoiceOntario;
 import de.tum.bgu.msm.longDistance.destinationChoice.ZoneDisaggregatorOntario;
-import de.tum.bgu.msm.longDistance.io.OutputWriterOntario;
+import de.tum.bgu.msm.longDistance.io.writer.OutputWriterOntario;
 import de.tum.bgu.msm.longDistance.io.reader.SkimsReaderOntario;
 import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReaderOntario;
 import de.tum.bgu.msm.longDistance.io.reader.ZoneReaderOntario;
@@ -59,8 +59,6 @@ public class RunModel {
         DataSet dataSet = new DataSet();
         String inputFolder =  JsonUtilMto.getStringProp(prop, "work_folder");
         String outputFolder = JsonUtilMto.getStringProp(prop, "work_folder");
-
-
 
         LDModelOntario ldModelOntario = new LDModelOntario(new ZoneReaderOntario(), new SkimsReaderOntario(), new SyntheticPopulationReaderOntario(),
                 new TripGenerationOntario(), new DestinationChoiceOntario(), new ModeChoiceOntario(), new ZoneDisaggregatorOntario(),

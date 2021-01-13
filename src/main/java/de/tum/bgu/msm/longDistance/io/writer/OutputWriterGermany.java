@@ -1,21 +1,16 @@
-package de.tum.bgu.msm.longDistance.io;
+package de.tum.bgu.msm.longDistance.io.writer;
 
-import com.google.common.collect.SortedMultiset;
 import com.google.common.collect.TreeMultiset;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.io.writer.charts.Histogram;
 import de.tum.bgu.msm.longDistance.io.writer.charts.PieChart;
-import de.tum.bgu.msm.longDistance.io.writer.charts.ScatterPlot;
 import org.json.simple.JSONObject;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
-import com.google.common.math.Stats;
-import org.locationtech.jts.geom.Geometry;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;

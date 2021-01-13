@@ -2,7 +2,7 @@ package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoice;
-import de.tum.bgu.msm.longDistance.io.OutputWriter;
+import de.tum.bgu.msm.longDistance.io.writer.OutputWriter;
 import de.tum.bgu.msm.longDistance.io.reader.*;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoice;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoice;
