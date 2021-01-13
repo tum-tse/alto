@@ -1,12 +1,11 @@
 package de.tum.bgu.msm.longDistance.io.reader;
 
+import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.data.trips.Mode;
-import de.tum.bgu.msm.longDistance.data.trips.ModeGermany;
-import de.tum.bgu.msm.longDistance.data.trips.ModeOntario;
+import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import omx.OmxFile;
 import omx.OmxLookup;
@@ -16,6 +15,8 @@ import omx.hdf5.OmxHdf5Datatype;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
+import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,6 +48,7 @@ public class SkimsReaderGermany implements SkimsReader {
     private Map<Mode, String> travelTimeFileNames = new HashMap<>();
     private Map<Mode, String> accessTimeFileNames = new HashMap<>();
     private Map<Mode, String> egressTimeFileNames = new HashMap<>();
+    private Map<Mode, String> inVehTimeFileNames = new HashMap<>();
     private Map<Mode, String> distanceFileNames = new HashMap<>();
     private String lookUpName;
     private String matrixName;
@@ -78,6 +80,7 @@ public class SkimsReaderGermany implements SkimsReader {
             if (m.equals(ModeGermany.BUS )){
                 accessTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_access"));
                 egressTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_egress"));
+                inVehTimeFileNames.put(m,inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_inVehProp"));
             }
         }
         lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
@@ -213,7 +216,7 @@ public class SkimsReaderGermany implements SkimsReader {
     }
 
     private Matrix addAccessAndEgress(Matrix travelTime, Mode m) {
-        if (ModeGermany.RAIL.equals(m) || ModeGermany.BUS.equals(m)) {
+        if (ModeGermany.BUS.equals(m)) {
             OmxFile skimA = new OmxFile(accessTimeFileNames.get(m));
             skimA.openReadOnly();
             OmxMatrix omxMatrixA = skimA.getMatrix(matrixName);
@@ -222,12 +225,55 @@ public class SkimsReaderGermany implements SkimsReader {
             skimE.openReadOnly();
             OmxMatrix omxMatrixE = skimE.getMatrix(matrixName);
             Matrix egress = Util.convertOmxToMatrix(omxMatrixE);
+            OmxFile skimInVehProp = new OmxFile(inVehTimeFileNames.get(m));
+            skimInVehProp.openReadOnly();
+            OmxMatrix omxMatrixInVehProp = skimInVehProp.getMatrix(matrixName);
+            Matrix inVeh = Util.convertOmxToMatrix(omxMatrixInVehProp);
             for (int zoneId : dataSet.getZones().keySet()) {
                 for (int zoneDestination : dataSet.getZones().keySet()) {
-                    float travelTimeAll = travelTime.getValueAt(zoneId, zoneDestination) +
-                            access.getValueAt(zoneId, zoneDestination) +
-                            egress.getValueAt(zoneId, zoneDestination);
-                    travelTime.setValueAt(zoneId, zoneDestination, travelTimeAll);
+                    if (zoneId == 11) {
+                        travelTime.setValueAt(zoneId, zoneDestination, 1000000000);
+                    } else {
+                        float inVehicleTravelTime = travelTime.getValueAt(zoneId, zoneDestination);
+                        if (inVeh.getValueAt(zoneId, zoneDestination) == 0) {
+                            travelTime.setValueAt(zoneId, zoneDestination, 1000000000);
+                        } else {
+                            float travelTimeAll = inVehicleTravelTime +
+                                    access.getValueAt(zoneId, zoneDestination) +
+                                    egress.getValueAt(zoneId, zoneDestination);
+                            travelTime.setValueAt(zoneId, zoneDestination, travelTimeAll);
+                        }
+                    }
+                }
+            }
+            TableDataSet midTrips = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.mid_trips_file"));
+            midTrips = addFloatColumnToTableDataSet(midTrips, "bus_total_travel_time_s");
+            for (int row = 1; row <= midTrips.getRowCount(); row++){
+                int origin = (int) midTrips.getValueAt(row, "TAZ_id_O");
+                int destination = (int) midTrips.getValueAt(row, "TAZ_id_D");
+                float time = travelTime.getValueAt(origin, destination);
+                midTrips.setValueAt(row, "bus_total_travel_time_s", time );
+            }
+            Util.writeTableDataSet(midTrips, outputFolder+"mid_trips_bus.csv");
+        }
+        if (ModeGermany.RAIL.equals(m)) {
+            OmxFile skimA = new OmxFile(accessTimeFileNames.get(m));
+            skimA.openReadOnly();
+            OmxMatrix omxMatrixA = skimA.getMatrix(matrixName);
+            Matrix access = Util.convertOmxToMatrix(omxMatrixA);
+            OmxFile skimE = new OmxFile(egressTimeFileNames.get(m));
+            skimE.openReadOnly();
+            OmxMatrix omxMatrixE = skimE.getMatrix(matrixName);
+            Matrix egress = Util.convertOmxToMatrix(omxMatrixE);
+
+            for (int zoneId : dataSet.getZones().keySet()) {
+                for (int zoneDestination : dataSet.getZones().keySet()) {
+                        float inVehicleTravelTime = travelTime.getValueAt(zoneId, zoneDestination);
+                        float travelTimeAll = inVehicleTravelTime +
+                                access.getValueAt(zoneId, zoneDestination) +
+                                egress.getValueAt(zoneId, zoneDestination);
+                        travelTime.setValueAt(zoneId, zoneDestination, travelTimeAll);
+
                 }
             }
         }
@@ -309,5 +355,12 @@ public class SkimsReaderGermany implements SkimsReader {
             }
         }
 
+    }
+
+    private static TableDataSet addFloatColumnToTableDataSet(TableDataSet table, String label){
+        float[] anArray = new float[table.getRowCount()];
+        Arrays.fill(anArray, 0f);
+        table.appendColumn(anArray,label);
+        return table;
     }
 }
