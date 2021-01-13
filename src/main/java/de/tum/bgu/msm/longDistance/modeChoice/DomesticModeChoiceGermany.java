@@ -10,7 +10,6 @@ import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
 import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -40,9 +39,7 @@ public class DomesticModeChoiceGermany {
     private TableDataSet costsPerKm;
 
     private boolean calibration;
-    private Map<Purpose, Map<Mode, Double>> calibrationMatrix;
-    private Map<Purpose, Map<Mode, Double>> calibrationMatrixVisitors;
-
+    private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
 
     public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
         this.rb = rb;
@@ -60,6 +57,15 @@ public class DomesticModeChoiceGermany {
 
     public void loadDomesticModeChoice(DataSet dataSet){
         this.dataSet = dataSet;
+        for(Purpose purpose : PurposeGermany.values()){
+            this.calibrationDomesticMcMatrix.put(purpose, new HashMap<>());
+            for (Type tripState : TypeGermany.values()){
+                this.calibrationDomesticMcMatrix.get(purpose).put(tripState,new HashMap<>());
+                for (Mode mode : ModeGermany.values()){
+                    this.calibrationDomesticMcMatrix.get(purpose).get(tripState).putIfAbsent(mode, .0);
+                }
+            }
+        }
         logger.info("Domestic MC loaded");
     }
 
@@ -148,9 +154,12 @@ public class DomesticModeChoiceGermany {
             double b_veryHighStatus = mcGermany.getStringIndexedValueAt("isVeryHighEconomicStatus", column);
             double b_impedance = mcGermany.getStringIndexedValueAt("impedance", column);
             double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
+            double k_calibration = mcGermany.getStringIndexedValueAt("k_calibration", column);
 
             double impedance_exp = Math.exp(alpha_impedance * impedance);
             attr.put("impedance_" + m.toString(), (float) impedance_exp);
+
+            if (calibration) k_calibration = k_calibration + calibrationDomesticMcMatrix.get(tripPurpose).get(tripState).get(m);
 
             utility = b_intercept +
                     b_male * Boolean.compare(pers.isMale(), false) +
@@ -189,6 +198,24 @@ public class DomesticModeChoiceGermany {
             Mode mode = trip.getMode();
             return dataSet.getTravelTimeMatrix().get(mode).getValueAt(origin, destination);
         }
+    }
+
+    public void updateDomesticMcCalibration(Map<Purpose, Map<Type, Map<Mode, Double>>> updatedMatrix) {
+
+        for(Purpose purpose : PurposeGermany.values()){
+            for (Type tripState : TypeGermany.values()){
+                for (Mode mode : ModeGermany.values()){
+                    double newValue = this.calibrationDomesticMcMatrix.get(purpose).get(tripState).get(mode) + updatedMatrix.get(purpose).get(tripState).get(mode);
+                    this.calibrationDomesticMcMatrix.get(purpose).get(tripState).put(mode, newValue);
+                    System.out.println("k-factor: " + purpose + "\t" + tripState + "\t" + mode + "\t" + calibrationDomesticMcMatrix.get(purpose).get(tripState).get(mode));
+
+                }
+            }
+        }
+    }
+
+    public Map<Purpose, Map<Type,  Map<Mode, Double>>> getCalibrationMatrix() {
+        return calibrationDomesticMcMatrix;
     }
 
 }
