@@ -133,6 +133,7 @@ public class DomesticModeChoiceGermany {
             double b_intercept = mcGermany.getStringIndexedValueAt("intercept", column);
             double b_male = mcGermany.getStringIndexedValueAt("isMale", column);
             double b_employed = mcGermany.getStringIndexedValueAt("isEmployed", column);
+            double b_student = mcGermany.getStringIndexedValueAt("isStudent", column);
             double b_hhSize1 = mcGermany.getStringIndexedValueAt("isHhSize1", column);
             double b_hhSize2 = mcGermany.getStringIndexedValueAt("isHhSize2", column);
             double b_hhSize3 = mcGermany.getStringIndexedValueAt("isHhSize3", column);
@@ -143,6 +144,8 @@ public class DomesticModeChoiceGermany {
             double b_over60 = mcGermany.getStringIndexedValueAt("isOver60", column);
             double b_lowEconomicStatus = mcGermany.getStringIndexedValueAt("isLowEconomicStatus", column);
             double b_veryLowStatus = mcGermany.getStringIndexedValueAt("isVeryLowEconomicStatus", column);
+            double b_highStatus = mcGermany.getStringIndexedValueAt("isHighEconomicStatus", column);
+            double b_veryHighStatus = mcGermany.getStringIndexedValueAt("isVeryHighEconomicStatus", column);
             double b_impedance = mcGermany.getStringIndexedValueAt("impedance", column);
             double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
 
@@ -152,6 +155,7 @@ public class DomesticModeChoiceGermany {
             utility = b_intercept +
                     b_male * Boolean.compare(pers.isMale(), false) +
                     b_employed * Boolean.compare(pers.isEmployed(), false) +
+                    b_student * Boolean.compare(pers.isStudent(), false) +
                     b_hhSize1 * Boolean.compare(hh.getHhSize() == 1, false) +
                     b_hhSize2 * Boolean.compare(hh.getHhSize() == 2, false) +
                     b_hhSize3 * Boolean.compare(hh.getHhSize() == 3, false) +
@@ -162,6 +166,8 @@ public class DomesticModeChoiceGermany {
                     b_over60 * Boolean.compare(pers.isOver60(), false) + +
                     b_veryLowStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYLOW), false) +
                     b_lowEconomicStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.LOW), false) +
+                    b_highStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.HIGH), false) +
+                    b_veryHighStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYHIGH), false) +
                     b_impedance * Math.exp(alpha_impedance * impedance);
 
         } else {
