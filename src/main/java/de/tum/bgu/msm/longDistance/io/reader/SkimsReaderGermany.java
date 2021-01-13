@@ -246,7 +246,7 @@ public class SkimsReaderGermany implements SkimsReader {
                     }
                 }
             }
-            TableDataSet midTrips = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.mid_trips_file"));
+/*            TableDataSet midTrips = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.mid_trips_file"));
             midTrips = addFloatColumnToTableDataSet(midTrips, "bus_total_travel_time_s");
             for (int row = 1; row <= midTrips.getRowCount(); row++){
                 int origin = (int) midTrips.getValueAt(row, "TAZ_id_O");
@@ -254,7 +254,7 @@ public class SkimsReaderGermany implements SkimsReader {
                 float time = travelTime.getValueAt(origin, destination);
                 midTrips.setValueAt(row, "bus_total_travel_time_s", time );
             }
-            Util.writeTableDataSet(midTrips, outputFolder+"mid_trips_bus.csv");
+            Util.writeTableDataSet(midTrips, outputFolder+"mid_trips_bus.csv");*/
         }
         if (ModeGermany.RAIL.equals(m)) {
             OmxFile skimA = new OmxFile(accessTimeFileNames.get(m));

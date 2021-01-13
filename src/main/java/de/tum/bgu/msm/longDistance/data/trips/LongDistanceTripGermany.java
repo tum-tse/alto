@@ -35,6 +35,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     private boolean returnOvernightTrip = false;
     private Map<Pollutant, Float> emissions = new HashMap<>();
     private Map<String, Float> additionalAttributes = new HashMap<>();
+    private int scenario;
 
     public LongDistanceTripGermany(int tripId, PersonGermany traveller, boolean international, Purpose tripPurpose, Type tripState, ZoneGermany origZone ) {
         this.tripId = tripId;
@@ -260,5 +261,13 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
 
     public void setEmissions(Map<Pollutant, Float>  emissions) {
         this.emissions = emissions;
+    }
+
+    public int getScenario() {
+        return scenario;
+    }
+
+    public void setScenario(int scenario) {
+        this.scenario = scenario;
     }
 }

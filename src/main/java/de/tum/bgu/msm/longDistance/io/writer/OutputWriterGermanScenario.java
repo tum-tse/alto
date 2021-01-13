@@ -1,6 +1,9 @@
 package de.tum.bgu.msm.longDistance.io.writer;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.TreeMultiset;
+import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
@@ -9,8 +12,6 @@ import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.io.writer.charts.Histogram;
 import de.tum.bgu.msm.longDistance.io.writer.charts.PieChart;
 import org.json.simple.JSONObject;
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static de.tum.bgu.msm.RunModelGermany.createDirectoryIfNotExistingYet;
 
 /**
  *
@@ -31,27 +34,23 @@ import java.util.stream.Collectors;
  *
  */
 
-public class OutputWriterGermany implements OutputWriter {
+public class OutputWriterGermanScenario implements OutputWriter {
 
 
     private DataSet dataSet;
     private String outputFile;
     private String outputFolder;
     private float increaseAirCost;
-    private boolean increaseCostScenario;
-    private boolean limitAirDistanceScenario;
-    private int airDistanceThreshold;
+    private float airDistanceThreshold;
     private String outputFileScenarioSettings;
+    int scenario;
+    private TableDataSet scenarios;
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolderInput) {
         outputFolder = outputFolderInput;
-        outputFile = outputFolder + JsonUtilMto.getStringProp(prop, "output.trip_file");
-        outputFileScenarioSettings = outputFolder + "scenarioSettings.csv";
-        increaseCostScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_increaseCost");
-        increaseAirCost = JsonUtilMto.getIntProp(prop,"scenarioPolicy.costIncreasePercentage");
-        limitAirDistanceScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_limitDistance");
-        airDistanceThreshold = JsonUtilMto.getIntProp(prop,"scenarioPolicy.distanceThreshold");
+        outputFile = JsonUtilMto.getStringProp(prop, "output.trip_file");
+        scenarios = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"scenarioPolicy.scenarios"));
     }
 
     @Override
@@ -61,7 +60,11 @@ public class OutputWriterGermany implements OutputWriter {
 
     @Override
     public void run(DataSet dataSet, int nThreads) {
-        PrintWriter pw = Util.openFileForSequentialWriting(outputFile, false);
+
+        int scenario = ((LongDistanceTripGermany)dataSet.getAllTrips().get(0)).getScenario();
+        String outputFolderScenario = outputFolder + "/" + scenarios.getStringValueAt(scenario, "scenario");
+        createDirectoryIfNotExistingYet(outputFolderScenario);
+        PrintWriter pw = Util.openFileForSequentialWriting(outputFolderScenario + "_" + outputFile, false);
         pw.println(LongDistanceTripGermany.getHeader());
         for (LongDistanceTrip tr : dataSet.getAllTrips()) {
             pw.println(tr.toString());
@@ -71,18 +74,21 @@ public class OutputWriterGermany implements OutputWriter {
             writeCharts(dataSet, purpose, outputFolder);
         }
         generatePieCharts();*/
-        PrintWriter pw1 = Util.openFileForSequentialWriting(outputFileScenarioSettings, false);
-        pw1.println("increaseCostScenario,costIncrease,limitDistanceScenario,distanceThreshold");
+        outputFileScenarioSettings = outputFolderScenario + "_scenarios.csv";
+        increaseAirCost = scenarios.getValueAt(scenario, "cost");
+        airDistanceThreshold = scenarios.getValueAt(scenario,"distance");
 
-        pw1.print(increaseCostScenario);
-        pw1.print(",");
+        PrintWriter pw1 = Util.openFileForSequentialWriting(outputFileScenarioSettings, false);
+        pw1.println("scenarioName,costIncrease,distanceThreshold");
+
         pw1.print(increaseAirCost);
         pw1.print(",");
-        pw1.print(limitAirDistanceScenario);
-        pw1.print(",");
         pw1.println(airDistanceThreshold);
-
         pw1.close();
+    }
+
+    public void setScenario(int scenario){
+        this.scenario = scenario;
     }
 
     private static void writeCharts(DataSet dataSet, PurposeGermany purpose, String outputFolder) {

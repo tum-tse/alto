@@ -27,7 +27,7 @@ import java.util.ResourceBundle;
  * Adapted from Mode Choice Model from Carlos.
  */
 
-public class DomesticModeChoiceGermany {
+public class DomesticModeChoiceGermanyScenario {
     private static Logger logger = Logger.getLogger(DomesticDestinationChoice.class);
 
     ResourceBundle rb;
@@ -40,7 +40,12 @@ public class DomesticModeChoiceGermany {
     private boolean calibration;
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
 
-    public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
+    private TableDataSet scenarioVariables;
+    private float increaseAirCost;
+    private float airDistanceThreshold;
+
+
+    public DomesticModeChoiceGermanyScenario(JSONObject prop, String inputFolder) {
         this.rb = rb;
 
         mcGermany = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"mode_choice.domestic.germany.coef_file"));
@@ -49,6 +54,8 @@ public class DomesticModeChoiceGermany {
         costsPerKm.buildStringIndex(2);
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration");
         calibrationDomesticMcMatrix = new HashMap<>();
+        scenarioVariables = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"scenarioPolicy.scenarios"));
+
         logger.info("Domestic MC set up");
 
     }
@@ -72,6 +79,11 @@ public class DomesticModeChoiceGermany {
 
     public Mode selectModeDomestic(LongDistanceTrip t) {
         LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
+
+        int scenario = trip.getScenario();
+        increaseAirCost = scenarioVariables.getValueAt(scenario,"cost");
+        airDistanceThreshold = scenarioVariables.getValueAt(scenario,"distance");
+
         double[] expUtilities = new double[ModeGermany.values().length];
         Map<String, Float> attributes = new HashMap<>();
         if (trip.getTripState().equals(TypeGermany.AWAY)) {
@@ -123,12 +135,15 @@ public class DomesticModeChoiceGermany {
         double impedance = 0;
         double vot = mcGermany.getStringIndexedValueAt("vot", column);
         double time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
+        double distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
         if (time < 1000000000 / 3600){
             if (vot != 0) {
-                double distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
                 double cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
                         Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()) )
                         * distance;
+                if (m.equals(ModeGermany.AIR)) {
+                    cost = cost * increaseAirCost;
+                }
                 impedance = cost / (vot) + time;
                 attr.put("cost_"+ m.toString(), (float) cost);
                 attr.put("time_" + m.toString(), (float) time);
@@ -186,6 +201,11 @@ public class DomesticModeChoiceGermany {
                     b_impedance * Math.exp(alpha_impedance * impedance) +
                     k_calibration
             ;
+            if (m.equals(ModeGermany.AIR)) {
+                if (distance < airDistanceThreshold) {
+                    utility = Double.NEGATIVE_INFINITY;
+                }
+            }
 
         } else {
             utility = Double.NEGATIVE_INFINITY;
