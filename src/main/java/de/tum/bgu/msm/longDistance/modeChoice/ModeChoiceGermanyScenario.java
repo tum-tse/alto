@@ -52,12 +52,14 @@ public class ModeChoiceGermanyScenario implements ModeChoice {
                     Mode mode = mcDomesticModel.selectModeDomestic(t);
                     ((LongDistanceTripGermany)t).setMode(mode);
                     ((LongDistanceTripGermany)t).setTravelTime(mcDomesticModel.getDomesticModalTravelTime(t));
+                    ((LongDistanceTripGermany)t).setDistanceByMode(mcDomesticModel.getDomesticModalDistance(t));
                 } else {
                     //for trips away we do not assign any mode because they are not travelling that they.
                     //to avoid issues on the pie chart generation, we assign now auto mode to all
                     Mode mode = ModeGermany.AUTO;
                     ((LongDistanceTripGermany)t).setMode(mode);
                     ((LongDistanceTripGermany)t).setTravelTime(mcDomesticModel.getDomesticModalTravelTime(t));
+                    ((LongDistanceTripGermany)t).setDistanceByMode(mcDomesticModel.getDomesticModalDistance(t));
                 }
                 // international mode choice
             } /*else if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO) || t.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTCANADA)) {

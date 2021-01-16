@@ -64,7 +64,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
                 ((LongDistanceTripGermany)t).setDestZoneType(ZoneTypeGermany.GERMANY);
                 ((LongDistanceTripGermany)t).setDestZone(zonesMap.get(destZoneId));
                 float distance = distanceByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
-                ((LongDistanceTripGermany)t).setTravelDistance(distance);
+                ((LongDistanceTripGermany)t).setAutoTravelDistance(distance);
             } else {
                 //TODO. Replace by the international destination choice model
 /*                if (t.getOrigZone().getZoneType() == ZoneTypeOntario.ONTARIO || t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTCANADA) {

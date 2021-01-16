@@ -28,7 +28,8 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     private ZoneTypeGermany destZoneType;
     private Zone destZone;
     private Mode travelMode;
-    private float travelDistance = -1;
+    private float autoTravelDistance = -1;
+    private float distanceByMode = -1;
     private float travelTime = -1;
     private int departureTimeInHours = -999;
     private int departureTimeInHoursSecondSegment = -999; //this is the return trip of daytrips
@@ -88,12 +89,20 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         this.destZone = destZone;
     }
 
-    public float getTravelDistance() {
-        return travelDistance;
+    public float getAutoTravelDistance() {
+        return autoTravelDistance;
     }
 
-    public void setTravelDistance(float travelDistance) {
-        this.travelDistance = travelDistance;
+    public void setAutoTravelDistance(float autoTravelDistance) {
+        this.autoTravelDistance = autoTravelDistance;
+    }
+
+    public float getDistanceByMode() {
+        return distanceByMode;
+    }
+
+    public void setDistanceByMode(float distanceByMode) {
+        this.distanceByMode = distanceByMode;
     }
 
     public int getDepartureTimeInHours() {
@@ -150,7 +159,11 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",time_" + ModeGermany.getMode(0)+
                 ",time_" + ModeGermany.getMode(1)+
                 ",time_" + ModeGermany.getMode(2)+
-                ",time_" + ModeGermany.getMode(3)
+                ",time_" + ModeGermany.getMode(3)+
+                ",distance_" + ModeGermany.getMode(0)+
+                ",distance_" + ModeGermany.getMode(1)+
+                ",distance_" + ModeGermany.getMode(2)+
+                ",distance_" + ModeGermany.getMode(3)
                 //"utility_auto", "tt_auto", ""cost_auto" +,
                 //"utility_rail, "tt_rail", ""cost_rail" +,
                 //"utility_bus", "tt_bus", ""cost_bus" +,
@@ -175,7 +188,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getOrigZone().getZoneType()
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getDestZone().getZoneType()
-                    + "," + tr.getTravelDistance() / 1000
+                    + "," + tr.getDistanceByMode() / 1000
                     + "," + tr.getMode()
                     + "," + tr.getTravelTime() / 3600
                     + "," + tr.getDepartureTimeInHours()
@@ -198,6 +211,10 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("time_air")
                     + "," + tr.getAdditionalAttributes().get("time_rail")
                     + "," + tr.getAdditionalAttributes().get("time_bus")
+                    + "," + tr.getAdditionalAttributes().get("distance_auto")
+                    + "," + tr.getAdditionalAttributes().get("distance_air")
+                    + "," + tr.getAdditionalAttributes().get("distance_rail")
+                    + "," + tr.getAdditionalAttributes().get("distance_bus")
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()
@@ -219,7 +236,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getKidsHhTravelPartySize()
                     + "," + tr.getDestZoneType()
                     + "," + tr.getDestZone().getId()
-                    + "," + tr.getTravelDistance()
+                    + "," + tr.getAutoTravelDistance()
                     + "," + tr.getDepartureTimeInHours()
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()

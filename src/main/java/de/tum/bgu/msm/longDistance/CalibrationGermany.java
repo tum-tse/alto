@@ -10,7 +10,6 @@ import de.tum.bgu.msm.longDistance.destinationChoice.*;
 import de.tum.bgu.msm.longDistance.modeChoice.*;
 import de.tum.bgu.msm.longDistance.tripGeneration.DomesticTripGenerationGermany;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationGermany;
-import ncsa.hdf.object.Dataset;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -344,7 +343,7 @@ public class CalibrationGermany implements ModelComponent {
         LongDistanceTripGermany t = tripToCast;
         double previousDistance = averageDistances.get(name).get(t.getTripPurpose()).get(t.getTripState());
         double previousCount = counts.get(name).get(t.getTripPurpose()).get(t.getTripState());
-        averageDistances.get(name).get(t.getTripPurpose()).put(t.getTripState(), previousDistance + t.getTravelDistance()/1000);
+        averageDistances.get(name).get(t.getTripPurpose()).put(t.getTripState(), previousDistance + t.getAutoTravelDistance()/1000);
         counts.get(name).get(t.getTripPurpose()).put(t.getTripState(), previousCount + 1);
     }
 
@@ -357,7 +356,7 @@ public class CalibrationGermany implements ModelComponent {
                 t.setDestZone(zonesMap.get(destZoneId));
                 t.setDestZoneType(ZoneTypeGermany.GERMANY);
                 float distance = distanceByAuto.getValueAt(t.getOrigZone().getId(), destZoneId);
-                t.setTravelDistance(distance);
+                t.setAutoTravelDistance(distance);
             } /*else {
                 int destZoneId = dcInternational.selectDestination(t);
                 t.setDestZone(zonesMap.get(destZoneId));

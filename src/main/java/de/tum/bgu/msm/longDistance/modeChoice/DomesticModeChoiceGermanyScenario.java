@@ -41,8 +41,6 @@ public class DomesticModeChoiceGermanyScenario {
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
 
     private TableDataSet scenarioVariables;
-    private float increaseAirCost;
-    private float airDistanceThreshold;
 
 
     public DomesticModeChoiceGermanyScenario(JSONObject prop, String inputFolder) {
@@ -80,12 +78,11 @@ public class DomesticModeChoiceGermanyScenario {
     public Mode selectModeDomestic(LongDistanceTrip t) {
         LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
 
-        int scenario = trip.getScenario();
-        increaseAirCost = scenarioVariables.getValueAt(scenario,"cost");
-        airDistanceThreshold = scenarioVariables.getValueAt(scenario,"distance");
+
 
         double[] expUtilities = new double[ModeGermany.values().length];
         Map<String, Float> attributes = new HashMap<>();
+        Mode selectedMode = null;
         if (trip.getTripState().equals(TypeGermany.AWAY)) {
             expUtilities[0] = 1;
             expUtilities[1] = 0;
@@ -99,13 +96,10 @@ public class DomesticModeChoiceGermanyScenario {
             double probability_denominator = Arrays.stream(expUtilities).sum();
 
             attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
-            //if there is no access by any mode for the selected OD pair, just go by car
-            if (probability_denominator == 0) {
-                expUtilities[0] = 1;
-                for (int mode = 0; mode < expUtilities.length; mode++) {
-                    attributes.put("utility_" + ModeGermany.getMode(mode), (float) expUtilities[mode]);
-                }
-            } else {
+
+            //if there is no access by any mode for the selected OD pair, output null mode
+            if (probability_denominator != 0) {
+                selectedMode = (Mode) Util.selectGermany(expUtilities, ModeGermany.values());
                 for (int mode = 0; mode < expUtilities.length; mode++) {
                     attributes.put("utility_" + ModeGermany.getMode(mode), (float) (expUtilities[mode] / probability_denominator));
                 }
@@ -113,7 +107,7 @@ public class DomesticModeChoiceGermanyScenario {
             ((LongDistanceTripGermany) t).setAdditionalAttributes(attributes);
             //choose one destination, weighted at random by the probabilities
         }
-        return (Mode) Util.selectGermany(expUtilities, ModeGermany.values());
+        return selectedMode;
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
 
     }
@@ -142,11 +136,14 @@ public class DomesticModeChoiceGermanyScenario {
                         Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()) )
                         * distance;
                 if (m.equals(ModeGermany.AIR)) {
+                    int scenario = trip.getScenario();
+                    float increaseAirCost = scenarioVariables.getValueAt(scenario,"cost");
                     cost = cost * increaseAirCost;
                 }
                 impedance = cost / (vot) + time;
                 attr.put("cost_"+ m.toString(), (float) cost);
                 attr.put("time_" + m.toString(), (float) time);
+                attr.put("distance_" + m.toString(), (float) distance);
 
             }
             trip.setAdditionalAttributes(attr);
@@ -202,9 +199,14 @@ public class DomesticModeChoiceGermanyScenario {
                     k_calibration
             ;
             if (m.equals(ModeGermany.AIR)) {
+                float airDistanceThreshold = scenarioVariables.getValueAt(trip.getScenario(),"distance");
                 if (distance < airDistanceThreshold) {
                     utility = Double.NEGATIVE_INFINITY;
                 }
+                if (time == 1000){
+                    utility = Double.NEGATIVE_INFINITY;
+                }
+                //}
             }
 
         } else {
@@ -224,7 +226,27 @@ public class DomesticModeChoiceGermanyScenario {
             return -1.f;
         } else {
             Mode mode = trip.getMode();
-            return dataSet.getTravelTimeMatrix().get(mode).getValueAt(origin, destination);
+            if (mode != null) {
+                return dataSet.getTravelTimeMatrix().get(mode).getValueAt(origin, destination);
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    public float getDomesticModalDistance(LongDistanceTrip t){
+        LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
+        int origin = trip.getOrigZone().getId();
+        int destination = trip.getDestZone().getId();
+        if (trip.getOrigZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) ){
+            return -1.f;
+        } else {
+            Mode mode = trip.getMode();
+            if (mode != null) {
+                return dataSet.getDistanceMatrix().get(mode).getValueAt(origin, destination);
+            } else {
+                return 0;
+            }
         }
     }
 
