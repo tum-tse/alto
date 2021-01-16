@@ -186,7 +186,11 @@ public class DomesticModeChoiceGermany {
                     b_impedance * Math.exp(alpha_impedance * impedance) +
                     k_calibration
             ;
-
+            if (m.equals(ModeGermany.AIR)) {
+                if (time == 1000){
+                    utility = Double.NEGATIVE_INFINITY;
+                }
+            }
         } else {
             utility = Double.NEGATIVE_INFINITY;
         }
@@ -224,6 +228,22 @@ public class DomesticModeChoiceGermany {
 
     public Map<Purpose, Map<Type,  Map<Mode, Double>>> getCalibrationMatrix() {
         return calibrationDomesticMcMatrix;
+    }
+
+    public float getDomesticModalDistance(LongDistanceTrip t){
+        LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
+        int origin = trip.getOrigZone().getId();
+        int destination = trip.getDestZone().getId();
+        if (trip.getOrigZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) ){
+            return -1.f;
+        } else {
+            Mode mode = trip.getMode();
+            if (mode != null) {
+                return dataSet.getDistanceMatrix().get(mode).getValueAt(origin, destination);
+            } else {
+                return 0;
+            }
+        }
     }
 
 }
