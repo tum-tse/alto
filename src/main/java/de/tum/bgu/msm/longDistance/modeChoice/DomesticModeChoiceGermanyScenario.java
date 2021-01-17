@@ -203,6 +203,15 @@ public class DomesticModeChoiceGermanyScenario {
                 if (distance < airDistanceThreshold) {
                     utility = Double.NEGATIVE_INFINITY;
                 }
+                float limitNoFastestAir = scenarioVariables.getValueAt(trip.getScenario(),"limSpeed");
+                if (limitNoFastestAir == 1){
+                    if (time > dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(origin, destination) ||
+                            time > dataSet.getTravelTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) ||
+                            time > dataSet.getTravelTimeMatrix().get(ModeGermany.BUS).getValueAt(origin, destination)){
+                        utility = Double.NEGATIVE_INFINITY;
+                    }
+                }
+
                 if (time == 1000){
                     utility = Double.NEGATIVE_INFINITY;
                 }
