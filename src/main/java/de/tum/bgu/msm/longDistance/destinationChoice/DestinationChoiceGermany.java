@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import com.pb.common.matrix.Matrix;
+import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
@@ -13,6 +14,7 @@ import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by carlloga on 8/2/2017.
@@ -24,6 +26,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
     private DomesticDestinationChoiceGermany dcModel;
     private Map<Integer, Zone> zonesMap;
     private Matrix distanceByAuto;
+    private AtomicInteger atomicInteger = new AtomicInteger(0);
 
     public DestinationChoiceGermany() {
     }
@@ -65,6 +68,9 @@ public class DestinationChoiceGermany implements DestinationChoice {
                 ((LongDistanceTripGermany)t).setDestZone(zonesMap.get(destZoneId));
                 float distance = distanceByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
                 ((LongDistanceTripGermany)t).setAutoTravelDistance(distance);
+                if (  Util.isPowerOfFour(atomicInteger.getAndIncrement())){
+                    logger.info("Domestic trips: " + atomicInteger.get());
+                }
             } else {
                 //TODO. Replace by the international destination choice model
 /*                if (t.getOrigZone().getZoneType() == ZoneTypeOntario.ONTARIO || t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTCANADA) {

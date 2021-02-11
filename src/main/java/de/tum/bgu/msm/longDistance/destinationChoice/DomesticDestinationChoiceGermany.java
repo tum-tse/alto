@@ -79,7 +79,16 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
 
 
         Purpose tripPurpose = trip.getTripPurpose();
-        int[] alternatives = selectRandomDestinations(trip.getOrigZone().getId());
+        int choiceSet = choice_set_size;
+        if (choice_set_size == 10000){
+            choiceSet = dataSet.getZones().keySet().size();
+        }
+        int[] alternatives = new int[choiceSet];
+        if (choice_set_size == 10000){
+            alternatives = dataSet.getZones().keySet().stream().mapToInt(u ->u).toArray(); //select all the zones
+        } else {
+            alternatives = selectRandomDestinations(trip.getOrigZone().getId());
+        }
         double[] expUtilities = Arrays.stream(alternatives)
                 //calculate exp(Ui) for each destination
                 .mapToDouble(a -> Math.exp(calculateUtility(trip, a))).toArray();
@@ -115,33 +124,38 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         int origin = trip.getOrigZone().getId();
         float distance = autoDist.getValueAt(origin, destination) / 1000; //to convert meters to km
 
-        ZoneGermany destinationZone =  (ZoneGermany) dataSet.getZones().get(destination);
-        double population = destinationZone.getPopulation()*scaleFactor;
-        double employment = destinationZone.getEmployment()*scaleFactor;
-        double hotels = destinationZone.getHotels();
+        if (distance > longDistanceThreshold) {
 
-        Purpose tripPurpose = trip.getTripPurpose();
-        TypeGermany tripState = (TypeGermany) trip.getTripState();
-        //Coefficients
-        String coefficientColumn = tripState + "." + tripPurpose;
-        double b_distance_log = coefficients.getStringIndexedValueAt("log_distance", coefficientColumn);
-        double b_popEmployment = coefficients.getStringIndexedValueAt("popEmployment", coefficientColumn);
-        double b_hotel = coefficients.getStringIndexedValueAt("hotel", coefficientColumn);
-        double k_calibration = coefficients.getStringIndexedValueAt("k_calibration", coefficientColumn);
+            ZoneGermany destinationZone = (ZoneGermany) dataSet.getZones().get(destination);
+            double population = destinationZone.getPopulation() * scaleFactor;
+            double employment = destinationZone.getEmployment() * scaleFactor;
+            double hotels = destinationZone.getHotels();
 
-        //log conversions
-        double log_distance = distance > 0 ? Math.log10(distance) : 0;
+            Purpose tripPurpose = trip.getTripPurpose();
+            TypeGermany tripState = (TypeGermany) trip.getTripState();
+            //Coefficients
+            String coefficientColumn = tripState + "." + tripPurpose;
+            double b_distance_log = coefficients.getStringIndexedValueAt("log_distance", coefficientColumn);
+            double b_popEmployment = coefficients.getStringIndexedValueAt("popEmployment", coefficientColumn);
+            double b_hotel = coefficients.getStringIndexedValueAt("hotel", coefficientColumn);
+            double k_calibration = coefficients.getStringIndexedValueAt("k_calibration", coefficientColumn);
 
-        if (calibrationDomesticDC) {
-            k_calibration = k_calibration * calibrationDomesticDcMatrix.get(tripPurpose).get(tripState);
+            //log conversions
+            double log_distance = distance > 0 ? Math.log10(distance) : 0;
+
+            if (calibrationDomesticDC) {
+                k_calibration = k_calibration * calibrationDomesticDcMatrix.get(tripPurpose).get(tripState);
+            }
+
+            double u =
+                    b_distance_log * k_calibration * log_distance +
+                            b_hotel * hotels / 1000 +  //hotels in thousands
+                            b_popEmployment * (population + employment) / 1000000; //population and employment in millions
+
+            return u;
+        } else {
+            return Double.NEGATIVE_INFINITY;
         }
-
-        double u =
-                b_distance_log * k_calibration * log_distance +
-                b_hotel * hotels / 1000 +  //hotels in thousands
-                b_popEmployment * (population + employment) / 1000000; //population and employment in millions
-
-        return u;
     }
 
     public Map<Purpose, Map<Type, Double>> getDomesticDcCalibration() {
