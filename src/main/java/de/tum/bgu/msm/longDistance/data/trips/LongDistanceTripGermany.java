@@ -143,7 +143,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",tripDestZone,tripDestType,travelDistance_km" +
                 ",tripMode,travelTimeByMode_h"+
                 ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip"+
-                ",CO2emissions_kg" +
+                ",CO2emissions_kg" /*+
                  ",utility_" + ModeGermany.getMode(0)+
                 ",utility_" + ModeGermany.getMode(1)+
                 ",utility_" + ModeGermany.getMode(2)+
@@ -163,7 +163,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",distance_" + ModeGermany.getMode(0)+
                 ",distance_" + ModeGermany.getMode(1)+
                 ",distance_" + ModeGermany.getMode(2)+
-                ",distance_" + ModeGermany.getMode(3)
+                ",distance_" + ModeGermany.getMode(3)*/
                 //"utility_auto", "tt_auto", ""cost_auto" +,
                 //"utility_rail, "tt_rail", ""cost_rail" +,
                 //"utility_bus", "tt_bus", ""cost_bus" +,
@@ -194,7 +194,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getDepartureTimeInHours()
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()
-                    + "," + tr.getEmissions().get(Pollutant.CO2)
+                    + "," + tr.getEmissions().get(Pollutant.CO2)/*
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(2))
@@ -214,7 +214,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("distance_auto")
                     + "," + tr.getAdditionalAttributes().get("distance_air")
                     + "," + tr.getAdditionalAttributes().get("distance_rail")
-                    + "," + tr.getAdditionalAttributes().get("distance_bus")
+                    + "," + tr.getAdditionalAttributes().get("distance_bus")*/
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()

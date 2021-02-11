@@ -74,7 +74,7 @@ public class OutputWriterGermanScenario implements OutputWriter {
             writeCharts(dataSet, purpose, outputFolder);
         }
         generatePieCharts();*/
-        outputFileScenarioSettings = outputFolderScenario + "_scenarios.csv";
+/*        outputFileScenarioSettings = outputFolderScenario + "_scenarios.csv";
         increaseAirCost = scenarios.getValueAt(scenario, "cost");
         airDistanceThreshold = scenarios.getValueAt(scenario,"distance");
 
@@ -84,7 +84,7 @@ public class OutputWriterGermanScenario implements OutputWriter {
         pw1.print(increaseAirCost);
         pw1.print(",");
         pw1.println(airDistanceThreshold);
-        pw1.close();
+        pw1.close();*/
     }
 
     public void setScenario(int scenario){
