@@ -78,7 +78,7 @@ public class TripGenerationGermany implements TripGeneration {
         //generate domestic trips
         trips_dom_germany = domesticTripGeneration.run();
         dataSet.getAllTrips().addAll(trips_dom_germany);
-        logger.info("  " + trips_dom_germany.size() + " domestic trips from Ontario generated");
+        logger.info("  " + trips_dom_germany.size() + " domestic trips from Germany generated");
 
         //generate international trips (must be done after domestic)
         //trips_int_ontarian = internationalTripGeneration.run();

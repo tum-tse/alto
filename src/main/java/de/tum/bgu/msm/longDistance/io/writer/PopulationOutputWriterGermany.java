@@ -5,6 +5,7 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
+import de.tum.bgu.msm.longDistance.data.sp.OccupationStatus;
 import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
@@ -37,6 +38,7 @@ public class PopulationOutputWriterGermany implements OutputWriter {
     private String outputFilepp;
     private String outputFilejj;
     private int[] populationScaler;
+    private Map<Integer, PersonGermany> workers;
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolderInput) {
@@ -58,7 +60,7 @@ public class PopulationOutputWriterGermany implements OutputWriter {
         for (int scaleCount = 0; scaleCount < populationScaler.length; scaleCount++ ) {
             int scale = populationScaler[scaleCount];
             logger.info("Starting to write population at " + scale + " percent.");
-            if (scale > 25){
+            if (scale < 25){
                 writeHouseholdsAndPersons(dataSet, scale);
             } else {
                 writeMultipleFilesForHouseholdsAndPersons(dataSet, scale);
@@ -78,11 +80,16 @@ public class PopulationOutputWriterGermany implements OutputWriter {
         pwPerson.println(PersonGermany.getHeader());
         int hhCount = 1;
         int scalingFactor = (int) (100 / scale);
+        int idWorker = 1;
         for (Household hh : dataSet.getHouseholds().values()) {
             if (hhCount % scalingFactor == 0) {
                 pwHousehold.println(hh.toString());
                 for (PersonGermany pp : ((HouseholdGermany) hh).getPersonsOfThisHousehold()){
                     pwPerson.println(pp.toString());
+                    if (pp.getOccupation().equals(OccupationStatus.WORKER)){
+                        workers.put(idWorker, pp);
+                        idWorker++;
+                    }
                 }
             }
             hhCount++;
