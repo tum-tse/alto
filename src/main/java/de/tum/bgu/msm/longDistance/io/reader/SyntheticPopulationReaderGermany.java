@@ -39,9 +39,6 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
     private String ppFilename;
     private String jjFilename;
     private String travellersFilename;
-    private double scaleFactor;
-
-
 
 
     public SyntheticPopulationReaderGermany() {
@@ -119,12 +116,9 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
 
                 ZoneGermany zone = (ZoneGermany) zoneLookup.get(taz);
 
-                if (LDModelGermany.rand.nextDouble() < scaleFactor) {
-                    Household hh = new HouseholdGermany(id, taz, hhAutos, zone);
-                    ((HouseholdGermany) hh).setHhAutos(hhAutos);
-                    householdMap.put(id, hh);
-                }
-
+                Household hh = new HouseholdGermany(id, taz, hhAutos, zone);
+                ((HouseholdGermany) hh).setHhAutos(hhAutos);
+                householdMap.put(id, hh);
 
             }
         } catch (IOException e) {
