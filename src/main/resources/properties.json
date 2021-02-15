@@ -107,6 +107,10 @@
       },
       "calibration": false
     },
+    "airport":{
+      "airportList_file": "input/airport/listConnectedAirports.csv",
+      "flightList_file": "input/airport/routes_from_to_germany.csv"
+    },
     "disaggregation": {
       "domestic": {
         "alpha_pop": 0.5,

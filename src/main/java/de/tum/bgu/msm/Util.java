@@ -1,10 +1,12 @@
 package de.tum.bgu.msm;
 
+import com.pb.common.datafile.CSVFileWriter;
 import com.pb.common.datafile.TableDataFileReader;
 import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import com.pb.common.util.ResourceUtil;
-import de.tum.bgu.msm.longDistance.LDModel;
+import de.tum.bgu.msm.longDistance.LDModelGermany;
+import de.tum.bgu.msm.longDistance.LDModelOntario;
 import omx.OmxMatrix;
 import omx.hdf5.OmxHdf5Datatype;
 
@@ -135,6 +137,34 @@ public class Util {
         }
     }
 
+    public static Matrix convertOmxToMatrix (OmxMatrix omxMatrix, float scaler) {
+        // convert OMX matrix into java matrix
+
+        OmxHdf5Datatype.OmxJavaType type = omxMatrix.getOmxJavaType();
+        String name = omxMatrix.getName();
+        int[] dimensions = omxMatrix.getShape();
+
+        if (type.equals(OmxHdf5Datatype.OmxJavaType.FLOAT)) {
+            float[][] fArray = (float[][]) omxMatrix.getData();
+            Matrix mat = new Matrix(name, name, dimensions[0], dimensions[1]);
+            for (int i = 0; i < dimensions[0]; i++)
+                for (int j = 0; j < dimensions[1]; j++)
+                    mat.setValueAt(i + 1, j + 1, fArray[i][j] * scaler);
+            return mat;
+        } else if (type.equals(OmxHdf5Datatype.OmxJavaType.DOUBLE)) {
+            double[][] dArray = (double[][]) omxMatrix.getData();
+            Matrix mat = new Matrix(name, name, dimensions[0], dimensions[1]);
+            for (int i = 0; i < dimensions[0]; i++)
+                for (int j = 0; j < dimensions[1]; j++)
+                    mat.setValueAt(i + 1, j + 1, (float) dArray[i][j] * scaler);
+            return mat;
+        } else {
+            logger.info("OMX Matrix type " + type.toString() + " not yet implemented. Program exits.");
+            exit(1);
+            return null;
+        }
+    }
+
 
     public static int findPositionInArray (String element, String[] arr){
         // return index position of element in array arr
@@ -160,10 +190,12 @@ public class Util {
 
         int seed = JsonUtilMto.getIntProp(prop, "run.random_seed");
         if (seed == -1) {
-            LDModel.rand = new Random();
+            LDModelOntario.rand = new Random();
+            LDModelGermany.rand = new Random();
 
         } else {
-            LDModel.rand = new Random(seed);
+            LDModelOntario.rand = new Random(seed);
+            LDModelGermany.rand = new Random(seed);
         }
 
     }
@@ -171,7 +203,7 @@ public class Util {
     //select method to avoid randomization of enumIntegerDistr object
     public static Object select(double[] probabilities, Object[] id) {
         // select item based on probabilities (for zero-based float array)
-        double selPos = Arrays.stream(probabilities).sum() * LDModel.rand.nextFloat();
+        double selPos = Arrays.stream(probabilities).sum() * LDModelOntario.rand.nextFloat();
         double sum = 0;
         for (int i = 0; i < probabilities.length; i++) {
             sum += probabilities[i];
@@ -185,7 +217,7 @@ public class Util {
 
     public static int select(double[] probabilities, int[] id) {
         // select item based on probabilities (for zero-based float array)
-        double selPos = Arrays.stream(probabilities).sum() * LDModel.rand.nextFloat();
+        double selPos = Arrays.stream(probabilities).sum() * LDModelOntario.rand.nextFloat();
         double sum = 0;
         for (int i = 0; i < probabilities.length; i++) {
             sum += probabilities[i];
@@ -196,6 +228,36 @@ public class Util {
         }
         return id[probabilities.length - 1];
     }
+
+    //select method to avoid randomization of enumIntegerDistr object
+    public static Object selectGermany(double[] probabilities, Object[] id) {
+        // select item based on probabilities (for zero-based float array)
+        double selPos = Arrays.stream(probabilities).sum() * LDModelGermany.rand.nextFloat();
+        double sum = 0;
+        for (int i = 0; i < probabilities.length; i++) {
+            sum += probabilities[i];
+            if (sum > selPos) {
+                //return i;
+                return id[i];
+            }
+        }
+        return id[probabilities.length - 1];
+    }
+
+    public static int selectGermany(double[] probabilities, int[] id) {
+        // select item based on probabilities (for zero-based float array)
+        double selPos = Arrays.stream(probabilities).sum() * LDModelGermany.rand.nextFloat();
+        double sum = 0;
+        for (int i = 0; i < probabilities.length; i++) {
+            sum += probabilities[i];
+            if (sum > selPos) {
+                //return i;
+                return id[i];
+            }
+        }
+        return id[probabilities.length - 1];
+    }
+
 
 
     public static boolean isPowerOfFour(int number){
@@ -209,7 +271,17 @@ public class Util {
     }
 
 
-
+    public static void writeTableDataSet (TableDataSet data, String fileName) {
+        try {
+            CSVFileWriter cfwWriter = new CSVFileWriter();
+            cfwWriter.writeFile(data, new File(fileName));
+            cfwWriter.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            logger.error("Could not write TableDataSet to file " + fileName + ".");
+        }
+    }
 
 
 

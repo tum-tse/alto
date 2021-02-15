@@ -75,7 +75,8 @@ public class IntInboundDestinationChoice implements DestinationChoiceModule {
 
 
     @Override
-    public int selectDestination(LongDistanceTripOntario trip) {
+    public int selectDestination(LongDistanceTrip t) {
+        LongDistanceTripOntario trip = (LongDistanceTripOntario) t;
         if (trip.getOrigZone().getZoneType().equals(ZoneTypeOntario.EXTUS)) {
             return selectDestinationFromUs(trip);
         } else {

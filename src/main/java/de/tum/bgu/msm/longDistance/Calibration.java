@@ -37,7 +37,7 @@ public class Calibration implements ModelComponent {
 
     static Logger logger = Logger.getLogger(Calibration.class);
 
-    private ArrayList<LongDistanceTripOntario> allTrips = new ArrayList<>();
+    private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
 
     public Calibration() {
     }
@@ -83,9 +83,10 @@ public class Calibration implements ModelComponent {
 
     public void calibrateModel(boolean dc, boolean mc, DataSet dataSet) {
 
-        for (LongDistanceTripOntario t : dataSet.getAllTrips()) {
-            if (!t.getTripState().equals(TypeOntario.AWAY)) {
-                allTrips.add(t);
+        for (LongDistanceTrip t : dataSet.getAllTrips()) {
+            LongDistanceTripOntario trip = (LongDistanceTripOntario) t;
+            if (!trip.getTripState().equals(TypeOntario.AWAY)) {
+                allTrips.add(trip);
             }
         }
 
@@ -136,7 +137,7 @@ public class Calibration implements ModelComponent {
     }
 
 
-    public Map<DcModelName, Map<Purpose, Double>> getAverageTripDistances(ArrayList<LongDistanceTripOntario> allTrips) {
+    public Map<DcModelName, Map<Purpose, Double>> getAverageTripDistances(ArrayList<LongDistanceTrip> allTrips) {
 
         Map<DcModelName, Map<Purpose, Double>> averageDistances = new HashMap<>();
         Map<DcModelName, Map<Purpose, Double>> counts = new HashMap<>();
@@ -151,7 +152,8 @@ public class Calibration implements ModelComponent {
 
         }
 
-        for (LongDistanceTripOntario t : allTrips) {
+        for (LongDistanceTrip tripToCast : allTrips) {
+            LongDistanceTripOntario t = (LongDistanceTripOntario) tripToCast;
             if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO) || t.getDestZoneType().equals(ZoneTypeOntario.ONTARIO)) {
                 //trip that starts in Ontario or end in ontario
                 if (!t.isInternational()) {
@@ -195,7 +197,8 @@ public class Calibration implements ModelComponent {
 
     }
 
-    private void addTripToAverageCalculator(Map<DcModelName, Map<Purpose, Double>> averageDistances, Map<DcModelName, Map<Purpose, Double>> counts, LongDistanceTripOntario t, DcModelName name) {
+    private void addTripToAverageCalculator(Map<DcModelName, Map<Purpose, Double>> averageDistances, Map<DcModelName, Map<Purpose, Double>> counts, LongDistanceTrip tripToCast, DcModelName name) {
+        LongDistanceTripOntario t = (LongDistanceTripOntario) tripToCast;
         double previousDistance = averageDistances.get(name).get(t.getTripPurpose());
         double previousCount = counts.get(name).get(t.getTripPurpose());
 
@@ -203,7 +206,7 @@ public class Calibration implements ModelComponent {
         counts.get(name).put(t.getTripPurpose(), previousCount + getTripWeight(t));
     }
 
-    public Map<DcModelName, Map<Purpose, Double>> calculateCalibrationMatrix(ArrayList<LongDistanceTripOntario> allTrips) {
+    public Map<DcModelName, Map<Purpose, Double>> calculateCalibrationMatrix(ArrayList<LongDistanceTrip> allTrips) {
 
         Map<DcModelName, Map<Purpose, Double>> averageDistances = getAverageTripDistances(allTrips);
         Map<DcModelName, Map<Purpose, Double>> calibrationMatrix = new HashMap<>();
@@ -240,7 +243,7 @@ public class Calibration implements ModelComponent {
 
     }
 
-    public Map<McModelName, Map<Purpose, Map<Mode, Double>>> getAverageModalShares(ArrayList<LongDistanceTripOntario> allTrips) {
+    public Map<McModelName, Map<Purpose, Map<Mode, Double>>> getAverageModalShares(ArrayList<LongDistanceTrip> allTrips) {
 
         Map<McModelName, Map<Purpose, Map<Mode, Double>>> countsByMode = new HashMap<>();
 
@@ -257,7 +260,8 @@ public class Calibration implements ModelComponent {
 
         //int tripCounter = 0;
 
-        for (LongDistanceTripOntario t : allTrips) {
+        for (LongDistanceTrip tripToCast : allTrips) {
+            LongDistanceTripOntario t = (LongDistanceTripOntario) tripToCast;
             if (t.getOrigZone().getZoneType().equals(ZoneTypeOntario.ONTARIO) || t.getDestZoneType().equals(ZoneTypeOntario.ONTARIO)) {
                 if (!t.isInternational()) {
                     //domestic to or from ontario
@@ -315,7 +319,7 @@ public class Calibration implements ModelComponent {
         countsByMode.get(name).get(t.getTripPurpose()).put(t.getMode(), currentCount + getTripWeight(t));
     }
 
-    public Map<McModelName, Map<Purpose, Map<Mode, Double>>> calculateMCCalibrationFactors(ArrayList<LongDistanceTripOntario> allTrips) {
+    public Map<McModelName, Map<Purpose, Map<Mode, Double>>> calculateMCCalibrationFactors(ArrayList<LongDistanceTrip> allTrips) {
 
         Map<McModelName, Map<Purpose, Map<Mode, Double>>> calibrationMatrix = new HashMap<>();
 
@@ -535,7 +539,8 @@ public class Calibration implements ModelComponent {
 
     public void runDc() {
         logger.info("Running Destination Choice Model for " + allTrips.size() + " trips during model calibration");
-        allTrips.parallelStream().forEach(t -> { //Easy parallel makes for fun times!!!
+        allTrips.parallelStream().forEach(tripToCast -> { //Easy parallel makes for fun times!!!
+            LongDistanceTripOntario t = (LongDistanceTripOntario) tripToCast;
             if (!t.isInternational()) {
                 int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
                 t.setCombinedDestZoneId(destZoneId);
@@ -570,7 +575,8 @@ public class Calibration implements ModelComponent {
 
     private void runMc() {
         logger.info("Running Mode Choice Model for " + allTrips.size() + " trips during model calibration");
-        allTrips.parallelStream().forEach(t -> {
+        allTrips.parallelStream().forEach(tripToCast -> {
+            LongDistanceTripOntario t = (LongDistanceTripOntario) tripToCast;
             if (!t.isInternational()) {
                 //domestic mode choice for synthetic persons in Ontario
                 Mode mode = mcDomesticModel.selectModeDomestic(t);

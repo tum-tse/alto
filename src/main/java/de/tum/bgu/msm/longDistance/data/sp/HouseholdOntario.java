@@ -42,13 +42,13 @@ public class HouseholdOntario implements Household {
 
 
     @Override
-    public void addPersonForInitialSetup(PersonOntario per) {
+    public void addPersonForInitialSetup(Person per) {
         // This method adds a person to the household (only used for initial setup)
 
-        PersonOntario[] personsAddedSoFar = persons;
+        Person[] personsAddedSoFar = persons;
         persons = new PersonOntario[personsAddedSoFar.length + 1];
         System.arraycopy(personsAddedSoFar, 0, persons, 0, persons.length-1);
-        persons[persons.length-1] = per;
+        persons[persons.length-1] = (PersonOntario) per;
         hhSize++;
     }
 

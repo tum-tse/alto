@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 
 import de.tum.bgu.msm.longDistance.data.DataSet;
 
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
 import de.tum.bgu.msm.longDistance.modeChoice.DomesticModeChoice;
@@ -31,7 +32,7 @@ public class DestinationChoiceOntario implements DestinationChoice {
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
-        dcModel = new DomesticDestinationChoice(prop);
+        dcModel = new DomesticDestinationChoice(prop, inputFolder);
         dcOutboundModel = new IntOutboundDestinationChoice(prop);
         dcInBoundModel = new IntInboundDestinationChoice(prop);
     }
@@ -52,11 +53,12 @@ public class DestinationChoiceOntario implements DestinationChoice {
     }
 
 
-    public void runDestinationChoice(ArrayList<LongDistanceTripOntario> trips) {
+    public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
         //AtomicInteger counter = new AtomicInteger(0);
 
-        trips.parallelStream().forEach(t -> {
+        trips.parallelStream().forEach(tripToCast -> {
+            LongDistanceTripOntario t = (LongDistanceTripOntario) tripToCast;
             if (!t.isInternational()) {
                 int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
                 t.setCombinedDestZoneId(destZoneId);
