@@ -51,7 +51,6 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
         ppFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.persons_file");
         jjFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.jobs_file");
         travellersFilename = outputFolder +  JsonUtilMto.getStringProp(prop, "output.travellers_file");
-        scaleFactor =  JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
 
         logger.info("Synthetic population reader set up");
 
