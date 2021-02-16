@@ -5,6 +5,7 @@ import de.tum.bgu.msm.longDistance.data.airport.AirLeg;
 import de.tum.bgu.msm.longDistance.data.airport.Airport;
 import de.tum.bgu.msm.longDistance.data.airport.AirportType;
 import de.tum.bgu.msm.longDistance.data.airport.Flight;
+import de.tum.bgu.msm.longDistance.data.sp.DwellingGermany;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
@@ -36,7 +37,7 @@ public class DataSet {
     private Matrix autoTravelDistance;
 
     //SKIMS level-2 zones
-    private Map<Mode, Matrix> travelTimeMatrix;;
+    private Map<Mode, Matrix> travelTimeMatrix;
     private Map<Mode, Matrix> priceMatrix;
     private Map<Mode, Matrix> transferMatrix;
     private Map<Mode, Matrix> distanceMatrix;
@@ -78,6 +79,7 @@ public class DataSet {
     //SYNYHETIC POPULATION
     private Map<Integer, Person> persons = new HashMap<>();
     private Map<Integer, Household> households = new HashMap<>();
+    private Map<Integer, DwellingGermany> dwellings = new HashMap<>();
 
     //TRIPS
     private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
@@ -116,6 +118,14 @@ public class DataSet {
 
     public void setHouseholds(Map<Integer, Household> households) {
         this.households = households;
+    }
+
+    public Map<Integer, DwellingGermany> getDwellings() {
+        return dwellings;
+    }
+
+    public void setDwellings(Map<Integer, DwellingGermany> dwellings) {
+        this.dwellings = dwellings;
     }
 
     public float getAutoTravelTime(int orig, int dest) {
