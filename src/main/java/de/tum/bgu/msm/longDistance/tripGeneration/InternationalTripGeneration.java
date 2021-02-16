@@ -3,7 +3,7 @@ package de.tum.bgu.msm.longDistance.tripGeneration;
 import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.LDModel;
+import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.sp.PersonOntario;
@@ -109,7 +109,7 @@ public class InternationalTripGeneration {
                     int n = numberOfTrips - tripCount;
                     double[] randomChoice = new double[n];
                     for (int k = 0; k < randomChoice.length; k++) {
-                        randomChoice[k] = LDModel.rand.nextDouble()*sumProbabilities.get(tripPurpose).get(tripState);
+                        randomChoice[k] = LDModelOntario.rand.nextDouble()*sumProbabilities.get(tripPurpose).get(tripState);
                     }
                     //sort the matrix for faster lookup
                     Arrays.sort(randomChoice);
@@ -193,7 +193,7 @@ public class InternationalTripGeneration {
         List <Person> persons = new ArrayList<>(dataSet.getPersons().values());
 
         //make random list of persons
-        Collections.shuffle(persons, LDModel.rand);
+        Collections.shuffle(persons, LDModelOntario.rand);
         double exponent = 2;
 
         int p = 0;

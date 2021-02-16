@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.modeChoice;
 
 import de.tum.bgu.msm.longDistance.data.DataSet;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.data.trips.ModeOntario;
@@ -40,9 +41,10 @@ public class ModeChoiceOntario implements ModeChoice {
         runModeChoice(dataSet.getAllTrips());
     }
 
-    public void runModeChoice(ArrayList<LongDistanceTripOntario> trips) {
+    public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Mode Choice Model for " + trips.size() + " trips");
-        trips.parallelStream().forEach(t -> {
+        trips.parallelStream().forEach(tripToCast -> {
+            LongDistanceTripOntario t = (LongDistanceTripOntario) tripToCast;
             if (!t.isInternational()) {
                 //domestic mode choice for synthetic persons in Ontario
                 Mode mode = mcDomesticModel.selectModeDomestic(t);

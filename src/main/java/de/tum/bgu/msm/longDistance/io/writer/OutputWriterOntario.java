@@ -1,9 +1,11 @@
-package de.tum.bgu.msm.longDistance.io;
+package de.tum.bgu.msm.longDistance.io.writer;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
+import de.tum.bgu.msm.longDistance.io.writer.OutputWriter;
 import org.json.simple.JSONObject;
 
 import java.io.PrintWriter;
@@ -30,7 +32,7 @@ public class OutputWriterOntario implements OutputWriter {
     public void run(DataSet dataSet, int nThreads) {
         PrintWriter pw = Util.openFileForSequentialWriting(outputFile, false);
         pw.println(LongDistanceTripOntario.getHeader());
-        for (LongDistanceTripOntario tr : dataSet.getAllTrips()) {
+        for (LongDistanceTrip tr : dataSet.getAllTrips()) {
             pw.println(tr.toString());
         }
         pw.close();

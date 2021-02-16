@@ -3,7 +3,7 @@ package de.tum.bgu.msm.longDistance.timeOfDay;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.LDModel;
+import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 
 import org.json.simple.JSONObject;
@@ -47,7 +47,7 @@ public class TimeOfDayChoiceOntario implements TimeOfDayChoice {
     @Override
     public void run(DataSet dataSet, int nThreads) {
 
-        ArrayList<LongDistanceTripOntario> trips = dataSet.getAllTrips();
+        ArrayList<LongDistanceTrip> trips = dataSet.getAllTrips();
         logger.info("Running time-of-day choice for " + trips.size() + " trips");
 
         trips.parallelStream().forEach(trip -> {
@@ -61,8 +61,9 @@ public class TimeOfDayChoiceOntario implements TimeOfDayChoice {
         logger.info("Finished time-of-day choice");
     }
 
-    private void calculateDepartureTime(LongDistanceTripOntario trip, String mode, String purpose) {
+    private void calculateDepartureTime(LongDistanceTrip tripToCast, String mode, String purpose) {
 
+        LongDistanceTripOntario trip = (LongDistanceTripOntario) tripToCast;
         if( trip.getTripState().equals(TypeOntario.AWAY)){
             //daytrip
             trip.setDepartureTimeInHours(Util.select(multiply(probabilities.get("departure." + mode + "." + purpose),correctionFactorDayTripOutbound), departureTimesInHours));
@@ -70,7 +71,7 @@ public class TimeOfDayChoiceOntario implements TimeOfDayChoice {
 
         } else {
             //overnight trip inbound or outbound
-            if (LDModel.rand.nextBoolean()) {
+            if (LDModelOntario.rand.nextBoolean()) {
                 trip.setDepartureTimeInHours(Util.select(probabilities.get("departure." + mode + "." + purpose), departureTimesInHours));
                 trip.setReturnOvernightTrip(false);
             } else {
@@ -82,7 +83,7 @@ public class TimeOfDayChoiceOntario implements TimeOfDayChoice {
         }
     }
 
-    private String convertPurpose(LongDistanceTripOntario trip) {
+    private String convertPurpose(LongDistanceTrip trip) {
         String purpose = "all";
     if (trip.getMode().equals(ModeOntario.AUTO) || trip.getMode().equals(ModeOntario.BUS)) {
             switch ((PurposeOntario) trip.getTripPurpose()) {
@@ -99,7 +100,7 @@ public class TimeOfDayChoiceOntario implements TimeOfDayChoice {
 
     }
 
-    private String convertMode(LongDistanceTripOntario trip) {
+    private String convertMode(LongDistanceTrip trip) {
         String mode = "";
             switch ((ModeOntario) trip.getMode()) {
                 case AUTO:

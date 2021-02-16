@@ -78,7 +78,8 @@ public class ZoneDisaggregatorOntario implements ZoneDisaggregator {
     public void run(DataSet dataSet, int nThreads) {
 
         logger.info("Starting disaggregation");
-        dataSet.getAllTrips().parallelStream().forEach(t -> {
+        dataSet.getAllTrips().parallelStream().forEach(tripToCast -> {
+            LongDistanceTripOntario t = (LongDistanceTripOntario) tripToCast;
             disaggregateDestination(t);
         });
         logger.info("Finished disaggregation");
