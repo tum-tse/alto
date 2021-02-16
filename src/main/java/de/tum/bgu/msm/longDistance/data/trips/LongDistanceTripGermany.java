@@ -38,6 +38,11 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     private Map<String, Float> additionalAttributes = new HashMap<>();
     private int scenario;
 
+    private double origX = -1;
+    private double origY = -1;
+    private double destX = -1;
+    private double destY = -1;
+
     public LongDistanceTripGermany(int tripId, PersonGermany traveller, boolean international, Purpose tripPurpose, Type tripState, ZoneGermany origZone ) {
         this.tripId = tripId;
         this.traveller = traveller;
@@ -137,13 +142,46 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         this.travelTime = travelTime;
     }
 
+    public double getOrigX() {
+        return origX;
+    }
+
+    public void setOrigX(double origX) {
+        this.origX = origX;
+    }
+
+    public double getOrigY() {
+        return origY;
+    }
+
+    public void setOrigY(double origY) {
+        this.origY = origY;
+    }
+
+    public double getDestX() {
+        return destX;
+    }
+
+    public void setDestX(double destX) {
+        this.destX = destX;
+    }
+
+    public double getDestY() {
+        return destY;
+    }
+
+    public void setDestY(double destY) {
+        this.destY = destY;
+    }
+
     public static String getHeader() {
         return "tripId,personId" +
                 ",international,tripPurpose,tripState,tripOriginZone,tripOriginType" +
                 ",tripDestZone,tripDestType,travelDistance_km" +
                 ",tripMode,travelTimeByMode_h"+
                 ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip"+
-                ",CO2emissions_kg" /*+
+                ",CO2emissions_kg"+
+                ",origX ,origY, destX, destY"/*+
                  ",utility_" + ModeGermany.getMode(0)+
                 ",utility_" + ModeGermany.getMode(1)+
                 ",utility_" + ModeGermany.getMode(2)+
@@ -194,7 +232,11 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getDepartureTimeInHours()
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()
-                    + "," + tr.getEmissions().get(Pollutant.CO2)/*
+                    + "," + tr.getEmissions().get(Pollutant.CO2)
+                    + "," + tr.getOrigX()
+                    + "," + tr.getOrigY()
+                    + "," + tr.getDestX()
+                    + "," + tr.getDestY()/*
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(2))

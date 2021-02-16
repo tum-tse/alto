@@ -3,9 +3,7 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
-import de.tum.bgu.msm.longDistance.data.trips.ModeGermany;
+import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 
@@ -54,6 +52,26 @@ public class DestinationChoiceGermany implements DestinationChoice {
     @Override
     public void run(DataSet dataSet, int nThreads) {
         runDestinationChoice(dataSet.getAllTrips());
+        sampleDestinationCoord(dataSet.getAllTrips());
+    }
+
+    public void sampleDestinationCoord(ArrayList<LongDistanceTrip> trips){
+
+        logger.info("Sampling Microlocation of Destination for " + trips.size() + " trips");
+
+        //trips.parallelStream().forEach( t ->{
+
+        //    if(t.getTripPurpose().toString().equals(PurposeGermany.PRIVATE.toString())){
+                //Generate a random number
+                //Subset a dd with given zone
+                //loop through the subset dd
+                //condition match
+                //set coords
+        //    }
+
+
+        //});
+
     }
 
 
