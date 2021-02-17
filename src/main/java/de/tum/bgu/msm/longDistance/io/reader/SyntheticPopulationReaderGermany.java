@@ -16,6 +16,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -89,7 +90,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
 
     private Map<Integer, Household>  readSyntheticHouseholds() {
 
-        Map<Integer, Household> householdMap = new HashMap<>();
+        Map<Integer, Household> householdMap = new LinkedHashMap<>();
 
         String recString = "";
         int recCount = 0;
@@ -132,7 +133,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
 
     private Map<Integer, Person>  readSyntheticPersons(Map<Integer, Household> householdMap) {
 
-        Map<Integer, Person> personMap = new HashMap<>();
+        Map<Integer, Person> personMap = new LinkedHashMap<>();
 
         boolean logUnmatchedHh = true;
 
