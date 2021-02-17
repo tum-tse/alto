@@ -14,6 +14,8 @@ import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermanScenario;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermany;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermany;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermanyScenario;
+import de.tum.bgu.msm.longDistance.scaling.PotentialTravelersSelectionGermany;
+import de.tum.bgu.msm.longDistance.scenarioAnalysis.ScenarioAnalysis;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoiceGermany;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationGermany;
 import org.apache.log4j.Logger;
@@ -72,7 +74,9 @@ public class RunModelGermanyScenarios {
         LDModelGermanyScenarios ldModelGermany = new LDModelGermanyScenarios(new ZoneReaderGermany(), new SkimsReaderGermany(),
                 new SyntheticPopulationReaderGermany(),new EconomicStatusReader(),
                 new TripGenerationGermany(), new DestinationChoiceGermany(), new ModeChoiceGermanyScenario(),
-                new TimeOfDayChoiceGermany(), new Emissions(), new OutputWriterGermanScenario(), new CalibrationGermany());
+                new TimeOfDayChoiceGermany(), new Emissions(), new OutputWriterGermanScenario(),
+                new CalibrationGermany(), new PotentialTravelersSelectionGermany(),
+                new ScenarioAnalysis());
         ldModelGermany.setup(prop, inputFolder, outputFolder);
         ldModelGermany.load(dataSet);
         ldModelGermany.run(dataSet, -1);

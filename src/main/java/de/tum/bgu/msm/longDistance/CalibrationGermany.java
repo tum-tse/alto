@@ -94,7 +94,7 @@ public class CalibrationGermany implements ModelComponent {
 
     public void calibrateModel(boolean tg, boolean dc, boolean mc, DataSet dataSet) {
 
-        for (LongDistanceTrip t : dataSet.getAllTrips()) {
+        for (LongDistanceTrip t : dataSet.getTripsofPotentialTravellers()) {
             LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
                 allTrips.add(trip);
         }
@@ -116,7 +116,7 @@ public class CalibrationGermany implements ModelComponent {
 
             if (tg){
                 logger.info("Calibration of trip generation: Iteration = " + iteration);
-                int totalPopulation = dataSet.getPersons().size();
+                int totalPopulation = dataSet.getPotentialTravellers().size();
                 calibrationMatrixTg = calculateTGCalibrationFactors(allTrips, totalPopulation);
                 tgDomesticModel.updateDomesticTgCalibration(calibrationMatrixTg.get(TgModelName.residenceTg));
                 runTg();

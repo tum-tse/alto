@@ -35,7 +35,7 @@ public class DomesticTripGenerationGermany {
 
     private TableDataSet tripGenerationCoefficients;
 
-    private AtomicInteger atomicInteger = new AtomicInteger(0);
+    private AtomicInteger atomicInteger;
 
     private boolean calibrationTG;
     private Map<Purpose, Map<Type, Double>> calibrationTgMatrix;
@@ -70,6 +70,7 @@ public class DomesticTripGenerationGermany {
 
     public ArrayList<LongDistanceTripGermany> run() {
         ArrayList<LongDistanceTripGermany> trips = new ArrayList<>();
+        atomicInteger = new AtomicInteger(0);
 
         //initialize utility vectors
         Map<Type, Double> expUtilities = new HashMap<>();
@@ -77,7 +78,7 @@ public class DomesticTripGenerationGermany {
 
         //this option may give randomness to the results
         //synPop.getHouseholds().forEach(hhold -> {
-          for (Household hhold : dataSet.getHouseholds().values()) {
+          for (Household hhold : dataSet.getPotentialHouseholdTravellers().values()) {
 
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(((HouseholdGermany) hhold).getPersonsOfThisHousehold()));
@@ -151,7 +152,7 @@ public class DomesticTripGenerationGermany {
 
         //this option may give randomness to the results
         //synPop.getHouseholds().forEach(hhold -> {
-        for (Household hhold : dataSet.getHouseholds().values()) {
+        for (Household hhold : dataSet.getPotentialHouseholdTravellers().values()) {
 
             //pick and shuffle the members of the household
             ArrayList<Person> membersList = new ArrayList<>(Arrays.asList(((HouseholdGermany) hhold).getPersonsOfThisHousehold()));

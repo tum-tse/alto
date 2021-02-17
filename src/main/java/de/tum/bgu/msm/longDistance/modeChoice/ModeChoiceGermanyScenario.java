@@ -13,7 +13,6 @@ import java.util.ArrayList;
 public class ModeChoiceGermanyScenario implements ModeChoice {
 
     static Logger logger = Logger.getLogger(ModeChoiceGermanyScenario.class);
-    int scenario;
     private DomesticModeChoiceGermanyScenario mcDomesticModel;
     //private IntModeChoice intModeChoice;
 
@@ -36,15 +35,14 @@ public class ModeChoiceGermanyScenario implements ModeChoice {
     @Override
     public void run(DataSet dataSet, int nThreads) {
 
-        runModeChoice(dataSet.getAllTrips());
+        runModeChoice(dataSet);
     }
 
-    public void setScenario(int scenario){
-        this.scenario = scenario;
-    }
+    public void runModeChoice(DataSet dataSet) {
+        ArrayList<LongDistanceTrip> trips = dataSet.getTripsofPotentialTravellers();
+        int scenario = dataSet.getScenario();
 
-    public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
-        logger.info("Running Mode Choice Model for " + trips.size() + " trips");
+        logger.info("Running Mode Choice Model for scenario " + scenario + " for "  + trips.size() + " trips");
         trips.parallelStream().forEach(t -> {
             if (!((LongDistanceTripGermany)t).isInternational() ) {
                 if (!((LongDistanceTripGermany)t).getTripState().equals(TypeGermany.AWAY)) {

@@ -33,7 +33,7 @@ public class Emissions implements ModelComponent {
     @Override
     public void run(DataSet dataSet, int nThreads) {
 
-        ArrayList<LongDistanceTrip> trips = dataSet.getAllTrips();
+        ArrayList<LongDistanceTrip> trips = dataSet.getTripsofPotentialTravellers();
         logger.info("Running emission calculator for " + trips.size() + " trips");
 
         trips.parallelStream().forEach(tripFromArray -> {
