@@ -7,6 +7,7 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
+import de.tum.bgu.msm.longDistance.io.writer.OmxMatrixWriter;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -53,6 +54,7 @@ public class SkimsReaderGermany implements SkimsReader {
     private String lookUpName;
     private String matrixName;
     private String accessToTrainFileName;
+    private boolean readSkimsByStage;
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
@@ -67,20 +69,26 @@ public class SkimsReaderGermany implements SkimsReader {
                 JsonUtilMto.getStringProp(prop, "zone_system.skim.distance.matrix"),
                 JsonUtilMto.getStringProp(prop, "zone_system.skim.distance.lookup")};
 
+        readSkimsByStage = JsonUtilMto.getBooleanProp(prop, "mode_choice.skim.read_by_stage");
+
         for (Mode m : ModeGermany.values()) {
             String travelTimeFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m);
             String distanceFileName = inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.distance_file_" + m);
             travelTimeFileNames.put(m, travelTimeFileName);
             distanceFileNames.put(m, distanceFileName);
 
-            if (m.equals(ModeGermany.RAIL )){
-                accessTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_access"));
-                egressTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_egress"));
-            }
-            if (m.equals(ModeGermany.BUS )){
-                accessTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_access"));
-                egressTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_egress"));
-                inVehTimeFileNames.put(m,inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_inVehProp"));
+            if (readSkimsByStage) {
+                if (m.equals(ModeGermany.RAIL)) {
+                    travelTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_inVeh"));
+                    accessTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_access"));
+                    egressTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_egress"));
+                }
+                if (m.equals(ModeGermany.BUS)) {
+                    travelTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_inVeh"));
+                    accessTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_access"));
+                    egressTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_egress"));
+                    inVehTimeFileNames.put(m, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_" + m + "_inVehProp"));
+                }
             }
         }
         lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
@@ -92,7 +100,7 @@ public class SkimsReaderGermany implements SkimsReader {
     @Override
     public void load(DataSet dataSet) {
         this.dataSet = dataSet;
-        readSkims();
+        //readSkims();
         readSkimByMode(dataSet);
         readTimeToRail(dataSet);
     }
@@ -195,8 +203,11 @@ public class SkimsReaderGermany implements SkimsReader {
             int[] externalNumbers = (int[]) omxLookUp.getLookup();
             travelTime.setExternalNumbersZeroBased(externalNumbers);
             travelTime = addBigTravelTimeToSameAirportCatchmentAreaTrips(travelTime, m);
-            travelTime = addAccessAndEgress(travelTime, m);
+            if (readSkimsByStage) {
+                travelTime = addAccessAndEgress(travelTime, m);
+            }
             travelTimeMatrix.put(m, travelTime);
+
 
             OmxFile skimDistance = new OmxFile(distanceFileName);
             skimDistance.openReadOnly();
@@ -314,7 +325,6 @@ public class SkimsReaderGermany implements SkimsReader {
                 }
             }
         }
-        logger.info("Calculated intrazonal values - nearest neighbour");
         return matrix;
     }
 
