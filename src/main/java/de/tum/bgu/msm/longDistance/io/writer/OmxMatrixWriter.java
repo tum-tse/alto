@@ -29,7 +29,7 @@ public class OmxMatrixWriter {
             float[][] array = matrix.getValues();
             int[] indices = matrix.getExternalRowNumbersZeroBased();
 
-            OmxLookup lookup = new OmxLookup.OmxIntLookup("zone", indices, -1);
+            OmxLookup lookup = new OmxLookup.OmxIntLookup("lookup1", indices, -1);
             OmxMatrix.OmxFloatMatrix mat1 = new OmxMatrix.OmxFloatMatrix(omxMatrixName, array, mat1NA);
             mat1.setAttribute(OmxConstants.OmxNames.OMX_DATASET_TITLE_KEY.getKey(), "skim_matrix");
             omxFile.addMatrix(mat1);
