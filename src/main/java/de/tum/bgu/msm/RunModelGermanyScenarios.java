@@ -16,6 +16,7 @@ import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermany;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermanyScenario;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoiceGermany;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationGermany;
+import org.apache.log4j.BasicConfigurator; // Alona
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -44,7 +45,7 @@ public class RunModelGermanyScenarios {
 
     public static void main(String[] args) {
         // main model run method
-
+        BasicConfigurator.configure();
         logger.info("MITO Long distance model");
         long startTime = System.currentTimeMillis();
         JsonUtilMto jsonUtilMto = new JsonUtilMto(args[0]);
