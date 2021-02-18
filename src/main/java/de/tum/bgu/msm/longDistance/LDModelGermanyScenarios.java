@@ -130,6 +130,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
                 calibrationGermany.run(dataSet, -1);
                 emissions.run(dataSet, -1);
                 outputWriter.run(dataSet, -1);
+                scenarioAnalysis.run(dataSet, -1);
             }
         }
         scenarioAnalysis.run(dataSet, -1);
