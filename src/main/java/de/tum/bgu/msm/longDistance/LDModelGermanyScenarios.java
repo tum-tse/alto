@@ -123,6 +123,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
             potentialTravelersSelection.run(dataSet, -1);
             tripGenModel.run(dataSet, -1);
             destinationChoice.run(dataSet, -1);
+
             for (int policyScenario = 1; policyScenario <= dataSet.getNumberOfScenarios(); policyScenario++) {
                 dataSet.setScenario(policyScenario);
                 mcModel.run(dataSet, -1);
