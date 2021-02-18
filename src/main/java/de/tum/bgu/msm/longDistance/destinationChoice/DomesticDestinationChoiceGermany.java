@@ -127,8 +127,8 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         if (distance > longDistanceThreshold) {
 
             ZoneGermany destinationZone = (ZoneGermany) dataSet.getZones().get(destination);
-            double population = destinationZone.getPopulation() * scaleFactor;
-            double employment = destinationZone.getEmployment() * scaleFactor;
+            double population = destinationZone.getPopulation();
+            double employment = destinationZone.getEmployment();
             double hotels = destinationZone.getHotels();
 
             Purpose tripPurpose = trip.getTripPurpose();

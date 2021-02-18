@@ -13,8 +13,10 @@ import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReaderGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
+import org.locationtech.jts.geom.Coordinate;
 
-import java.io.PrintWriter;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +44,14 @@ public class PopulationOutputWriterGermany implements OutputWriter {
     private String outputFilehh;
     private String outputFilepp;
     private String outputFilejj;
+    private String outputFiledd;
     private int[] populationScaler;
-    private Map<Integer, PersonGermany> workers;
     private int numberOfSubpopulations;
     private boolean populationScaling;
     private boolean populationSplitting;
+    private String hhFilename;
+    private String jjFilename;
+    private String ddFilename;
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolderInput) {
@@ -56,8 +61,12 @@ public class PopulationOutputWriterGermany implements OutputWriter {
         outputFilehh = JsonUtilMto.getStringProp(prop, "output.household_file");
         outputFilepp = JsonUtilMto.getStringProp(prop, "output.person_file");
         outputFilejj = JsonUtilMto.getStringProp(prop, "output.job_file");
+        outputFiledd = JsonUtilMto.getStringProp(prop, "output.dwelling_file");
         populationScaling = JsonUtilMto.getBooleanProp(prop,"output.scalePopulation");
         populationSplitting = JsonUtilMto.getBooleanProp(prop,"output.splitPopulation");
+        hhFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.households_file");
+        jjFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.jobs_file");
+        ddFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.dwellings_file");
     }
 
     @Override
@@ -71,8 +80,9 @@ public class PopulationOutputWriterGermany implements OutputWriter {
             for (int scaleCount = 0; scaleCount < populationScaler.length; scaleCount++) {
                 int scale = populationScaler[scaleCount];
                 logger.info("Starting to write population at " + scale + " percent.");
-                writeHouseholdsAndPersons(dataSet, scale);
-                writeJobs(dataSet, scale);
+                Map<String, List<Integer>> writtenPopulation = writeHouseholdsAndPersons(dataSet, scale);
+                //writeJobs(dataSet, scale, writtenPopulation); //removed this method because it takes very long to find the worker in the worker map. Consider to store in a map all the String and then write out only the strings whose worker is in the subpopulation
+                //writeDwellings(dataSet, scale, writtenPopulation);
             }
         }
         if (populationSplitting){
@@ -82,25 +92,28 @@ public class PopulationOutputWriterGermany implements OutputWriter {
     }
 
 
-    private void writeHouseholdsAndPersons(DataSet dataSet, int scale){
-        String filehh = outputFolder + scale + "_"+ outputFilehh;
-        String filepp = outputFolder + scale + "_"+ outputFilepp;
+    private Map<String, List<Integer>> writeHouseholdsAndPersons(DataSet dataSet, int scale){
 
+        String filehh = outputFolder + scale + "perc_"+ outputFilehh;
+        String filepp = outputFolder + scale + "perc_"+ outputFilepp;
+
+        Map<String, List<Integer>> writtenPopulation = new HashMap<>();
+        writtenPopulation.put("household", new ArrayList<>());
+        writtenPopulation.put("worker", new ArrayList<>());
         PrintWriter pwHousehold = Util.openFileForSequentialWriting(filehh, false);
         pwHousehold.println(HouseholdGermany.getHeader());
         PrintWriter pwPerson = Util.openFileForSequentialWriting(filepp, false);
         pwPerson.println(PersonGermany.getHeader());
         int hhCount = 1;
         int scalingFactor = (int) (100 / scale);
-        int idWorker = 1;
         for (Household hh : dataSet.getHouseholds().values()) {
             if (hhCount % scalingFactor == 0) {
                 pwHousehold.println(hh.toString());
+                writtenPopulation.get("household").add(hh.getId());
                 for (PersonGermany pp : ((HouseholdGermany) hh).getPersonsOfThisHousehold()){
                     pwPerson.println(pp.toString());
                     if (pp.getOccupation().equals(OccupationStatus.WORKER)){
-                        workers.put(idWorker, pp);
-                        idWorker++;
+                        writtenPopulation.get("worker").add(pp.getPersonId());
                     }
                 }
             }
@@ -108,11 +121,10 @@ public class PopulationOutputWriterGermany implements OutputWriter {
         }
         pwHousehold.close();
         pwPerson.close();
-
+        return writtenPopulation;
     }
 
     private void writeMultipleFilesForHouseholdsAndPersons(DataSet dataSet){
-
 
         Map<Integer, PrintWriter> householdWriter = new HashMap<>();
         Map<Integer, PrintWriter> personWriter = new HashMap<>();
@@ -150,25 +162,77 @@ public class PopulationOutputWriterGermany implements OutputWriter {
 
     }
 
-    private void writeJobs(DataSet dataSet, int scale){
-        String filejj= outputFolder + scale + "_"+ outputFilejj;
+    private void writeJobs(DataSet dataSet, int scale, Map<String, List<Integer>> writtenPopulation) {
+
+        String filejj = outputFolder + scale + "perc_" + outputFilejj;
         PrintWriter pwJob = Util.openFileForSequentialWriting(filejj, false);
-        pwJob.println("id,zone");
-        int jjCount = 1;
-        int scalingFactor = (int) (100 / scale);
-        for (Zone zz: dataSet.getZones().values()){
-            int numberOfJobs = ((ZoneGermany)zz).getEmployment();
-            for (int job = 1; job <= numberOfJobs; job++){
-                if (jjCount % scalingFactor == 0) {
-                    pwJob.print(jjCount);
-                    pwJob.print(",");
-                    pwJob.println(zz.getId());
+
+        String recString = "";
+        int recCount = 0;
+
+        try (BufferedReader in = new BufferedReader(new FileReader(jjFilename))) {
+            recString = in.readLine();
+            String[] header = recString.split(",");
+            // Remove quotation marks if they are available in the header columns (after splitting by commas)
+            for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
+
+            int posId = Util.findPositionInArray("personId", header);
+
+            pwJob.println(recString);
+            // read line
+            while ((recString = in.readLine()) != null) {
+                recCount++;
+                String[] lineElements = recString.split(",");
+                int workerId = Integer.parseInt(lineElements[posId]);
+                if (writtenPopulation.get("worker").contains(workerId)){
+                    pwJob.println(recString);
                 }
-                jjCount++;
             }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         pwJob.close();
     }
+
+
+    private void writeDwellings(DataSet dataSet, int scale, Map<String, List<Integer>> writtenPopulation) {
+
+        String filedd = outputFolder + scale + "perc_" + outputFiledd;
+        PrintWriter pwDwelling = Util.openFileForSequentialWriting(filedd, false);
+
+        String recString = "";
+        int recCount = 0;
+
+        try (BufferedReader in = new BufferedReader(new FileReader(ddFilename))) {
+            recString = in.readLine();
+            String[] header = recString.split(",");
+            // Remove quotation marks if they are available in the header columns (after splitting by commas)
+            for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
+
+            int posId = Util.findPositionInArray("hhId", header);
+
+            pwDwelling.println(recString);
+            // read line
+            while ((recString = in.readLine()) != null) {
+                recCount++;
+                String[] lineElements = recString.split(",");
+                int hhId = Integer.parseInt(lineElements[posId]);
+                if (writtenPopulation.get("household").contains(hhId)){
+                    pwDwelling.println(recString);
+                }
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        pwDwelling.close();
+    }
+
 
     private void writeTotalsByZone(DataSet dataSet){
         String file = outputFolder + "subPop_totals_"+ outputFilehh;
@@ -190,7 +254,6 @@ public class PopulationOutputWriterGermany implements OutputWriter {
                         }
                 );
         for (Zone zone : dataSet.getZones().values()) {
-            logger.info(zone.getId());
             String line = Integer.toString(zone.getId());
             if (householdsByZone.containsKey(zone.getId())) {
                 line = line + "," + householdsByZone.get(zone.getId());
