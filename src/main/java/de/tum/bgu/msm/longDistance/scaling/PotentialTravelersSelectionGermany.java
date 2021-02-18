@@ -67,7 +67,8 @@ public class PotentialTravelersSelectionGermany implements SyntheticPopulationRe
     public Map<Integer, Household> selectHouseholds(int populationSection){
         Map<Integer, Household> householdMap = new LinkedHashMap<>();
         Integer[] keysArray = dataSet.getHouseholds().keySet().toArray(new Integer[dataSet.getHouseholds().keySet().size()]);
-        if (populationSection == -1) {
+        householdMap = dataSet.getHouseholds();
+/*        if (populationSection == -1) {
             householdMap = dataSet.getHouseholds();
         } else {
             int firstHouseholdScenario = maxPotentialTravelers * (populationSection - 1);
@@ -79,7 +80,7 @@ public class PotentialTravelersSelectionGermany implements SyntheticPopulationRe
                 Household hh = dataSet.getHouseholds().get(hhId);
                 householdMap.put(hhId, hh);
             }
-        }
+        }*/
         logger.info("   Selected " + householdMap.size() + " households as potential travelers.");
         return householdMap;
     }
@@ -87,7 +88,8 @@ public class PotentialTravelersSelectionGermany implements SyntheticPopulationRe
 
     public Map<Integer, Person> selectPersons(int populationScenario, Map<Integer, Household> households){
         Map<Integer, Person> personMap = new LinkedHashMap<>();
-        if (populationScenario == -1){
+        personMap = dataSet.getPersons();
+       /* if (populationScenario == -1){
             personMap = dataSet.getPersons();
         } else {
             for (Household hh : households.values()){
@@ -95,7 +97,7 @@ public class PotentialTravelersSelectionGermany implements SyntheticPopulationRe
                     personMap.put(pp.getPersonId(), pp);
                 }
             }
-        }
+        }*/
         logger.info("   Selected " + personMap.size() + " potential travelers.");
         return personMap;
     }

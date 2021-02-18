@@ -79,16 +79,14 @@ public class ScenarioAnalysis implements SyntheticPopulationReader {
 
     public void run(DataSet dataSet, int nThreads) {
 
-        PrintWriter pw = Util.openFileForSequentialWriting(outputFolder + "/summaryModeChoiceEmissions.csv", false);
+        PrintWriter pw = Util.openFileForSequentialWriting(outputFolder + "/_p" + dataSet.getPopulationSection()+  "_summaryModeChoiceEmissions.csv", false);
         Map<Integer, Map<Type, Map<Mode, Integer>>> trips = dataSet.getModalCountByModeByScenario();
         Map<Integer, Map<Type, Map<Mode, Float>>> co2Emissions = dataSet.getCo2EmissionsByModeByScenario();
-        float scaleFactor = JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
         TableDataSet scenarioSettings = dataSet.getScenarioSettings();
-        String header = "scenario";
+        String header = "subpopulation,scenario";
         for (int col = 1; col <= scenarioSettings.getColumnCount(); col++){
             header = header + "," + scenarioSettings.getColumnLabel(col);
         }
-        header = header + "," + "scale_factor";
         for (Type p : TypeGermany.values()) {
             if (!p.equals(TypeGermany.AWAY)) {
                 for (Mode m : ModeGermany.values()) {
@@ -101,18 +99,18 @@ public class ScenarioAnalysis implements SyntheticPopulationReader {
         }
         pw.println(header);
         for (int scenario = 1; scenario <= dataSet.getNumberOfScenarios(); scenario++) {
-            String line = Integer.toString(scenario);
+            String line = Integer.toString(dataSet.getPopulationSection());
+            line = line + "," + Integer.toString(scenario);
             for (int col = 1; col <= scenarioSettings.getColumnCount(); col++){
                 line = line + "," + scenarioSettings.getStringValueAt(scenario, col);
             }
-            line = line + "," + scaleFactor;
             for (Type p : TypeGermany.values()) {
                 if (!p.equals(TypeGermany.AWAY)) {
                     for (Mode m : ModeGermany.values()) {
-                        line = line + "," + trips.get(scenario).get(p).get(m) * scaleFactor;
+                        line = line + "," + trips.get(scenario).get(p).get(m);
                     }
                     for (Mode m : ModeGermany.values()) {
-                        line = line + "," + co2Emissions.get(scenario).get(p).get(m) * scaleFactor;
+                        line = line + "," + co2Emissions.get(scenario).get(p).get(m);
                     }
                 }
             }

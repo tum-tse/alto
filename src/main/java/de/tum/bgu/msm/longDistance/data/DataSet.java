@@ -87,6 +87,8 @@ public class DataSet {
     private int populationSection;
     private Map<Integer, Person> potentialTravellers = new LinkedHashMap<>();
     private Map<Integer, Household> potentialHouseholdTravellers = new LinkedHashMap<>();
+    private String householdSubpopulationFileName;
+    private String personSubpopulationFileName;
 
     //TRIPS
     private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
@@ -210,6 +212,22 @@ public class DataSet {
 
     public void setScenarioSettings(TableDataSet scenarioSettings) {
         this.scenarioSettings = scenarioSettings;
+    }
+
+    public String getHouseholdSubpopulationFileName() {
+        return householdSubpopulationFileName;
+    }
+
+    public void setHouseholdSubpopulationFileName(String householdSubpopulationFileName) {
+        this.householdSubpopulationFileName = householdSubpopulationFileName;
+    }
+
+    public String getPersonSubpopulationFileName() {
+        return personSubpopulationFileName;
+    }
+
+    public void setPersonSubpopulationFileName(String personSubpopulationFileName) {
+        this.personSubpopulationFileName = personSubpopulationFileName;
     }
 
     //airports

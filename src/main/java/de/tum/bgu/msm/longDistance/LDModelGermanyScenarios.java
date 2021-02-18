@@ -118,8 +118,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
 
     public void run(DataSet dataSet, int nThreads) {
 
-        for (int populationSection = 1; populationSection <= dataSet.getNumberOfSubpopulations(); populationSection++) {
-            setTravelers(dataSet, populationSection);
+        //for (int populationSection = 1; populationSection <= dataSet.getNumberOfSubpopulations(); populationSection++) {
             potentialTravelersSelection.run(dataSet, -1);
             tripGenModel.run(dataSet, -1);
             destinationChoice.run(dataSet, -1);
@@ -133,15 +132,11 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
                 outputWriter.run(dataSet, -1);
                 scenarioAnalysis.run(dataSet, -1);
             }
-        }
+        //}
         scenarioAnalysis.run(dataSet, -1);
 
     }
 
-
-    private void setTravelers(DataSet dataSet, int scenario){
-        dataSet.setPopulationSection(scenario);
-    }
 
 
 

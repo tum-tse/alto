@@ -39,6 +39,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
     private String jjFilename;
     private String ddFilename;
     private String travellersFilename;
+    private String workFolder;
 
 
     public SyntheticPopulationReaderGermany() {
@@ -47,6 +48,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
         this.prop = prop;
+        workFolder = inputFolder;
         hhFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.households_file");
         ppFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.persons_file");
         boolean readJobDwelling = true;
@@ -54,11 +56,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             jjFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.jobs_file");
             ddFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.dwellings_file");
         }
-        boolean runSubpopulations = JsonUtilMto.getBooleanProp(prop, "synthetic_population.runSubpopulations");
-        if (runSubpopulations){
-            hhFilename = dataSet.getHouseholdSubpopulationFileName();
-            ppFilename = dataSet.getPersonSubpopulationFileName();
-        }
+
         travellersFilename = outputFolder +  JsonUtilMto.getStringProp(prop, "output.travellers_file");
 
         logger.info("Synthetic population reader set up");
@@ -69,11 +67,20 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
 
         this.dataSet = dataSet;
         this.zoneLookup = dataSet.getZones();
-        readSyntheticPopulation();
-        boolean readJobDwelling = true;
-        if (readJobDwelling) {
+        boolean runSubpopulations = JsonUtilMto.getBooleanProp(prop, "synthetic_population.runSubpopulations");
+        if (runSubpopulations){
+            hhFilename = workFolder + JsonUtilMto.getStringProp(prop,"synthetic_population.folder_subpopulation")
+                    + dataSet.getPopulationSection() + JsonUtilMto.getStringProp(prop, "synthetic_population.households_file_subpopulation");
+            ppFilename = workFolder + JsonUtilMto.getStringProp(prop,"synthetic_population.folder_subpopulation")
+                    + dataSet.getPopulationSection() + JsonUtilMto.getStringProp(prop, "synthetic_population.persons_file_subpopulation");
+        }
+        boolean householdsWithoutCoordinates = false; //only set to true if the households do not have coordinates
+        if (householdsWithoutCoordinates) {
+            readSyntheticPopulationWithoutCoordinates();
             addEmploymentToZonesAndCoordinates();
             readSyntheticDwellingsAndAddCoordinates();
+        } else {
+            readSyntheticPopulation();
         }
         logger.info("Synthetic population loaded");
     }
@@ -84,6 +91,14 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
 
 
     public void readSyntheticPopulation() {
+        logger.info("  Reading synthetic population");
+        Map<Integer, Household> households = readSyntheticHouseholdsWithCoordinates();
+        dataSet.setHouseholds(households);
+        dataSet.setPersons(readSyntheticPersonsWithCoordinates(households));
+    }
+
+
+    public void readSyntheticPopulationWithoutCoordinates() {
         logger.info("  Reading synthetic population");
         Map<Integer, Household> households = readSyntheticHouseholds();
         dataSet.setHouseholds(households);
@@ -168,7 +183,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
                 ((HouseholdGermany) hh).setHhAutos(hhAutos);
                 Coordinate homeLocation = new Coordinate(
                         Double.parseDouble(lineElements[posCoordX]), Double.parseDouble(lineElements[posCoordY]));
-                ((HouseholdGermany) dataSet.getHouseholds().get(id)).setHomeLocation(homeLocation);
+                ((HouseholdGermany) hh).setHomeLocation(homeLocation);
                 householdMap.put(id, hh);
 
             }
@@ -296,8 +311,8 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             int posOccupation = Util.findPositionInArray("occupation", header);
             int posIncome = Util.findPositionInArray("income", header);
             int posLicense = Util.findPositionInArray("driversLicense", header);
-            int posCoordX = Util.findPositionInArray("coordX", header);
-            int posCoordY = Util.findPositionInArray("coordY", header);
+            int posCoordX = Util.findPositionInArray("jobCoordX", header);
+            int posCoordY = Util.findPositionInArray("jobCoordY", header);
 
             // read line
             while ((recString = in.readLine()) != null) {
