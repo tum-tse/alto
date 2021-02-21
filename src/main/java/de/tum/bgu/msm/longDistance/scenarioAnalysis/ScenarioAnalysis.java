@@ -57,18 +57,22 @@ public class ScenarioAnalysis implements SyntheticPopulationReader {
         dataSet.setScenarioSettings(scenarioVariables);
         dataSet.setNumberOfScenarios(scenarioVariables.getRowCount());
         dataSet.setDistanceBins(distanceBins);
-        Map<Integer, Map<Type, Map<Mode, Integer>>> modalCountByModeByScenario = new LinkedHashMap<>();
-        Map<Integer, Map<Type, Map<Mode, Float>>> co2EmissionsByModeByScenario = new LinkedHashMap<>();
+        Map<Integer, Map<Type, Map<Purpose, Map<Mode, Integer>>>> modalCountByModeByScenario = new LinkedHashMap<>();
+        Map<Integer, Map<Type, Map<Purpose, Map<Mode, Float>>>> co2EmissionsByModeByScenario = new LinkedHashMap<>();
 
         for (int scenarioId = 1; scenarioId <= scenarioVariables.getRowCount(); scenarioId++){
             modalCountByModeByScenario.putIfAbsent(scenarioId, new HashMap<>());
             co2EmissionsByModeByScenario.putIfAbsent(scenarioId, new HashMap<>());
-            for (Type p : TypeGermany.values()) {
-                modalCountByModeByScenario.get(scenarioId).putIfAbsent(p, new HashMap<>());
-                co2EmissionsByModeByScenario.get(scenarioId).putIfAbsent(p, new HashMap<>());
-                for (Mode m : ModeGermany.values()) {
-                    modalCountByModeByScenario.get(scenarioId).get(p).put(m, 0);
-                    co2EmissionsByModeByScenario.get(scenarioId).get(p).put(m, 0.f);
+            for (Type t : TypeGermany.values()) {
+                modalCountByModeByScenario.get(scenarioId).putIfAbsent(t, new HashMap<>());
+                co2EmissionsByModeByScenario.get(scenarioId).putIfAbsent(t, new HashMap<>());
+                for (Purpose p :PurposeGermany.values()){
+                    modalCountByModeByScenario.get(scenarioId).get(t).putIfAbsent(p, new HashMap<>());
+                    co2EmissionsByModeByScenario.get(scenarioId).get(t).putIfAbsent(p, new HashMap<>());
+                    for (Mode m : ModeGermany.values()) {
+                        modalCountByModeByScenario.get(scenarioId).get(t).get(p).put(m, 0);
+                        co2EmissionsByModeByScenario.get(scenarioId).get(t).get(p).put(m, 0.f);
+                    }
                 }
             }
         }
@@ -79,21 +83,29 @@ public class ScenarioAnalysis implements SyntheticPopulationReader {
 
     public void run(DataSet dataSet, int nThreads) {
 
-        PrintWriter pw = Util.openFileForSequentialWriting(outputFolder + "/_p" + dataSet.getPopulationSection()+  "_summaryModeChoiceEmissions.csv", false);
-        Map<Integer, Map<Type, Map<Mode, Integer>>> trips = dataSet.getModalCountByModeByScenario();
-        Map<Integer, Map<Type, Map<Mode, Float>>> co2Emissions = dataSet.getCo2EmissionsByModeByScenario();
+        PrintWriter pw = Util.openFileForSequentialWriting(outputFolder + "/p" + dataSet.getPopulationSection()+  "_summaryModeChoiceEmissions.csv", false);
+        Map<Integer, Map<Type, Map<Purpose, Map<Mode, Integer>>>> trips = dataSet.getModalCountByModeByScenario();
+        Map<Integer, Map<Type, Map<Purpose, Map<Mode, Float>>>> co2Emissions = dataSet.getCo2EmissionsByModeByScenario();
         TableDataSet scenarioSettings = dataSet.getScenarioSettings();
         String header = "subpopulation,scenario";
         for (int col = 1; col <= scenarioSettings.getColumnCount(); col++){
             header = header + "," + scenarioSettings.getColumnLabel(col);
         }
-        for (Type p : TypeGermany.values()) {
-            if (!p.equals(TypeGermany.AWAY)) {
-                for (Mode m : ModeGermany.values()) {
-                    header = header + "," + p.toString() + "." + m.toString() + ".trips";
+        for (Type t : TypeGermany.values()) {
+            if (!t.equals(TypeGermany.AWAY)) {
+                for (Purpose p : PurposeGermany.values()) {
+                    for (Mode m : ModeGermany.values()) {
+                        header = header + "," + t.toString() + "." + p.toString() + "." + m.toString() + ".trips";
+                    }
                 }
-                for (Mode m : ModeGermany.values()) {
-                    header = header + "," + p.toString() + "." + m.toString() + ".co2";
+            }
+        }
+        for (Type t : TypeGermany.values()) {
+            if (!t.equals(TypeGermany.AWAY)) {
+                for (Purpose p : PurposeGermany.values()) {
+                    for (Mode m : ModeGermany.values()) {
+                        header = header + "," + t.toString() + "." + p.toString() + "." + m.toString() + ".co2";
+                    }
                 }
             }
         }
@@ -104,13 +116,15 @@ public class ScenarioAnalysis implements SyntheticPopulationReader {
             for (int col = 1; col <= scenarioSettings.getColumnCount(); col++){
                 line = line + "," + scenarioSettings.getStringValueAt(scenario, col);
             }
-            for (Type p : TypeGermany.values()) {
-                if (!p.equals(TypeGermany.AWAY)) {
-                    for (Mode m : ModeGermany.values()) {
-                        line = line + "," + trips.get(scenario).get(p).get(m);
-                    }
-                    for (Mode m : ModeGermany.values()) {
-                        line = line + "," + co2Emissions.get(scenario).get(p).get(m);
+            for (Type t : TypeGermany.values()) {
+                if (!t.equals(TypeGermany.AWAY)) {
+                    for (Purpose p : PurposeGermany.values()) {
+                        for (Mode m : ModeGermany.values()) {
+                            line = line + "," + trips.get(scenario).get(t).get(p).get(m);
+                        }
+                        for (Mode m : ModeGermany.values()) {
+                            line = line + "," + co2Emissions.get(scenario).get(t).get(p).get(m);
+                        }
                     }
                 }
             }

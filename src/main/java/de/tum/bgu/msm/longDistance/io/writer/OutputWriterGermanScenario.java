@@ -43,7 +43,7 @@ public class OutputWriterGermanScenario implements OutputWriter {
     private String outputFileScenarioSettings;
     private TableDataSet scenarios;
     private static Logger logger = Logger.getLogger(OutputWriterGermanScenario.class);
-
+    private boolean writeTrips;
 
 
     @Override
@@ -51,6 +51,7 @@ public class OutputWriterGermanScenario implements OutputWriter {
         outputFolder = outputFolderInput;
         outputFile = JsonUtilMto.getStringProp(prop, "output.trip_file");
         scenarios = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"scenarioPolicy.scenarios"));
+        writeTrips = JsonUtilMto.getBooleanProp(prop,"output.write_trips");
     }
 
     @Override
@@ -61,14 +62,16 @@ public class OutputWriterGermanScenario implements OutputWriter {
     @Override
     public void run(DataSet dataSet, int nThreads) {
 
-        int scenario = dataSet.getScenario();
-        String outputFolderScenario = outputFolder + "/" + scenarios.getStringValueAt(scenario, "scenario");
-        PrintWriter pw = Util.openFileForSequentialWriting(outputFolderScenario + "_p" + dataSet.getPopulationSection() + "_" + outputFile, false);
-        pw.println(LongDistanceTripGermany.getHeader());
-        for (LongDistanceTrip tr : dataSet.getTripsofPotentialTravellers()) {
-            pw.println(tr.toString());
+        if (writeTrips) {
+            int scenario = dataSet.getScenario();
+            String outputFolderScenario = outputFolder + "/" + scenarios.getStringValueAt(scenario, "scenario");
+            PrintWriter pw = Util.openFileForSequentialWriting(outputFolderScenario + "_p" + dataSet.getPopulationSection() + "_" + outputFile, false);
+            pw.println(LongDistanceTripGermany.getHeader());
+            for (LongDistanceTrip tr : dataSet.getTripsofPotentialTravellers()) {
+                pw.println(tr.toString());
+            }
+            pw.close();
         }
-        pw.close();
 
         //summarizeTripLengthFrequencyDistribution(dataSet, outputFolder);
         summarizeModalShares();
@@ -249,16 +252,16 @@ public class OutputWriterGermanScenario implements OutputWriter {
                     })
                     .collect(Collectors.groupingBy(LongDistanceTrip::getTripState));
             tripsByPurpose2.forEach((type, trips) -> {
-                Map<Type, Map<Mode, Integer>> modes = dataSet.getModalCountByModeByScenario().get(scenario);
-                Map<Type, Map<Mode, Float>> emissions = dataSet.getCo2EmissionsByModeByScenario().get(scenario);
+                Map<Type, Map<Purpose, Map<Mode, Integer>>> modes = dataSet.getModalCountByModeByScenario().get(scenario);
+                Map<Type, Map<Purpose, Map<Mode, Float>>> emissions = dataSet.getCo2EmissionsByModeByScenario().get(scenario);
                 final long totalTrips = trips.size();
                 trips.parallelStream()
                         //group number of trips by mode
                         .collect(Collectors.groupingBy(LongDistanceTrip::getMode, Collectors.counting()))
                         //calculate and add trips to data set table
                         .forEach((mode, count) -> {
-                                    int previousValue = modes.get(type).get(mode);
-                                    modes.get(type).put(mode, previousValue + (int) (double) count);
+                                    int previousValue = modes.get(type).get(purpose1).get(mode);
+                                    modes.get(type).get(purpose1).put(mode, previousValue + (int) (double) count);
                                 }
                         );
                 trips.parallelStream()
@@ -266,8 +269,8 @@ public class OutputWriterGermanScenario implements OutputWriter {
                         .collect(Collectors.groupingBy(LongDistanceTrip::getMode,
                                 Collectors.summarizingDouble(LongDistanceTrip::getCO2emissions)))
                         .forEach((mode, value) ->{
-                                    float previousValue = emissions.get(type).get(mode);
-                                    emissions.get(type).put(mode, previousValue + (float)value.getSum());
+                                    float previousValue = emissions.get(type).get(purpose1).get(mode);
+                                    emissions.get(type).get(purpose1).put(mode, previousValue + (float)value.getSum());
                                 }
                         );
                 dataSet.getModalCountByModeByScenario().put(scenario, modes);

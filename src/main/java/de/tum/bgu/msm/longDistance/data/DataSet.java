@@ -95,8 +95,8 @@ public class DataSet {
     private ArrayList<LongDistanceTrip> tripsofPotentialTravellers = new ArrayList<>();
 
     private TableDataSet scenarioSettings;
-    private Map<Integer, Map<Type, Map<Mode, Integer>>> modalCountByModeByScenario = new LinkedHashMap<>();
-    private Map<Integer, Map<Type, Map<Mode, Float>>> co2EmissionsByModeByScenario = new LinkedHashMap<>();
+    private Map<Integer, Map<Type, Map<Purpose, Map<Mode, Integer>>>> modalCountByModeByScenario = new LinkedHashMap<>();
+    private Map<Integer, Map<Type, Map<Purpose, Map<Mode, Float>>>> co2EmissionsByModeByScenario = new LinkedHashMap<>();
 
     public Map<Integer, Zone> getZones() {
         return zones;
@@ -190,19 +190,19 @@ public class DataSet {
         this.distanceMatrix = distanceMatrix;
     }
 
-    public Map<Integer, Map<Type, Map<Mode, Integer>>> getModalCountByModeByScenario() {
+    public Map<Integer, Map<Type, Map<Purpose, Map<Mode, Integer>>>> getModalCountByModeByScenario() {
         return modalCountByModeByScenario;
     }
 
-    public void setModalCountByModeByScenario(Map<Integer, Map<Type, Map<Mode, Integer>>> modalCountByModeByScenario) {
+    public void setModalCountByModeByScenario(Map<Integer, Map<Type, Map<Purpose, Map<Mode, Integer>>>> modalCountByModeByScenario) {
         this.modalCountByModeByScenario = modalCountByModeByScenario;
     }
 
-    public Map<Integer, Map<Type, Map<Mode, Float>>> getCo2EmissionsByModeByScenario() {
+    public Map<Integer, Map<Type, Map<Purpose, Map<Mode, Float>>>> getCo2EmissionsByModeByScenario() {
         return co2EmissionsByModeByScenario;
     }
 
-    public void setCo2EmissionsByModeByScenario(Map<Integer, Map<Type, Map<Mode, Float>>> co2EmissionsByModeByScenario) {
+    public void setCo2EmissionsByModeByScenario(Map<Integer, Map<Type, Map<Purpose, Map<Mode, Float>>>> co2EmissionsByModeByScenario) {
         this.co2EmissionsByModeByScenario = co2EmissionsByModeByScenario;
     }
 
