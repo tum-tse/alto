@@ -3,6 +3,7 @@ package de.tum.bgu.msm.longDistance.data.sp;
 
 import de.tum.bgu.msm.longDistance.data.trips.Purpose;
 import de.tum.bgu.msm.longDistance.data.trips.Type;
+import org.locationtech.jts.geom.Coordinate;
 
 import java.util.Map;
 import java.util.Optional;
@@ -50,6 +51,7 @@ public class PersonGermany implements Person {
     private boolean isBetween40and59;
     private boolean isOver60;
 
+    private Coordinate workplaceLocation;
 
     public PersonGermany(int id, int hhId, int age, Gender gender, OccupationStatus occupation, boolean driversLicense, HouseholdGermany hh) {
         this.id = id;
@@ -181,7 +183,7 @@ public class PersonGermany implements Person {
     }
 
     public static String getHeader() {
-        return "id,hhid,age,gender,occupation,driversLicense,income";
+        return "id,hhid,age,gender,occupation,driversLicense,income,jobCoordX,jobCoordY";
     }
 
     public String toString() {
@@ -193,8 +195,23 @@ public class PersonGermany implements Person {
                 + "," + pp.getGender().codeOf()
                 + "," + pp.getOccupation().codeOf()
                 + "," + pp.isDriversLicense()
-                + "," + pp.getIncome()
-        );
+                + "," + pp.getIncome());
+        if (pp.getOccupation().equals(OccupationStatus.WORKER)) {
+            str = str + "," + pp.getWorkplaceLocation().x
+                      + "," + pp.getWorkplaceLocation().y;
+        } else {
+            str = str + "," + 0
+                    + "," + 0;
+        }
+
         return str;
+    }
+
+    public Coordinate getWorkplaceLocation() {
+        return workplaceLocation;
+    }
+
+    public void setWorkplaceLocation(Coordinate workplaceLocation) {
+        this.workplaceLocation = workplaceLocation;
     }
 }

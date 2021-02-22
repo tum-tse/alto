@@ -104,8 +104,6 @@ public class LDModelGermany implements ModelComponent, LDModel {
 
     public void run(DataSet dataSet, int nThreads) {
 
-        //property change to avoid parallelization
-        System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
         tripGenModel.run(dataSet, -1);
         destinationChoice.run(dataSet, -1);
         mcModel.run(dataSet, -1);

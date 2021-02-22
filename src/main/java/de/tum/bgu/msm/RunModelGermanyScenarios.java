@@ -14,6 +14,8 @@ import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermanScenario;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermany;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermany;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermanyScenario;
+import de.tum.bgu.msm.longDistance.scaling.PotentialTravelersSelectionGermany;
+import de.tum.bgu.msm.longDistance.scenarioAnalysis.ScenarioAnalysis;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoiceGermany;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationGermany;
 import org.apache.log4j.BasicConfigurator; // Alona
@@ -21,6 +23,8 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -52,7 +56,7 @@ public class RunModelGermanyScenarios {
         JSONObject prop = jsonUtilMto.getJsonProperties();
 
         RunModelGermanyScenarios model = new RunModelGermanyScenarios(prop);
-        model.runLongDistModel();
+        model.runLongDistModel(args);
         float endTime = Util.rounder(((System.currentTimeMillis() - startTime) / 60000), 1);
         int hours = (int) (endTime / 60);
         int min = (int) (endTime - 60 * hours);
@@ -61,7 +65,7 @@ public class RunModelGermanyScenarios {
     }
 
 
-    private void runLongDistModel() {
+    private void runLongDistModel(String[] args) {
         // main method to run long-distance model
         logger.info("Started runLongDistModel for the year " + JsonUtilMto.getIntProp(prop, "year"));
         DataSet dataSet = new DataSet();
@@ -69,11 +73,16 @@ public class RunModelGermanyScenarios {
         String outputFolder = inputFolder + "output/" +  JsonUtilMto.getStringProp(prop, "scenario") + "/";
         createDirectoryIfNotExistingYet(outputFolder);
 
+        if (args.length > 2){
+            dataSet.setPopulationSection(Integer.parseInt(args[2]));
+        }
 
         LDModelGermanyScenarios ldModelGermany = new LDModelGermanyScenarios(new ZoneReaderGermany(), new SkimsReaderGermany(),
                 new SyntheticPopulationReaderGermany(),new EconomicStatusReader(),
                 new TripGenerationGermany(), new DestinationChoiceGermany(), new ModeChoiceGermanyScenario(),
-                new TimeOfDayChoiceGermany(), new Emissions(), new OutputWriterGermanScenario(), new CalibrationGermany());
+                new TimeOfDayChoiceGermany(), new Emissions(), new OutputWriterGermanScenario(),
+                new CalibrationGermany(), new PotentialTravelersSelectionGermany(),
+                new ScenarioAnalysis());
         ldModelGermany.setup(prop, inputFolder, outputFolder);
         ldModelGermany.load(dataSet);
         ldModelGermany.run(dataSet, -1);

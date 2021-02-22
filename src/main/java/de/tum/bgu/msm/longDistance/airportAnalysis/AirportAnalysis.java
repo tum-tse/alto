@@ -8,6 +8,7 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.airport.*;
+import de.tum.bgu.msm.longDistance.data.trips.ModeGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
@@ -357,7 +358,7 @@ public final class AirportAnalysis implements ModelComponent {
 
             selectedTimes.setValueAt(zonr, "TAZ_id", zonr);
             if (zonr < 11865) {
-                float carTime = dataSet.getAutoTravelTime(6645, zonr);;
+                float carTime = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(6645, zonr);;
                 selectedTimes.setValueAt(zonr, "CarTravelTime", carTime);
             }
         }
@@ -414,11 +415,11 @@ public final class AirportAnalysis implements ModelComponent {
         float travelTimeBetweenAirports = dataSet.getFligthFromId(connectedAirports.get(originAirport).get(destinationAirport).get("flightId")).getTime() ;
         if (originZoneId < 11868) {
             travelTimeBetweenAirports = travelTimeBetweenAirports +
-                    dataSet.getAutoTravelTime(originZoneId, originAirport.getZone().getId());
+                    dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(originZoneId, originAirport.getZone().getId());
         }
         if (destinationZoneId < 11868) {
             travelTimeBetweenAirports = travelTimeBetweenAirports +
-                    dataSet.getAutoTravelTime(destinationAirport.getZone().getId(), destinationZoneId);
+                    dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destinationZoneId);
         }
         return travelTimeBetweenAirports;
     }
@@ -438,12 +439,12 @@ public final class AirportAnalysis implements ModelComponent {
                 times[8] = times[8] + legs.get(1).getDistance();
             }
             if (originZoneId < 11868) {
-                times[3] = dataSet.getAutoTravelTime(originZoneId, originAirport.getZone().getId());
+                times[3] = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(originZoneId, originAirport.getZone().getId());
             } else {
                 times[3] = 0;
             }
             if (destinationZoneId < 11868) {
-                times[4] = dataSet.getAutoTravelTime(destinationAirport.getZone().getId(), destinationZoneId);
+                times[4] = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destinationZoneId);
             } else {
                 times[4] = 0;
             }
@@ -662,11 +663,11 @@ public final class AirportAnalysis implements ModelComponent {
             pw.print(hub.getName());
             pw.print(",");
             if (!airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
-                pw.print(dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()));
+                pw.print(dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId()));
                 pw.print(",");
-                pw.print(dataSet.getAutoTravelDistance(zone.getId(), main.getZone().getId()));
+                pw.print(dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), main.getZone().getId()));
                 pw.print(",");
-                pw.println(dataSet.getAutoTravelDistance(zone.getId(), hub.getZone().getId()));
+                pw.println(dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), hub.getZone().getId()));
             } else {
                 pw.print(0);
                 pw.print(",");
@@ -855,19 +856,19 @@ public final class AirportAnalysis implements ModelComponent {
 
                 for (Airport airport : germanAirports) {
                     if (!airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
-                        if (dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()) < distMin) {
-                            distMin = dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId());
+                        if (dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId()) < distMin) {
+                            distMin = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId());
                             idClosestAirport = airport.getId();
                         }
                         if (airport.getAirportDestinationType().equals(AirportDestinationType.DOMESTIC_AND_INTERNATIONAL)) {
-                            if (dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()) < distMainAirport) {
-                                distMainAirport = dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId());
+                            if (dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId()) < distMainAirport) {
+                                distMainAirport = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId());
                                 idClosestMainAirport = airport.getId();
                             }
                         }
                         if (airport.getAirportType().equals(AirportType.HUB)) {
-                            if (dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()) < distHub) {
-                                distHub = dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId());
+                            if (dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId()) < distHub) {
+                                distHub = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId());
                                 idClosestHub = airport.getId();
                             }
                         }
@@ -878,8 +879,8 @@ public final class AirportAnalysis implements ModelComponent {
 
                 for (Airport airport : mainAirports) {
                     if (!airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
-                        if (dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId()) < distMin) {
-                            distMin = dataSet.getAutoTravelDistance(zone.getId(), airport.getZone().getId());
+                        if (dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId()) < distMin) {
+                            distMin = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId());
                             idClosestAirport = airport.getId();
                             idClosestMainAirport = airport.getId();
                             idClosestHub = airport.getId();

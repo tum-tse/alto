@@ -96,6 +96,9 @@ public class ZoneReaderGermany implements ZoneReader {
             String zoneTypeStr = zoneTable.getIndexedStringValueAt(zone,"type");
             int areaType = (int) zoneTable.getIndexedValueAt(zone, "areaType");
             int hotels = (int) zoneTable.getIndexedValueAt(zone, "hotels");
+            int population = (int) zoneTable.getIndexedValueAt(zone, "population");
+            int households = (int) zoneTable.getIndexedValueAt(zone, "households");
+            int jobs = (int) zoneTable.getIndexedValueAt(zone, "emp"); //do not use "jobs" because it has artificially more vacant jobs
             ZoneTypeGermany zoneType = ZoneTypeGermany.GERMANY;
             if (zoneTypeStr.equals("eu")){
                 zoneType = ZoneTypeGermany.EXTEU;
@@ -106,6 +109,9 @@ public class ZoneReaderGermany implements ZoneReader {
             //zones are created as empty as they are filled out using sp
             Zone internalZone = new ZoneGermany(zone, 0, 0, zoneType, area, AreaTypeGermany.valueOf(areaType));
             ((ZoneGermany)internalZone).setHotels(hotels);
+            ((ZoneGermany)internalZone).addPopulation(population);
+            ((ZoneGermany)internalZone).addHouseholds(households);
+            ((ZoneGermany)internalZone).addEmployment(jobs);
             internalZoneList.add(internalZone);
         }
 

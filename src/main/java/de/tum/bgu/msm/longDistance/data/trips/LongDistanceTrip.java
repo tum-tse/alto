@@ -11,4 +11,6 @@ public interface LongDistanceTrip {
     Purpose getTripPurpose();
 
     Map<Pollutant, Float> getEmissions();
+
+    Float getCO2emissions();
 }

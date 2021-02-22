@@ -84,7 +84,7 @@ public class InternationalTripGenerationGermany {
     //method to run the trip generation
     public ArrayList<LongDistanceTripOntario> run() {
 
-      atomicInteger = new AtomicInteger(dataSet.getAllTrips().size() + 1);
+      atomicInteger = new AtomicInteger(dataSet.getTripsofPotentialTravellers().size() + 1);
 
 
 
@@ -195,7 +195,7 @@ public class InternationalTripGenerationGermany {
 
 
     public void sumProbs(){
-        List <Person> persons = new ArrayList<>(dataSet.getPersons().values());
+        List <Person> persons = new ArrayList<>(dataSet.getPotentialTravellers().values());
 
         //make random list of persons
         Collections.shuffle(persons, LDModelGermany.rand);

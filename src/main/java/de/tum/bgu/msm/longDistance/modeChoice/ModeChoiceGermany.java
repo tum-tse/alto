@@ -35,7 +35,7 @@ public class ModeChoiceGermany implements ModeChoice {
 
     @Override
     public void run(DataSet dataSet, int nThreads) {
-        runModeChoice(dataSet.getAllTrips());
+        runModeChoice(dataSet.getTripsofPotentialTravellers());
     }
 
     public void runModeChoice(ArrayList<LongDistanceTrip> trips) {

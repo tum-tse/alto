@@ -36,7 +36,7 @@ public class TimeOfDayChoiceGermany implements TimeOfDayChoice {
     @Override
     public void run(DataSet dataSet, int nThreads) {
 
-        ArrayList<LongDistanceTrip> trips = dataSet.getAllTrips();
+        ArrayList<LongDistanceTrip> trips = dataSet.getTripsofPotentialTravellers();
         logger.info("Running time-of-day choice for " + trips.size() + " trips");
 
         trips.parallelStream().forEach(tripFromArray -> {
