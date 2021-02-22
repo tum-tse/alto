@@ -254,6 +254,8 @@ public class OutputWriterGermanScenario implements OutputWriter {
             tripsByPurpose2.forEach((type, trips) -> {
                 Map<Type, Map<Purpose, Map<Mode, Integer>>> modes = dataSet.getModalCountByModeByScenario().get(scenario);
                 Map<Type, Map<Purpose, Map<Mode, Float>>> emissions = dataSet.getCo2EmissionsByModeByScenario().get(scenario);
+                Map<Type, Map<Purpose, Map<Mode, Map<Integer, Integer>>>> modesByDistance = dataSet.getModalCountByModeByScenarioByDistance().get(scenario);
+                Map<Type, Map<Purpose, Map<Mode, Map<Integer, Float>>>> emissionsByDistance = dataSet.getCo2EmissionsByModeByScenarioByDistance().get(scenario);
                 final long totalTrips = trips.size();
                 trips.parallelStream()
                         //group number of trips by mode

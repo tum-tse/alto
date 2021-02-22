@@ -17,6 +17,7 @@ public class Emissions implements ModelComponent {
 
     static Logger logger = Logger.getLogger(Emissions.class);
     private TableDataSet coefficients;
+    private int[] distanceBins;
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
@@ -33,12 +34,16 @@ public class Emissions implements ModelComponent {
     @Override
     public void run(DataSet dataSet, int nThreads) {
 
+        distanceBins = dataSet.getDistanceBins();
         ArrayList<LongDistanceTrip> trips = dataSet.getTripsofPotentialTravellers();
         logger.info("Running emission calculator for " + trips.size() + " trips");
 
         trips.parallelStream().forEach(tripFromArray -> {
             LongDistanceTripGermany trip = (LongDistanceTripGermany) tripFromArray;
             calculateEmissions(trip);
+            if ((ModeGermany) trip.getMode() != null) {
+                updateTripsByDistance(dataSet, trip);
+            }
         });
         logger.info("Finished emission calculator");
 
@@ -77,4 +82,19 @@ public class Emissions implements ModelComponent {
     }
 
 
+    private void updateTripsByDistance(DataSet dataSet, LongDistanceTrip t){
+        double autoDistance = dataSet.getDistanceMatrix().get(t.getMode()).getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), ((LongDistanceTripGermany) t).getDestZone().getId()) / 1000;
+        boolean conditionNotMet = true;
+        int distanceT = 0;
+        while (conditionNotMet && distanceT < distanceBins.length){
+            if (autoDistance > distanceBins[distanceT]){
+                distanceT++;
+            } else {
+                conditionNotMet = false;
+            }
+        }
+        distanceT = Math.min(distanceT, distanceBins.length - 1);
+        float emissionsByDistance = dataSet.getCo2EmissionsByModeByScenarioByDistance().get(dataSet.getScenario()).get(t.getTripState()).get(t.getTripPurpose()).get(t.getMode()).get(distanceBins[distanceT]);
+        dataSet.getCo2EmissionsByModeByScenarioByDistance().get(dataSet.getScenario()).get(t.getTripState()).get(t.getTripPurpose()).get(t.getMode()).put(distanceBins[distanceT], emissionsByDistance + t.getCO2emissions());
+    }
 }
