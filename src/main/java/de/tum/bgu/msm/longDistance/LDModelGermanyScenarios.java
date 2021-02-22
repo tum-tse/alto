@@ -126,7 +126,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
             for (int policyScenario = 1; policyScenario <= dataSet.getNumberOfScenarios(); policyScenario++) {
                 dataSet.setScenario(policyScenario);
                 mcModel.run(dataSet, -1);
-                //timeOfDayChoice.run(dataSet, -1);
+                timeOfDayChoice.run(dataSet, -1);
                 calibrationGermany.run(dataSet, -1);
                 emissions.run(dataSet, -1);
                 outputWriter.run(dataSet, -1);

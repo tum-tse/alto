@@ -31,6 +31,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     private float autoTravelDistance = -1;
     private float distanceByMode = -1;
     private float travelTime = -1;
+    private int departureTimesInMin = -999; // Alona
     private int departureTimeInHours = -999;
     private int departureTimeInHoursSecondSegment = -999; //this is the return trip of daytrips
     private boolean returnOvernightTrip = false;
@@ -112,6 +113,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         this.departureTimeInHours = departureTimeInHours;
     }
 
+    public int getDepartureTimesInMin() {
+        return departureTimesInMin;
+    }
+
+    public void setDepartureTimesInMin(int departureTimesInMin) {
+        this.departureTimesInMin = departureTimesInMin;
+    }
+
     public int getDepartureTimeInHoursSecondSegment() {
         return departureTimeInHoursSecondSegment;
     }
@@ -141,7 +150,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",international,tripPurpose,tripState,tripOriginZone,tripOriginType" +
                 ",tripDestZone,tripDestType,travelDistance_km" +
                 ",tripMode,travelTimeByMode_h"+
-                ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip"+
+                ",departureTimeMin,departureTimeReturnDaytrip,ReturnOvernightTrip"+
                 ",CO2emissions_kg" /*+
                  ",utility_" + ModeGermany.getMode(0)+
                 ",utility_" + ModeGermany.getMode(1)+
@@ -190,7 +199,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getDistanceByMode() / 1000
                     + "," + tr.getMode()
                     + "," + tr.getTravelTime() / 3600
-                    + "," + tr.getDepartureTimeInHours()
+                    + "," + tr.getDepartureTimesInMin() // Alona
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()
                     + "," + tr.getEmissions().get(Pollutant.CO2)/*
@@ -236,6 +245,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getDestZoneType()
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getAutoTravelDistance()
+                    + "," + tr.getDepartureTimesInMin() // Alona
                     + "," + tr.getDepartureTimeInHours()
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()
