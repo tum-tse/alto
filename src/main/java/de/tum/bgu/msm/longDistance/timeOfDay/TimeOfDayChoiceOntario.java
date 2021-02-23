@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.apache.log4j.Logger;
 
+
 public class TimeOfDayChoiceOntario implements TimeOfDayChoice {
 
     private static Logger logger = Logger.getLogger(TimeOfDayChoiceOntario.class);
