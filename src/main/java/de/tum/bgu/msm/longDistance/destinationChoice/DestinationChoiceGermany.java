@@ -3,6 +3,8 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
+import de.tum.bgu.msm.longDistance.data.grids.Grid;
+import de.tum.bgu.msm.longDistance.data.grids.GridGermany;
 import de.tum.bgu.msm.longDistance.data.sp.DwellingGermany;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
@@ -64,33 +66,52 @@ public class DestinationChoiceGermany implements DestinationChoice {
     public void sampleDestinationMicrolocation(ArrayList<LongDistanceTrip> trips, DataSet dataSet){
 
         logger.info("Sampling Microlocation of Destination for " + trips.size() + " trips");
-        hhMap = dataSet.getHouseholds();
+        Map<Integer, Grid> gridMap = dataSet.getGrids();
 
         trips.parallelStream().forEach( t ->{
 
             int destZoneId = ((LongDistanceTripGermany)t).getDestZone().getId();
-            ZoneGermany z = (ZoneGermany) dataSet.getZones().get(destZoneId);
-            int pop = z.getPopulation();
 
-            double selPosition = Math.random() * pop;
+            double selPosition = Math.random();
             double prob = 0.0;
 
-            for (int i=1; i<=hhMap.size(); i++){
-                HouseholdGermany hh = (HouseholdGermany) hhMap.get(i);
+            for (int i=1; i<=gridMap.size(); i++){
+                GridGermany gg = (GridGermany) gridMap.get(i);
 
-                if(hh.getZone().getId()==destZoneId){
-                    prob += hh.getHhSize();
-                    double destX = dataSet.getDwellings().get(hh.getId()).getCoordX();
-                    double destY = dataSet.getDwellings().get(hh.getId()).getCoordY();
+                if (t.getTripPurpose().toString().equals(PurposeGermany.PRIVATE.toString()) | t.getTripPurpose().toString().equals(PurposeGermany.LEISURE.toString())){
 
-                    if (prob >= selPosition){
-                        ((LongDistanceTripGermany) t).setDestX(destX);
-                        ((LongDistanceTripGermany) t).setDestY(destY);
-                        break;
-                    }else if(i==hhMap.size()){
-                        ((LongDistanceTripGermany) t).setDestX(destX);
-                        ((LongDistanceTripGermany) t).setDestY(destY);
+                    if(gg.getTaz()==destZoneId){
+                        prob += gg.getPopDensity();
+                        double destX = gg.getCoordX();
+                        double destY = gg.getCoordY();
+
+                        if (prob >= selPosition){
+                            ((LongDistanceTripGermany) t).setDestX(destX);
+                            ((LongDistanceTripGermany) t).setDestY(destY);
+                            break;
+                        }else if(i==gridMap.size()){
+                            ((LongDistanceTripGermany) t).setDestX(destX);
+                            ((LongDistanceTripGermany) t).setDestY(destY);
+                        }
                     }
+
+                }else{
+
+                    if(gg.getTaz()==destZoneId){
+                        prob += gg.getJobDensity();
+                        double destX = gg.getCoordX();
+                        double destY = gg.getCoordY();
+
+                        if (prob >= selPosition){
+                            ((LongDistanceTripGermany) t).setDestX(destX);
+                            ((LongDistanceTripGermany) t).setDestY(destY);
+                            break;
+                        }else if(i==gridMap.size()){
+                            ((LongDistanceTripGermany) t).setDestX(destX);
+                            ((LongDistanceTripGermany) t).setDestY(destY);
+                        }
+                    }
+
                 }
 
             }
@@ -106,7 +127,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
 
 
         });
-
+        logger.info("Finished Sampling Microlocation of Destination for " + trips.size() + " trips");
     }
 
 

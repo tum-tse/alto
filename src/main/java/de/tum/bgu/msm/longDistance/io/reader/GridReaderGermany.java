@@ -77,8 +77,10 @@ public class GridReaderGermany implements GridReader{
             double popDensity = gridTable.getIndexedValueAt(grid, "popDensity");
             double jobDensity = gridTable.getIndexedValueAt(grid, "jobDensity");
             int taz = (int) gridTable.getIndexedValueAt(grid, "zone");
+            double coordX = gridTable.getIndexedValueAt(grid, "x_mp_31468");
+            double coordY = gridTable.getIndexedValueAt(grid, "y_mp_31468");
 
-            Grid internalGrid = new GridGermany(id, gridName, taz, popDensity, jobDensity);
+            Grid internalGrid = new GridGermany(id, gridName, taz, popDensity, jobDensity, coordX, coordY);
             internalGridList.add(internalGrid);
         }
 

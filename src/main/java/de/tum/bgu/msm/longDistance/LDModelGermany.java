@@ -4,11 +4,8 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoice;
 import de.tum.bgu.msm.longDistance.emissions.Emissions;
+import de.tum.bgu.msm.longDistance.io.reader.*;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriter;
-import de.tum.bgu.msm.longDistance.io.reader.EconomicStatusReader;
-import de.tum.bgu.msm.longDistance.io.reader.SkimsReader;
-import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReader;
-import de.tum.bgu.msm.longDistance.io.reader.ZoneReader;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoice;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGeneration;
@@ -35,6 +32,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
     private ZoneReader zoneReader;
     private SkimsReader skimsReader;
     private SyntheticPopulationReader syntheticPopulationReader;
+    private GridReader gridReader;
     private TripGeneration tripGenModel;
     private DestinationChoice destinationChoice;
     private ModeChoice mcModel;
@@ -46,6 +44,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
 
     public LDModelGermany(ZoneReader zoneReader, SkimsReader skimsReader,
                           SyntheticPopulationReader syntheticPopulationReader,
+                          GridReader gridReader,
                           EconomicStatusReader economicStatusReader,
                           TripGeneration tripGenModel,
                           DestinationChoice destinationChoice,
@@ -56,6 +55,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
         this.zoneReader = zoneReader;
         this.skimsReader = skimsReader;
         this.syntheticPopulationReader = syntheticPopulationReader;
+        this.gridReader = gridReader;
         this.economicStatusReader = economicStatusReader;
         this.tripGenModel = tripGenModel;
         this.destinationChoice = destinationChoice;
@@ -75,6 +75,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
         zoneReader.setup(prop, inputFolder, outputFolder);
         skimsReader.setup(prop, inputFolder, outputFolder);
         syntheticPopulationReader.setup(prop, inputFolder, outputFolder);
+        gridReader.setup(prop, inputFolder, outputFolder);
         economicStatusReader.setup(prop, inputFolder, outputFolder);
         tripGenModel.setup(prop, inputFolder, outputFolder);
         destinationChoice.setup(prop, inputFolder, outputFolder);
@@ -91,6 +92,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
         zoneReader.load(dataSet);
         skimsReader.load(dataSet);
         syntheticPopulationReader.load(dataSet);
+        gridReader.load(dataSet);
         economicStatusReader.load(dataSet);
         mcModel.load(dataSet);
         destinationChoice.load(dataSet);

@@ -7,13 +7,17 @@ public class GridGermany implements Grid {
     int taz;
     double popDensity;
     double jobDensity;
+    double coordX;
+    double coordY;
 
-    public GridGermany(int id, String gridName, int taz, double popDensity, double jobDensity) {
+    public GridGermany(int id, String gridName, int taz, double popDensity, double jobDensity, double coordX, double coordY) {
         this.id=id;
         this.gridName = gridName;
         this.taz = taz;
         this.popDensity = popDensity;
         this.jobDensity = jobDensity;
+        this.coordX = coordX;
+        this.coordY = coordY;
     }
 
     @Override
@@ -56,5 +60,21 @@ public class GridGermany implements Grid {
 
     public void setJobDensity(double jobDensity) {
         this.jobDensity = jobDensity;
+    }
+
+    public double getCoordX() {
+        return coordX;
+    }
+
+    public void setCoordX(double coordX) {
+        this.coordX = coordX;
+    }
+
+    public double getCoordY() {
+        return coordY;
+    }
+
+    public void setCoordY(double coordY) {
+        this.coordY = coordY;
     }
 }
