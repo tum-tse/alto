@@ -63,7 +63,7 @@ public class RunModelGermany {
         createDirectoryIfNotExistingYet(outputFolder);
 
         LDModelGermany ldModelGermany = new LDModelGermany(new ZoneReaderGermany(), new SkimsReaderGermany(),
-                new SyntheticPopulationReaderGermany(),new EconomicStatusReader(),
+                new SyntheticPopulationReaderGermany(),new GridReaderGermany(), new EconomicStatusReader(),
                 new TripGenerationGermany(), new DestinationChoiceGermany(), new ModeChoiceGermany(),
                 new TimeOfDayChoiceGermany(), new Emissions(), new OutputWriterGermany(), new CalibrationGermany());
         ldModelGermany.setup(prop, inputFolder, outputFolder);

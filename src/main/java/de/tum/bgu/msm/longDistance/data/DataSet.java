@@ -6,6 +6,7 @@ import de.tum.bgu.msm.longDistance.data.airport.AirLeg;
 import de.tum.bgu.msm.longDistance.data.airport.Airport;
 import de.tum.bgu.msm.longDistance.data.airport.AirportType;
 import de.tum.bgu.msm.longDistance.data.airport.Flight;
+import de.tum.bgu.msm.longDistance.data.grids.Grid;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
@@ -38,7 +39,7 @@ public class DataSet {
     private Matrix autoTravelDistance;
 
     //SKIMS level-2 zones
-    private Map<Mode, Matrix> travelTimeMatrix;;
+    private Map<Mode, Matrix> travelTimeMatrix;
     private Map<Mode, Matrix> priceMatrix;
     private Map<Mode, Matrix> transferMatrix;
     private Map<Mode, Matrix> distanceMatrix;
@@ -80,6 +81,17 @@ public class DataSet {
     }
 
     private Map<Mode, Matrix> frequencyMatrix;
+
+    //Grids
+    private Map<Integer, Grid> grids = new HashMap<>();
+
+    public Map<Integer, Grid> getGrids() {
+        return grids;
+    }
+
+    public void setGrids(Map<Integer, Grid> grids) {
+        this.grids = grids;
+    }
 
     //SYNYHETIC POPULATION
     private Map<Integer, Person> persons = new LinkedHashMap<>();

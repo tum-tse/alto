@@ -3,9 +3,10 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
-import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
-import de.tum.bgu.msm.longDistance.data.trips.ModeGermany;
+import de.tum.bgu.msm.longDistance.data.grids.Grid;
+import de.tum.bgu.msm.longDistance.data.grids.GridGermany;
+import de.tum.bgu.msm.longDistance.data.sp.Household;
+import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 
@@ -27,6 +28,8 @@ public class DestinationChoiceGermany implements DestinationChoice {
     private Map<Integer, Zone> zonesMap;
     private Matrix distanceByAuto;
     private AtomicInteger atomicInteger = new AtomicInteger(0);
+    private Map<Integer, Household> hhMap;
+    int count = 0;
 
     public DestinationChoiceGermany() {
     }
@@ -53,7 +56,75 @@ public class DestinationChoiceGermany implements DestinationChoice {
 
     @Override
     public void run(DataSet dataSet, int nThreads) {
-        runDestinationChoice(dataSet.getTripsofPotentialTravellers());
+        runDestinationChoice(dataSet.getAllTrips());
+        sampleDestinationMicrolocation(dataSet.getAllTrips(), dataSet);
+    }
+
+    public void sampleDestinationMicrolocation(ArrayList<LongDistanceTrip> trips, DataSet dataSet){
+
+        logger.info("Sampling Microlocation of Destination for " + trips.size() + " trips");
+        Map<Integer, Grid> gridMap = dataSet.getGrids();
+
+        trips.parallelStream().forEach( t ->{
+
+            int destZoneId = ((LongDistanceTripGermany)t).getDestZone().getId();
+
+            double selPosition = Math.random();
+            double prob = 0.0;
+
+            for (int i=1; i<=gridMap.size(); i++){
+                GridGermany gg = (GridGermany) gridMap.get(i);
+
+                if (t.getTripPurpose().toString().equals(PurposeGermany.PRIVATE.toString()) | t.getTripPurpose().toString().equals(PurposeGermany.LEISURE.toString())){
+
+                    if(gg.getTaz()==destZoneId){
+                        prob += gg.getPopDensity();
+                        double destX = gg.getCoordX();
+                        double destY = gg.getCoordY();
+
+                        if (prob >= selPosition){
+                            ((LongDistanceTripGermany) t).setDestX(destX);
+                            ((LongDistanceTripGermany) t).setDestY(destY);
+                            break;
+                        }else if(i==gridMap.size()){
+                            ((LongDistanceTripGermany) t).setDestX(destX);
+                            ((LongDistanceTripGermany) t).setDestY(destY);
+                        }
+                    }
+
+                }else{
+
+                    if(gg.getTaz()==destZoneId){
+                        prob += gg.getJobDensity();
+                        double destX = gg.getCoordX();
+                        double destY = gg.getCoordY();
+
+                        if (prob >= selPosition){
+                            ((LongDistanceTripGermany) t).setDestX(destX);
+                            ((LongDistanceTripGermany) t).setDestY(destY);
+                            break;
+                        }else if(i==gridMap.size()){
+                            ((LongDistanceTripGermany) t).setDestX(destX);
+                            ((LongDistanceTripGermany) t).setDestY(destY);
+                        }
+                    }
+
+                }
+
+            }
+
+
+        //    if(t.getTripPurpose().toString().equals(PurposeGermany.PRIVATE.toString())){
+                //Generate a random number
+                //Subset a dd with given zone
+                //loop through the subset dd
+                //condition match
+                //set coords
+        //    }
+
+
+        });
+        logger.info("Finished Sampling Microlocation of Destination for " + trips.size() + " trips");
     }
 
 

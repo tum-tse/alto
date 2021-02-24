@@ -1,6 +1,10 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import de.tum.bgu.msm.longDistance.data.DataSet;
+import de.tum.bgu.msm.longDistance.data.sp.Household;
+import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
+import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReader;
@@ -62,6 +66,26 @@ public class TripGenerationGermany implements TripGeneration {
 
     public void run(DataSet dataSet, int nThreads){
         generateTrips();
+        addOrigMicrolocation(dataSet.getAllTrips());
+    }
+
+    public void addOrigMicrolocation(ArrayList<LongDistanceTrip> trips){
+        logger.info("Adding Microlocation of Origin for " + trips.size() + " trips");
+
+        trips.parallelStream().forEach( t ->{
+
+            ((LongDistanceTripGermany)t).getTravellerId();
+
+            PersonGermany pers = ((LongDistanceTripGermany)t).getTraveller();
+            HouseholdGermany hh = pers.getHousehold();
+            int hhId = hh.getId();
+            double origX = dataSet.getDwellings().get(hhId).getCoordX();
+            ((LongDistanceTripGermany) t).setOrigX(origX);
+
+            double origY = dataSet.getDwellings().get(hhId).getCoordY();
+            ((LongDistanceTripGermany) t).setOrigY(origY);
+
+        });
     }
 
 
