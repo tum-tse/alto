@@ -38,7 +38,6 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
     private String hhFilename;
     private String ppFilename;
     private String jjFilename;
-    private String ddFilename;
     private String travellersFilename;
     private double scaleFactor;
 
@@ -54,7 +53,6 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
         hhFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.households_file");
         ppFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.persons_file");
         jjFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.jobs_file");
-        ddFilename = inputFolder +  JsonUtilMto.getStringProp(prop, "synthetic_population.dwellings_file");
         travellersFilename = outputFolder +  JsonUtilMto.getStringProp(prop, "output.travellers_file");
         scaleFactor =  JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
 
@@ -88,59 +86,9 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
     public void readSyntheticPopulation() {
         logger.info("  Reading synthetic population");
         Map<Integer, Household> households = readSyntheticHouseholds();
-        Map<Integer, DwellingGermany> dwellings = readSyntheticDwellings();
         dataSet.setHouseholds(households);
-        dataSet.setDwellings(dwellings);
         dataSet.setPersons(readSyntheticPersons(households));
     }
-
-    private Map<Integer, DwellingGermany> readSyntheticDwellings(){
-
-        Map<Integer, DwellingGermany> dwellingMap = new HashMap<>();
-
-        String recString = "";
-        int recCount = 0;
-        try (BufferedReader in = new BufferedReader(new FileReader(ddFilename))) {
-            recString = in.readLine();
-
-            // read header
-            String[] header = recString.split(",");
-            // Remove quotation marks if they are available in the header columns (after splitting by commas)
-            for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
-
-            int posId = Util.findPositionInArray("id", header);
-            int poshhId = Util.findPositionInArray("hhId", header);
-            int posTaz = Util.findPositionInArray("zone", header); /*is the new sp*/
-            int coordXId = Util.findPositionInArray("coordX", header);
-            int coordYId = Util.findPositionInArray("coordY", header);
-
-            // read line
-            while ((recString = in.readLine()) != null) {
-                recCount++;
-                String[] lineElements = recString.split(",");
-                int id = Integer.parseInt(lineElements[posId]);
-                int hhId = Integer.parseInt(lineElements[poshhId]);
-                int taz = Integer.parseInt(lineElements[posTaz]);
-                double coordX = Integer.parseInt(lineElements[coordXId]);
-                double coordY = Integer.parseInt(lineElements[coordYId]);
-
-                ZoneGermany zone = (ZoneGermany) zoneLookup.get(taz);
-
-                if (LDModelGermany.rand.nextDouble() < scaleFactor) {
-                    DwellingGermany dd = new DwellingGermany(id, hhId, taz, zone, coordX, coordY);
-                    dwellingMap.put(id, dd);
-                }
-
-            }
-        } catch (IOException e) {
-            logger.fatal("IO Exception caught reading synpop dwelling file: " + ddFilename);
-            logger.fatal("recCount = " + recCount + ", recString = <" + recString + ">");
-        }
-        logger.info("  Finished reading " + recCount + " dwellings.");
-
-        return dwellingMap;
-    }
-
 
     private Map<Integer, Household>  readSyntheticHouseholds() {
 

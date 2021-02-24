@@ -5,13 +5,9 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.grids.Grid;
 import de.tum.bgu.msm.longDistance.data.grids.GridGermany;
-import de.tum.bgu.msm.longDistance.data.sp.DwellingGermany;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
-import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
-import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 
 import org.apache.log4j.Logger;
