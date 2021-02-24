@@ -2,17 +2,27 @@ package de.tum.bgu.msm.longDistance.data.grids;
 
 public class GridGermany implements Grid {
 
+    int id;
     String gridName;
     int taz;
     double popDensity;
     double jobDensity;
 
-
-    public GridGermany(String gridName, int taz, double popDensity, double jobDensity) {
+    public GridGermany(int id, String gridName, int taz, double popDensity, double jobDensity) {
+        this.id=id;
         this.gridName = gridName;
         this.taz = taz;
         this.popDensity = popDensity;
         this.jobDensity = jobDensity;
+    }
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
 
