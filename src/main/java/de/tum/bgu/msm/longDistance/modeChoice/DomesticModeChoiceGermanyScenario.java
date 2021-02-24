@@ -4,6 +4,8 @@ import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
+import de.tum.bgu.msm.longDistance.data.airport.AirLeg;
+import de.tum.bgu.msm.longDistance.data.airport.Airport;
 import de.tum.bgu.msm.longDistance.data.sp.EconomicStatus;
 import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
 import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
@@ -13,10 +15,7 @@ import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Germany wide travel demand model
@@ -125,8 +124,37 @@ public class DomesticModeChoiceGermanyScenario {
         Map<String, Float> attr = trip.getAdditionalAttributes();
         double impedance = 0;
         double vot = mcGermany.getStringIndexedValueAt("vot", column);
-        double time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
-        double distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
+        double time = 1000000000 / 3600;
+        double distance = 1000000000 / 1000; //convert to km
+        double distanceAccessEgress = 0;
+        if (m.equals(ModeGermany.AIR)){
+            if (trip.getAdditionalAttributes().get("originAirport") != null) {
+                Airport originAirport = dataSet.getAirportFromId(Math.round(trip.getAdditionalAttributes().get("originAirport")));
+                Airport destinationAirport = dataSet.getAirportFromId(Math.round(trip.getAdditionalAttributes().get("destinationAirport")));
+                int flightId = dataSet.getConnectedAirports().get(originAirport).get(destinationAirport).get("flightId");
+                List<AirLeg> legs = dataSet.getFligthFromId(flightId).getLegs();
+                time = 0;
+                distance = 0;
+                for (AirLeg leg : legs) {
+                    time = time + leg.getTime();
+                    distance = distance + leg.getDistance();
+                }
+                if (legs.size() > 1){
+                    time = time + dataSet.getTransferTimeAirport().get(legs.get(0).getDestination());
+                }
+                time = time + dataSet.getBoardingTime_sec() + dataSet.getPostprocessTime_sec();
+                time = time + dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getId());
+                time = time + dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), destination);
+                distanceAccessEgress = distanceAccessEgress + dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getId());
+                distanceAccessEgress = distanceAccessEgress + dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), destination);
+                dataSet.getTravelTimeMatrix().get(m).setValueAt(origin, destination, (float) time);
+                time = time / 3600;
+                distance = distance / 1000;
+            }
+        } else {
+            time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
+            distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
+        }
         if (time < 1000000000 / 3600){
             if (vot != 0) {
                 double cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
@@ -135,6 +163,8 @@ public class DomesticModeChoiceGermanyScenario {
                 if (m.equals(ModeGermany.AIR)) {
                     float increaseAirCost = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"cost");
                     cost = cost * increaseAirCost;
+                    cost = cost + distanceAccessEgress * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
+                            Math.pow(distanceAccessEgress, costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
                 }
                 impedance = cost / (vot) + time;
                 attr.put("cost_"+ m.toString(), (float) cost);

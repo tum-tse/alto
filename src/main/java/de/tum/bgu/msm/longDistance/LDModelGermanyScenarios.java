@@ -1,6 +1,8 @@
 package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.airportAnalysis.AirTripsGeneration;
+import de.tum.bgu.msm.longDistance.airportAnalysis.AirportAnalysis;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
@@ -49,12 +51,14 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
     private CalibrationGermany calibrationGermany;
     private PotentialTravelersSelectionGermany potentialTravelersSelection;
     private ScenarioAnalysis scenarioAnalysis;
+    private AirTripsGeneration airTripsGeneration;
 
     public LDModelGermanyScenarios(ZoneReader zoneReader, SkimsReader skimsReader,
                                    SyntheticPopulationReader syntheticPopulationReader,
                                    EconomicStatusReader economicStatusReader,
                                    TripGeneration tripGenModel,
                                    DestinationChoice destinationChoice,
+                                   AirTripsGeneration airTripsGeneration,
                                    ModeChoice mcModel,
                                    TimeOfDayChoice timeOfDayChoice,
                                    Emissions emissions,
@@ -75,6 +79,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
         this.calibrationGermany = calibrationGermany;
         this.potentialTravelersSelection = potentialTravelersSelection;
         this.scenarioAnalysis = scenarioAnalysis;
+        this.airTripsGeneration = airTripsGeneration;
     }
 
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
@@ -90,8 +95,9 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
         scenarioAnalysis.setup(prop, inputFolder, outputFolder);
         tripGenModel.setup(prop, inputFolder, outputFolder);
         destinationChoice.setup(prop, inputFolder, outputFolder);
+        airTripsGeneration.setup(prop, inputFolder, outputFolder);
         mcModel.setup(prop, inputFolder, outputFolder);
-        timeOfDayChoice.setup(prop, inputFolder, outputFolder);
+        //timeOfDayChoice.setup(prop, inputFolder, outputFolder);
         emissions.setup(prop, inputFolder, outputFolder);
         outputWriter.setup(prop, inputFolder, outputFolder);
         calibrationGermany.setup(prop, inputFolder, outputFolder);
@@ -112,6 +118,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
         calibrationGermany.load(dataSet);
         emissions.load(dataSet);
         outputWriter.load(dataSet);
+        airTripsGeneration.load(dataSet);
         logger.info("---------------------ALL MODULES LOADED---------------------");
 
     }
@@ -122,11 +129,11 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
             potentialTravelersSelection.run(dataSet, -1);
             tripGenModel.run(dataSet, -1);
             destinationChoice.run(dataSet, -1);
-
+            airTripsGeneration.run(dataSet, -1);
             for (int policyScenario = 1; policyScenario <= dataSet.getNumberOfScenarios(); policyScenario++) {
                 dataSet.setScenario(policyScenario);
                 mcModel.run(dataSet, -1);
-                timeOfDayChoice.run(dataSet, -1);
+                //timeOfDayChoice.run(dataSet, -1);
                 calibrationGermany.run(dataSet, -1);
                 emissions.run(dataSet, -1);
                 outputWriter.run(dataSet, -1);

@@ -7,7 +7,6 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
-import de.tum.bgu.msm.longDistance.io.writer.OmxMatrixWriter;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -16,12 +15,9 @@ import omx.hdf5.OmxHdf5Datatype;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
-import static java.lang.System.exit;
 
 /**
  *
@@ -55,6 +51,8 @@ public class SkimsReaderGermany implements SkimsReader {
     private String matrixName;
     private String accessToTrainFileName;
     private boolean readSkimsByStage;
+    private String airAccessAirportFileName;
+    private String airEgressAirportFileName;
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
@@ -94,6 +92,8 @@ public class SkimsReaderGermany implements SkimsReader {
         lookUpName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.lookup");
         matrixName = JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName");
         accessToTrainFileName = JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
+        airAccessAirportFileName = JsonUtilMto.getStringProp(prop,"airport.access_airport_file");
+        airEgressAirportFileName = JsonUtilMto.getStringProp(prop,"airport.egress_airport_file");
 
     }
 
@@ -223,6 +223,25 @@ public class SkimsReaderGermany implements SkimsReader {
 
         dataSet.setTravelTimeMatrix(travelTimeMatrix);
         dataSet.setDistanceMatrix(distanceMatrix);
+
+        OmxFile skimAccess = new OmxFile(airAccessAirportFileName);
+        skimAccess.openReadOnly();
+        OmxMatrix accessMatrix = skimAccess.getMatrix(matrixName);
+        Matrix travelTimeAccess = Util.convertOmxToMatrix(accessMatrix);
+        OmxLookup omxLookUp = skimAccess.getLookup(lookUpName);
+        int[] externalNumbers = (int[]) omxLookUp.getLookup();
+        travelTimeAccess.setExternalNumbersZeroBased(externalNumbers);
+        dataSet.setAirAccessAirportZone(travelTimeAccess);
+
+        OmxFile skimEgress = new OmxFile(airEgressAirportFileName);
+        skimEgress.openReadOnly();
+        OmxMatrix omxMatrixDistance = skimEgress.getMatrix(matrixName);
+        Matrix egressMatrix = Util.convertOmxToMatrix(omxMatrixDistance);
+        OmxLookup omxLookUpDistance = skimEgress.getLookup(lookUpName);
+        int[] externalNumbersDistance = (int[]) omxLookUpDistance.getLookup();
+        egressMatrix.setExternalNumbersZeroBased(externalNumbersDistance);
+        dataSet.setAirEgressAirportZone(egressMatrix);
+
 
     }
 
