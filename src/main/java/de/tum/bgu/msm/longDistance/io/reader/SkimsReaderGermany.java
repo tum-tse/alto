@@ -224,7 +224,8 @@ public class SkimsReaderGermany implements SkimsReader {
         dataSet.setTravelTimeMatrix(travelTimeMatrix);
         dataSet.setDistanceMatrix(distanceMatrix);
 
-        OmxFile skimAccess = new OmxFile(airAccessAirportFileName);
+        //code if we want to read the airport names instead of running the air trips generation on the fly
+/*        OmxFile skimAccess = new OmxFile(airAccessAirportFileName);
         skimAccess.openReadOnly();
         OmxMatrix accessMatrix = skimAccess.getMatrix(matrixName);
         Matrix travelTimeAccess = Util.convertOmxToMatrix(accessMatrix);
@@ -240,7 +241,7 @@ public class SkimsReaderGermany implements SkimsReader {
         OmxLookup omxLookUpDistance = skimEgress.getLookup(lookUpName);
         int[] externalNumbersDistance = (int[]) omxLookUpDistance.getLookup();
         egressMatrix.setExternalNumbersZeroBased(externalNumbersDistance);
-        dataSet.setAirEgressAirportZone(egressMatrix);
+        dataSet.setAirEgressAirportZone(egressMatrix);*/
 
 
     }
