@@ -12,6 +12,7 @@ import de.tum.bgu.msm.longDistance.io.reader.ZoneReaderOntario;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceOntario;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoiceOntario;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationOntario;
+import org.apache.log4j.BasicConfigurator;// Alona
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -37,6 +38,7 @@ public class RunModel {
 
     public static void main(String[] args) {
         // main model run method
+        BasicConfigurator.configure();// Alona
 
         logger.info("MITO Long distance model");
         long startTime = System.currentTimeMillis();

@@ -5,6 +5,7 @@ import de.tum.bgu.msm.longDistance.data.trips.ModeGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
 import org.apache.log4j.Logger;
+import org.locationtech.jts.geom.Coordinate;
 
 /**
  *
@@ -30,7 +31,7 @@ public class HouseholdGermany implements Household {
     private PersonGermany[] persons;
     private EconomicStatus hhEconomicStatus;
     private int hhAutos;
-
+    private Coordinate homeLocation;
 
 
     public HouseholdGermany(int id, int taz, int hhAutos, ZoneGermany zone) {
@@ -58,6 +59,16 @@ public class HouseholdGermany implements Household {
     @Override
     public int getId() {
         return id;
+    }
+
+    @Override
+    public int getZoneId() {
+        return taz;
+    }
+
+    @Override
+    public int getHouseholdSize() {
+        return hhSize;
     }
 
     public int getHhSize() {
@@ -124,7 +135,7 @@ public class HouseholdGermany implements Household {
 
     public static String getHeader() {
         //return "id,hhid,age,gender,relationShip,occupation,driversLicense,workplace,income"
-        return "id,zone,hhSize,autos";
+        return "id,zone,hhSize,autos,coordX,coordY";
     }
 
     public String toString() {
@@ -134,7 +145,18 @@ public class HouseholdGermany implements Household {
                 + "," + hh.getZone().getId()
                 + "," + hh.getHhSize()
                 + "," + hh.getHhAutos()
+                + "," + hh.getHomeLocation().x
+                + "," + hh.getHomeLocation().y
                 );
         return str;
     }
+
+    public Coordinate getHomeLocation() {
+        return homeLocation;
+    }
+
+    public void setHomeLocation(Coordinate homeLocation) {
+        this.homeLocation = homeLocation;
+    }
+
 }

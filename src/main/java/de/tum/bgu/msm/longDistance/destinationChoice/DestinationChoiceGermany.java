@@ -34,6 +34,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
     public DestinationChoiceGermany() {
     }
 
+
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
         dcModel = new DomesticDestinationChoiceGermany(prop, inputFolder);
@@ -129,7 +130,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
 
     public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
-        //AtomicInteger counter = new AtomicInteger(0);
+        AtomicInteger counter = new AtomicInteger(0);
 
         trips.parallelStream().forEach(t -> {
             if (! ((LongDistanceTripGermany)t).isInternational()) {
@@ -138,8 +139,8 @@ public class DestinationChoiceGermany implements DestinationChoice {
                 ((LongDistanceTripGermany)t).setDestZone(zonesMap.get(destZoneId));
                 float distance = distanceByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
                 ((LongDistanceTripGermany)t).setAutoTravelDistance(distance);
-                if (  Util.isPowerOfFour(atomicInteger.getAndIncrement())){
-                    logger.info("Domestic trips: " + atomicInteger.get());
+                if (  Util.isPowerOfFour(counter.getAndIncrement())){
+                    logger.info("Domestic trips: " + counter.get());
                 }
             } else {
                 //TODO. Replace by the international destination choice model

@@ -101,8 +101,8 @@ public class OutputWriterGermany implements OutputWriter {
             final int tripOrigin = trip.getOrigZone().getId();
             if (trip.getTripPurpose() == purpose && trip.getDestZone() != null) {
                 final int tripDestination = trip.getDestZone().getId();
-                travelTimes.add((double) dataSet.getAutoTravelTime(tripOrigin, tripDestination));
-                double travelDistance = dataSet.getAutoTravelDistance(tripOrigin, tripDestination);
+                travelTimes.add((double) dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(tripOrigin, tripDestination));
+                double travelDistance = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(tripOrigin, tripDestination);
                 travelDistances.add(travelDistance);
                 if (trip.getTripState().equals(TypeGermany.DAYTRIP)){
                     travelDistancesDaytrip.add(travelDistance);

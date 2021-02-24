@@ -1,5 +1,6 @@
 package de.tum.bgu.msm.longDistance.data;
 
+import com.pb.common.datafile.TableDataSet;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.data.airport.AirLeg;
 import de.tum.bgu.msm.longDistance.data.airport.Airport;
@@ -10,6 +11,8 @@ import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
+import de.tum.bgu.msm.longDistance.data.trips.Purpose;
+import de.tum.bgu.msm.longDistance.data.trips.Type;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeOntario;
@@ -40,6 +43,10 @@ public class DataSet {
     private Map<Mode, Matrix> priceMatrix;
     private Map<Mode, Matrix> transferMatrix;
     private Map<Mode, Matrix> distanceMatrix;
+    private double numberOfSubpopulations;
+    private int numberOfScenarios;
+    private int scenario;
+    private int[] distanceBins;
 
     public Map<Mode, Matrix> getTravelTimeMatrix() {
         return travelTimeMatrix;
@@ -87,11 +94,24 @@ public class DataSet {
     }
 
     //SYNYHETIC POPULATION
-    private Map<Integer, Person> persons = new HashMap<>();
-    private Map<Integer, Household> households = new HashMap<>();
+    private Map<Integer, Person> persons = new LinkedHashMap<>();
+    private Map<Integer, Household> households = new LinkedHashMap<>();
+    private int populationSection;
+    private Map<Integer, Person> potentialTravellers = new LinkedHashMap<>();
+    private Map<Integer, Household> potentialHouseholdTravellers = new LinkedHashMap<>();
+    private String householdSubpopulationFileName;
+    private String personSubpopulationFileName;
 
     //TRIPS
     private ArrayList<LongDistanceTrip> allTrips = new ArrayList<>();
+    private ArrayList<LongDistanceTrip> tripsofPotentialTravellers = new ArrayList<>();
+
+    private TableDataSet scenarioSettings;
+    private Map<Integer, Map<Type, Map<Purpose, Map<Mode, Integer>>>> modalCountByModeByScenario = new LinkedHashMap<>();
+    private Map<Integer, Map<Type, Map<Purpose, Map<Mode, Float>>>> co2EmissionsByModeByScenario = new LinkedHashMap<>();
+
+    private Map<Integer, Map<Type, Map<Purpose, Map<Mode, Map<Integer, Integer>>>>> modalCountByModeByScenarioByDistance = new LinkedHashMap<>();
+    private Map<Integer, Map<Type, Map<Purpose, Map<Mode, Map<Integer, Float>>>>> co2EmissionsByModeByScenarioByDistance = new LinkedHashMap<>();
 
     public Map<Integer, Zone> getZones() {
         return zones;
@@ -129,6 +149,30 @@ public class DataSet {
         this.households = households;
     }
 
+    public int getPopulationSection() {
+        return populationSection;
+    }
+
+    public void setPopulationSection(int populationSection) {
+        this.populationSection = populationSection;
+    }
+
+    public Map<Integer, Person> getPotentialTravellers() {
+        return potentialTravellers;
+    }
+
+    public void setPotentialTravelers(Map<Integer, Person> potentialTravellers) {
+        this.potentialTravellers = potentialTravellers;
+    }
+
+    public Map<Integer, Household> getPotentialHouseholdTravellers() {
+        return potentialHouseholdTravellers;
+    }
+
+    public void setHouseholdsPotentialTravelers(Map<Integer, Household> potentialHouseholdTravellers) {
+        this.potentialHouseholdTravellers = potentialHouseholdTravellers;
+    }
+
     public float getAutoTravelTime(int orig, int dest) {
             return autoTravelTime.getValueAt(orig, dest);
     }
@@ -149,6 +193,10 @@ public class DataSet {
         return allTrips;
     }
 
+    public ArrayList<LongDistanceTrip> getTripsofPotentialTravellers() {
+        return tripsofPotentialTravellers;
+    }
+
     public Map<Mode, Matrix> getDistanceMatrix() {
         return distanceMatrix;
     }
@@ -157,6 +205,61 @@ public class DataSet {
         this.distanceMatrix = distanceMatrix;
     }
 
+    public Map<Integer, Map<Type, Map<Purpose, Map<Mode, Integer>>>> getModalCountByModeByScenario() {
+        return modalCountByModeByScenario;
+    }
+
+    public void setModalCountByModeByScenario(Map<Integer, Map<Type, Map<Purpose, Map<Mode, Integer>>>> modalCountByModeByScenario) {
+        this.modalCountByModeByScenario = modalCountByModeByScenario;
+    }
+
+    public Map<Integer, Map<Type, Map<Purpose, Map<Mode, Float>>>> getCo2EmissionsByModeByScenario() {
+        return co2EmissionsByModeByScenario;
+    }
+
+    public void setCo2EmissionsByModeByScenario(Map<Integer, Map<Type, Map<Purpose, Map<Mode, Float>>>> co2EmissionsByModeByScenario) {
+        this.co2EmissionsByModeByScenario = co2EmissionsByModeByScenario;
+    }
+
+    public Map<Integer, Map<Type, Map<Purpose, Map<Mode, Map<Integer, Integer>>>>> getModalCountByModeByScenarioByDistance() {
+        return modalCountByModeByScenarioByDistance;
+    }
+
+    public void setModalCountByModeByScenarioByDistance(Map<Integer, Map<Type, Map<Purpose, Map<Mode, Map<Integer, Integer>>>>> modalCountByModeByScenarioByDistance) {
+        this.modalCountByModeByScenarioByDistance = modalCountByModeByScenarioByDistance;
+    }
+
+    public Map<Integer, Map<Type, Map<Purpose, Map<Mode, Map<Integer, Float>>>>> getCo2EmissionsByModeByScenarioByDistance() {
+        return co2EmissionsByModeByScenarioByDistance;
+    }
+
+    public void setCo2EmissionsByModeByScenarioByDistance(Map<Integer, Map<Type, Map<Purpose, Map<Mode, Map<Integer, Float>>>>> co2EmissionsByModeByScenarioByDistance) {
+        this.co2EmissionsByModeByScenarioByDistance = co2EmissionsByModeByScenarioByDistance;
+    }
+
+    public TableDataSet getScenarioSettings() {
+        return scenarioSettings;
+    }
+
+    public void setScenarioSettings(TableDataSet scenarioSettings) {
+        this.scenarioSettings = scenarioSettings;
+    }
+
+    public String getHouseholdSubpopulationFileName() {
+        return householdSubpopulationFileName;
+    }
+
+    public void setHouseholdSubpopulationFileName(String householdSubpopulationFileName) {
+        this.householdSubpopulationFileName = householdSubpopulationFileName;
+    }
+
+    public String getPersonSubpopulationFileName() {
+        return personSubpopulationFileName;
+    }
+
+    public void setPersonSubpopulationFileName(String personSubpopulationFileName) {
+        this.personSubpopulationFileName = personSubpopulationFileName;
+    }
 
     //airports
     private Map<Integer, Airport> airports = new ConcurrentHashMap();
@@ -215,4 +318,35 @@ public class DataSet {
     }
 
 
+    public void setNumberOfSubpopulations(double numberOfSubpopulations) {
+        this.numberOfSubpopulations = numberOfSubpopulations;
+    }
+
+    public double getNumberOfSubpopulations() {
+        return numberOfSubpopulations;
+    }
+
+    public void setNumberOfScenarios(int numberOfScenarios) {
+        this.numberOfScenarios = numberOfScenarios;
+    }
+
+    public int getNumberOfScenarios() {
+        return numberOfScenarios;
+    }
+
+    public void setDistanceBins(int[] distanceBins) {
+        this.distanceBins = distanceBins;
+    }
+
+    public int[] getDistanceBins() {
+        return distanceBins;
+    }
+
+    public int getScenario() {
+        return scenario;
+    }
+
+    public void setScenario(int scenario) {
+        this.scenario = scenario;
+    }
 }

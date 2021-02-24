@@ -40,8 +40,6 @@ public class DomesticModeChoiceGermanyScenario {
     private boolean calibration;
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
 
-    private TableDataSet scenarioVariables;
-
 
     public DomesticModeChoiceGermanyScenario(JSONObject prop, String inputFolder) {
         this.rb = rb;
@@ -52,7 +50,6 @@ public class DomesticModeChoiceGermanyScenario {
         costsPerKm.buildStringIndex(2);
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration");
         calibrationDomesticMcMatrix = new HashMap<>();
-        scenarioVariables = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"scenarioPolicy.scenarios"));
 
         logger.info("Domestic MC set up");
 
@@ -136,8 +133,7 @@ public class DomesticModeChoiceGermanyScenario {
                         Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()) )
                         * distance;
                 if (m.equals(ModeGermany.AIR)) {
-                    int scenario = trip.getScenario();
-                    float increaseAirCost = scenarioVariables.getValueAt(scenario,"cost");
+                    float increaseAirCost = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"cost");
                     cost = cost * increaseAirCost;
                 }
                 impedance = cost / (vot) + time;
@@ -199,11 +195,11 @@ public class DomesticModeChoiceGermanyScenario {
                     k_calibration
             ;
             if (m.equals(ModeGermany.AIR)) {
-                float airDistanceThreshold = scenarioVariables.getValueAt(trip.getScenario(),"distance");
+                float airDistanceThreshold = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"distance");
                 if (distance < airDistanceThreshold) {
                     utility = Double.NEGATIVE_INFINITY;
                 }
-                float limitNoFastestAir = scenarioVariables.getValueAt(trip.getScenario(),"limSpeed");
+                float limitNoFastestAir = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"limSpeed");
                 if (limitNoFastestAir == 1){
                     if (time > dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(origin, destination) ||
                             time > dataSet.getTravelTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) ||
