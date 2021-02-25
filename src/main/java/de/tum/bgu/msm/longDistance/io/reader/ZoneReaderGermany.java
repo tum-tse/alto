@@ -106,8 +106,9 @@ public class ZoneReaderGermany implements ZoneReader {
                 zoneType = ZoneTypeGermany.EXTOVERSEAS;
             }
             int area = (int) zoneTable.getIndexedValueAt(zone, "Area");
+            int emptyZone = (int) zoneTable.getIndexedValueAt(zone, "emptyZone");
             //zones are created as empty as they are filled out using sp
-            Zone internalZone = new ZoneGermany(zone, 0, 0, zoneType, area, AreaTypeGermany.valueOf(areaType));
+            Zone internalZone = new ZoneGermany(zone, 0, 0, zoneType, area, AreaTypeGermany.valueOf(areaType), emptyZone);
             ((ZoneGermany)internalZone).setHotels(hotels);
             ((ZoneGermany)internalZone).addPopulation(population);
             ((ZoneGermany)internalZone).addHouseholds(households);
