@@ -449,8 +449,16 @@ public class CalibrationGermany implements ModelComponent {
                     for (Mode mode : ModeGermany.values()) {
                         double observedShare = surveyShares.get(name).get(purpose).get(tripState).get(mode);
                         double simulatedShare = simulatedModalShares.get(name).get(purpose).get(tripState).get(mode);
-                        double factor = stepFactor * (observedShare - simulatedShare);
+                        double factor;
+
+                        if (mode.equals(ModeGermany.AUTO)){
+                            factor = 0;
+                        }else{
+                            factor = stepFactor * (observedShare - simulatedShare);
+                        }
+
                         calibrationMatrix.get(name).get(purpose).get(tripState).putIfAbsent(mode, factor);
+
                         logger.info(name + "\t" + purpose + " \t" + mode + "\t" + factor);
                     }
                 }
