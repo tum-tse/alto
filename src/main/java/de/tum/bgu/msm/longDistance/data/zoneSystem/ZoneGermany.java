@@ -30,14 +30,19 @@ public class ZoneGermany implements Zone {
     private int hotels = 0;
     private float timeToLongDistanceRail = 0;
 
+
+
+    private int emptyZone = 0;
+
     public ZoneGermany(int id, int population, int employment, ZoneTypeGermany zoneType, int area,
-                       AreaTypeGermany areaType) {
+                       AreaTypeGermany areaType, int populatedZone) {
         this.id = id;
         this.population = population;
         this.employment = employment;
         this.zoneType = zoneType;
         this.area = area;
         this.areatype = areaType;
+        this.emptyZone = populatedZone;
     }
 
     @Override
@@ -140,6 +145,14 @@ public class ZoneGermany implements Zone {
 
     public void setTimeToLongDistanceRail(float timeToLongDistanceRail) {
         this.timeToLongDistanceRail = timeToLongDistanceRail;
+    }
+
+    public int getEmptyZone() {
+        return emptyZone;
+    }
+
+    public void setEmptyZone(int populatedZone) {
+        this.emptyZone = populatedZone;
     }
 }
 

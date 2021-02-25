@@ -130,6 +130,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
             double population = destinationZone.getPopulation();
             double employment = destinationZone.getEmployment();
             double hotels = destinationZone.getHotels();
+            int emptyZone = destinationZone.getEmptyZone();
 
             Purpose tripPurpose = trip.getTripPurpose();
             TypeGermany tripState = (TypeGermany) trip.getTripState();
@@ -150,7 +151,8 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
             double u =
                     b_distance_log * k_calibration * log_distance +
                             b_hotel * hotels / 1000 +  //hotels in thousands
-                            b_popEmployment * (population + employment) / 1000000; //population and employment in millions
+                            b_popEmployment * (population + employment) / 1000000 + //population and employment in millions
+                            emptyZone * -999999; // add penalty to empty zones
 
             return u;
         } else {
