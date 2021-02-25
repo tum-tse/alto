@@ -105,7 +105,6 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
         dataSet.setPersons(readSyntheticPersons(households));
     }
 
-
     private Map<Integer, Household>  readSyntheticHouseholds() {
 
         Map<Integer, Household> householdMap = new LinkedHashMap<>();
