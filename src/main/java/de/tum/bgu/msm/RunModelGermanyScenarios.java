@@ -3,6 +3,7 @@ package de.tum.bgu.msm;
 import de.tum.bgu.msm.longDistance.CalibrationGermany;
 import de.tum.bgu.msm.longDistance.LDModelGermany;
 import de.tum.bgu.msm.longDistance.LDModelGermanyScenarios;
+import de.tum.bgu.msm.longDistance.airportAnalysis.AirTripsGeneration;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoiceGermany;
 import de.tum.bgu.msm.longDistance.emissions.Emissions;
@@ -79,7 +80,8 @@ public class RunModelGermanyScenarios {
 
         LDModelGermanyScenarios ldModelGermany = new LDModelGermanyScenarios(new ZoneReaderGermany(), new SkimsReaderGermany(),
                 new SyntheticPopulationReaderGermany(),new EconomicStatusReader(),
-                new TripGenerationGermany(), new DestinationChoiceGermany(), new ModeChoiceGermanyScenario(),
+                new TripGenerationGermany(), new DestinationChoiceGermany(),
+                new AirTripsGeneration(), new ModeChoiceGermanyScenario(),
                 new TimeOfDayChoiceGermany(), new Emissions(), new OutputWriterGermanScenario(),
                 new CalibrationGermany(), new PotentialTravelersSelectionGermany(),
                 new ScenarioAnalysis());

@@ -55,7 +55,7 @@ public class RunAirportAnalysis {
 
 
 
-        AirportAnalysisModel ldModel = new AirportAnalysisModel(new ZoneReaderGermany(), new SkimsReaderGermany(), new AirportAnalysis(), new OutputWriterOntario());
+        AirportAnalysisModel ldModel = new AirportAnalysisModel(new ZoneReaderGermany(), new SkimsAutoReaderGermany(), new AirportAnalysis(), new OutputWriterOntario());
         ldModel.setup(prop, inputFolder, outputFolder);
         ldModel.load(dataSet);
         ldModel.run(dataSet, -1);

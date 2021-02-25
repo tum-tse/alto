@@ -43,10 +43,19 @@ public class DataSet {
     private Map<Mode, Matrix> priceMatrix;
     private Map<Mode, Matrix> transferMatrix;
     private Map<Mode, Matrix> distanceMatrix;
+
+    private Matrix airAccessAirportZone;
+    private Matrix airEgressAirportZone;
+
     private double numberOfSubpopulations;
     private int numberOfScenarios;
     private int scenario;
     private int[] distanceBins;
+    private Map<Integer, Airport> germanMain;
+    private Map<Integer, Airport> overseasAirport;
+    private Map<Airport, Map<Airport, Map<String, Integer>>> connectedAirports;
+    private int boardingTime_sec;
+    private int postprocessTime_sec;
 
     public Map<Mode, Matrix> getTravelTimeMatrix() {
         return travelTimeMatrix;
@@ -237,6 +246,22 @@ public class DataSet {
         this.co2EmissionsByModeByScenarioByDistance = co2EmissionsByModeByScenarioByDistance;
     }
 
+    public Matrix getAirAccessAirportZone() {
+        return airAccessAirportZone;
+    }
+
+    public void setAirAccessAirportZone(Matrix airAccessAirportZone) {
+        this.airAccessAirportZone = airAccessAirportZone;
+    }
+
+    public Matrix getAirEgressAirportZone() {
+        return airEgressAirportZone;
+    }
+
+    public void setAirEgressAirportZone(Matrix airEgressAirportZone) {
+        this.airEgressAirportZone = airEgressAirportZone;
+    }
+
     public TableDataSet getScenarioSettings() {
         return scenarioSettings;
     }
@@ -266,6 +291,7 @@ public class DataSet {
     private Map<Integer, Flight> flights  = new ConcurrentHashMap();
     private Map<Integer, AirLeg> airLegs  = new ConcurrentHashMap();
     private Map<Integer, Airport> airportsWithFlights  = new ConcurrentHashMap();
+    private Map<Airport, Float> transferTimeAirport = new HashMap<>();
 
     public Map<Integer, Airport> getAirportsWithFlights() {
         return airportsWithFlights;
@@ -317,6 +343,13 @@ public class DataSet {
         return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)).collect(Collectors.toList());
     }
 
+    public Map<Airport, Float> getTransferTimeAirport() {
+        return transferTimeAirport;
+    }
+
+    public void setTransferTimeAirport(Map<Airport, Float> transferTimeAirport) {
+        this.transferTimeAirport = transferTimeAirport;
+    }
 
     public void setNumberOfSubpopulations(double numberOfSubpopulations) {
         this.numberOfSubpopulations = numberOfSubpopulations;
@@ -348,5 +381,30 @@ public class DataSet {
 
     public void setScenario(int scenario) {
         this.scenario = scenario;
+    }
+
+    public void setConnectedAirports(Map<Airport, Map<Airport, Map<String, Integer>>> connectedAirports) {
+        this.connectedAirports = connectedAirports;
+    }
+
+    public Map<Airport, Map<Airport, Map<String, Integer>>> getConnectedAirports() {
+        return connectedAirports;
+    }
+
+
+    public int getBoardingTime_sec() {
+        return boardingTime_sec;
+    }
+
+    public int getPostprocessTime_sec() {
+        return postprocessTime_sec;
+    }
+
+    public void setboardingTime_sec(int boardingTime_sec) {
+        this.boardingTime_sec = boardingTime_sec;
+    }
+
+    public void setpostprocessTime_sec(int postprocessTime_sec) {
+        this.postprocessTime_sec = postprocessTime_sec;
     }
 }
