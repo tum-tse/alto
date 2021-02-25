@@ -78,11 +78,11 @@ public class TripGenerationGermany implements TripGeneration {
 
             PersonGermany pers = ((LongDistanceTripGermany)t).getTraveller();
             HouseholdGermany hh = pers.getHousehold();
-            int hhId = hh.getId();
-            double origX = dataSet.getDwellings().get(hhId).getCoordX();
+
+            double origX = hh.getHomeLocation().x;
             ((LongDistanceTripGermany) t).setOrigX(origX);
 
-            double origY = dataSet.getDwellings().get(hhId).getCoordY();
+            double origY = hh.getHomeLocation().y;
             ((LongDistanceTripGermany) t).setOrigY(origY);
 
         });
