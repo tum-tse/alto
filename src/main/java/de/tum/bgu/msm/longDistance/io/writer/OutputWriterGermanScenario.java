@@ -44,6 +44,7 @@ public class OutputWriterGermanScenario implements OutputWriter {
     private TableDataSet scenarios;
     private static Logger logger = Logger.getLogger(OutputWriterGermanScenario.class);
     private boolean writeTrips;
+    private boolean runSubpopulations;
 
 
     @Override
@@ -52,6 +53,7 @@ public class OutputWriterGermanScenario implements OutputWriter {
         outputFile = JsonUtilMto.getStringProp(prop, "output.trip_file");
         scenarios = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"scenarioPolicy.scenarios"));
         writeTrips = JsonUtilMto.getBooleanProp(prop,"output.write_trips");
+        runSubpopulations = JsonUtilMto.getBooleanProp(prop, "synthetic_population.runSubpopulations");
     }
 
     @Override
@@ -65,7 +67,11 @@ public class OutputWriterGermanScenario implements OutputWriter {
         if (writeTrips) {
             int scenario = dataSet.getScenario();
             String outputFolderScenario = outputFolder + "/" + scenarios.getStringValueAt(scenario, "scenario");
-            PrintWriter pw = Util.openFileForSequentialWriting(outputFolderScenario + "_p" + dataSet.getPopulationSection() + "_" + outputFile, false);
+            String fileName = outputFolderScenario + "_" + outputFile;
+            if (runSubpopulations){
+                fileName = outputFolderScenario + "_p" + dataSet.getPopulationSection() + "_" + outputFile;
+            }
+            PrintWriter pw = Util.openFileForSequentialWriting(fileName, false);
             pw.println(LongDistanceTripGermany.getHeader());
             for (LongDistanceTrip tr : dataSet.getTripsofPotentialTravellers()) {
                 pw.println(tr.toString());

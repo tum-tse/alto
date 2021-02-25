@@ -36,6 +36,7 @@ public class ScenarioAnalysis implements SyntheticPopulationReader {
     private TableDataSet scenarioVariables;
     private int[] distanceBins;
     private String outputFolder;
+    private boolean runSubpopulations;
 
 
     public ScenarioAnalysis() {
@@ -47,6 +48,7 @@ public class ScenarioAnalysis implements SyntheticPopulationReader {
         this.outputFolder = outputFolder;
         scenarioVariables = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"scenarioPolicy.scenarios"));
         distanceBins = JsonUtilMto.getArrayIntProp(prop, "scenarioPolicy.distanceBins");
+        runSubpopulations = JsonUtilMto.getBooleanProp(prop, "synthetic_population.runSubpopulations");
         logger.info("Scenario analysis set up");
 
     }
@@ -99,8 +101,14 @@ public class ScenarioAnalysis implements SyntheticPopulationReader {
 
     public void run(DataSet dataSet, int nThreads) {
 
-        PrintWriter pw = Util.openFileForSequentialWriting(outputFolder + "/p" + dataSet.getPopulationSection()+  "_summaryModeChoiceEmissions.csv", false);
-        PrintWriter pwDistance = Util.openFileForSequentialWriting(outputFolder + "/p" + dataSet.getPopulationSection()+  "_summaryModeChoiceEmissionsByDistance.csv", false);
+        String fileName = outputFolder + "/summaryModeChoiceEmissions.csv";
+        String fileNameDistance = outputFolder + "/summaryModeChoiceEmissionsByDistance.csv";
+        if (runSubpopulations){
+            fileName = outputFolder + "/p" + dataSet.getPopulationSection()+  "_summaryModeChoiceEmissions.csv";
+            fileNameDistance = outputFolder + "/p" + dataSet.getPopulationSection()+  "_summaryModeChoiceEmissionsByDistance.csv";
+        }
+        PrintWriter pw = Util.openFileForSequentialWriting(fileName, false);
+        PrintWriter pwDistance = Util.openFileForSequentialWriting(fileNameDistance, false);
         Map<Integer, Map<Type, Map<Purpose, Map<Mode, Integer>>>> trips = dataSet.getModalCountByModeByScenario();
         Map<Integer, Map<Type, Map<Purpose, Map<Mode, Float>>>> co2Emissions = dataSet.getCo2EmissionsByModeByScenario();
         Map<Integer, Map<Type, Map<Purpose, Map<Mode, Map<Integer, Integer>>>>> modalCountByDistance = dataSet.getModalCountByModeByScenarioByDistance();
@@ -137,8 +145,12 @@ public class ScenarioAnalysis implements SyntheticPopulationReader {
         pw.println(header);
         pwDistance.println(headerDistance);
         for (int scenario = 1; scenario <= dataSet.getNumberOfScenarios(); scenario++) {
-            String line = Integer.toString(dataSet.getPopulationSection());
-            String lineDistance = Integer.toString(dataSet.getPopulationSection());
+            String line = "0";
+            String lineDistance = "0";
+            if (runSubpopulations){
+                line = Integer.toString(dataSet.getPopulationSection());
+                lineDistance = Integer.toString(dataSet.getPopulationSection());
+            }
             line = line + "," + Integer.toString(scenario);
             lineDistance = lineDistance + "," + Integer.toString(scenario);
             for (int col = 1; col <= scenarioSettings.getColumnCount(); col++){

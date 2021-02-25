@@ -56,15 +56,14 @@ public class PotentialTravelersSelectionGermany implements SyntheticPopulationRe
     }
 
     public void run(DataSet dataSet, int nThreads) {
-        int populationSection = dataSet.getPopulationSection();
-        Map<Integer, Household> households = selectHouseholds(populationSection);
-        Map<Integer, Person> persons = selectPersons(populationSection, households);
+        Map<Integer, Household> households = selectHouseholds();
+        Map<Integer, Person> persons = selectPersons(households);
         dataSet.setHouseholdsPotentialTravelers(households);
         dataSet.setPotentialTravelers(persons);
     }
 
 
-    public Map<Integer, Household> selectHouseholds(int populationSection){
+    public Map<Integer, Household> selectHouseholds(){
         Map<Integer, Household> householdMap = new LinkedHashMap<>();
         Integer[] keysArray = dataSet.getHouseholds().keySet().toArray(new Integer[dataSet.getHouseholds().keySet().size()]);
         householdMap = dataSet.getHouseholds();
@@ -86,7 +85,7 @@ public class PotentialTravelersSelectionGermany implements SyntheticPopulationRe
     }
 
 
-    public Map<Integer, Person> selectPersons(int populationScenario, Map<Integer, Household> households){
+    public Map<Integer, Person> selectPersons(Map<Integer, Household> households){
         Map<Integer, Person> personMap = new LinkedHashMap<>();
         personMap = dataSet.getPersons();
        /* if (populationScenario == -1){
