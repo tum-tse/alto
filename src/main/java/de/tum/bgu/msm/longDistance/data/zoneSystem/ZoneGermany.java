@@ -32,17 +32,17 @@ public class ZoneGermany implements Zone {
 
 
 
-    private int emptyZone = 0;
+    private boolean emptyZone = false;
 
     public ZoneGermany(int id, int population, int employment, ZoneTypeGermany zoneType, int area,
-                       AreaTypeGermany areaType, int populatedZone) {
+                       AreaTypeGermany areaType, boolean emptyZone) {
         this.id = id;
         this.population = population;
         this.employment = employment;
         this.zoneType = zoneType;
         this.area = area;
         this.areatype = areaType;
-        this.emptyZone = populatedZone;
+        this.emptyZone = emptyZone;
     }
 
     @Override
@@ -147,12 +147,12 @@ public class ZoneGermany implements Zone {
         this.timeToLongDistanceRail = timeToLongDistanceRail;
     }
 
-    public int getEmptyZone() {
+    public boolean getEmptyZone() {
         return emptyZone;
     }
 
-    public void setEmptyZone(int populatedZone) {
-        this.emptyZone = populatedZone;
+    public void setEmptyZone(boolean emptyZone) {
+        this.emptyZone = emptyZone;
     }
 }
 

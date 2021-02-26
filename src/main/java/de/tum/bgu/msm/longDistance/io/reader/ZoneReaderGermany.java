@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.io.reader;
 
 import com.pb.common.datafile.TableDataSet;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
@@ -96,8 +97,8 @@ public class ZoneReaderGermany implements ZoneReader {
             String zoneTypeStr = zoneTable.getIndexedStringValueAt(zone,"type");
             int areaType = (int) zoneTable.getIndexedValueAt(zone, "areaType");
             int hotels = (int) zoneTable.getIndexedValueAt(zone, "hotels");
-            int population = (int) zoneTable.getIndexedValueAt(zone, "pop");
-            //int households = (int) zoneTable.getIndexedValueAt(zone, "households");
+            int population = (int) zoneTable.getIndexedValueAt(zone, "population");
+            int households = (int) zoneTable.getIndexedValueAt(zone, "households");
             int jobs = (int) zoneTable.getIndexedValueAt(zone, "emp"); //do not use "jobs" because it has artificially more vacant jobs
             ZoneTypeGermany zoneType = ZoneTypeGermany.GERMANY;
             if (zoneTypeStr.equals("eu")){
@@ -106,12 +107,12 @@ public class ZoneReaderGermany implements ZoneReader {
                 zoneType = ZoneTypeGermany.EXTOVERSEAS;
             }
             int area = (int) zoneTable.getIndexedValueAt(zone, "Area");
-            int emptyZone = (int) zoneTable.getIndexedValueAt(zone, "emptyZone");
+            boolean emptyZone = zoneTable.getIndexedValueAt(zone, "emptyZone") == 1;
             //zones are created as empty as they are filled out using sp
             Zone internalZone = new ZoneGermany(zone, 0, 0, zoneType, area, AreaTypeGermany.valueOf(areaType), emptyZone);
             ((ZoneGermany)internalZone).setHotels(hotels);
             ((ZoneGermany)internalZone).addPopulation(population);
-            //((ZoneGermany)internalZone).addHouseholds(households);
+            ((ZoneGermany)internalZone).addHouseholds(households);
             ((ZoneGermany)internalZone).addEmployment(jobs);
             internalZoneList.add(internalZone);
         }
