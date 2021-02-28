@@ -95,14 +95,20 @@ public class DomesticModeChoiceGermanyScenario {
 
             //if there is no access by any mode for the selected OD pair, output null mode
             if (probability_denominator != 0) {
-                selectedMode = (Mode) Util.selectGermany(expUtilities, ModeGermany.values());
+
                 for (int mode = 0; mode < expUtilities.length; mode++) {
                     attributes.put("utility_" + ModeGermany.getMode(mode), (float) (expUtilities[mode] / probability_denominator));
+                }
+            }else{
+                expUtilities[0] = 1;
+                for (int mode = 0; mode < expUtilities.length; mode++) {
+                    attributes.put("utility_" + ModeGermany.getMode(mode), (float) expUtilities[mode]);
                 }
             }
             ((LongDistanceTripGermany) t).setAdditionalAttributes(attributes);
             //choose one destination, weighted at random by the probabilities
         }
+        selectedMode = (Mode) Util.selectGermany(expUtilities, ModeGermany.values());
         return selectedMode;
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
 
