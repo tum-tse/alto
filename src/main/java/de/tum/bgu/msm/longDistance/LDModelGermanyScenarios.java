@@ -8,10 +8,7 @@ import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoice;
 import de.tum.bgu.msm.longDistance.emissions.Emissions;
-import de.tum.bgu.msm.longDistance.io.reader.EconomicStatusReader;
-import de.tum.bgu.msm.longDistance.io.reader.SkimsReader;
-import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReader;
-import de.tum.bgu.msm.longDistance.io.reader.ZoneReader;
+import de.tum.bgu.msm.longDistance.io.reader.*;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriter;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoice;
 import de.tum.bgu.msm.longDistance.scaling.PotentialTravelersSelectionGermany;
@@ -39,6 +36,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
 
     //modules
     private ZoneReader zoneReader;
+    private GridReader gridReader;
     private SkimsReader skimsReader;
     private SyntheticPopulationReader syntheticPopulationReader;
     private TripGeneration tripGenModel;
@@ -53,7 +51,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
     private ScenarioAnalysis scenarioAnalysis;
     private AirTripsGeneration airTripsGeneration;
 
-    public LDModelGermanyScenarios(ZoneReader zoneReader, SkimsReader skimsReader,
+    public LDModelGermanyScenarios(ZoneReader zoneReader, GridReader gridReader, SkimsReader skimsReader,
                                    SyntheticPopulationReader syntheticPopulationReader,
                                    EconomicStatusReader economicStatusReader,
                                    TripGeneration tripGenModel,
@@ -67,6 +65,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
                                    PotentialTravelersSelectionGermany potentialTravelersSelection,
                                    ScenarioAnalysis scenarioAnalysis) {
         this.zoneReader = zoneReader;
+        this.gridReader = gridReader;
         this.skimsReader = skimsReader;
         this.syntheticPopulationReader = syntheticPopulationReader;
         this.economicStatusReader = economicStatusReader;
@@ -88,6 +87,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
 
         //options
         zoneReader.setup(prop, inputFolder, outputFolder);
+        gridReader.setup(prop, inputFolder, outputFolder);
         skimsReader.setup(prop, inputFolder, outputFolder);
         syntheticPopulationReader.setup(prop, inputFolder, outputFolder);
         economicStatusReader.setup(prop, inputFolder, outputFolder);
@@ -107,6 +107,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
     public void load(DataSet dataSet) {
 
         zoneReader.load(dataSet);
+        gridReader.load(dataSet);
         skimsReader.load(dataSet);
         syntheticPopulationReader.load(dataSet);
         economicStatusReader.load(dataSet);

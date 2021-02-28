@@ -7,10 +7,7 @@ import de.tum.bgu.msm.longDistance.airportAnalysis.AirTripsGeneration;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoiceGermany;
 import de.tum.bgu.msm.longDistance.emissions.Emissions;
-import de.tum.bgu.msm.longDistance.io.reader.EconomicStatusReader;
-import de.tum.bgu.msm.longDistance.io.reader.SkimsReaderGermany;
-import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReaderGermany;
-import de.tum.bgu.msm.longDistance.io.reader.ZoneReaderGermany;
+import de.tum.bgu.msm.longDistance.io.reader.*;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermanScenario;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermany;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermany;
@@ -78,7 +75,7 @@ public class RunModelGermanyScenarios {
             dataSet.setPopulationSection(Integer.parseInt(args[2]));
         }
 
-        LDModelGermanyScenarios ldModelGermany = new LDModelGermanyScenarios(new ZoneReaderGermany(), new SkimsReaderGermany(),
+        LDModelGermanyScenarios ldModelGermany = new LDModelGermanyScenarios(new ZoneReaderGermany(), new GridReaderGermany(),new SkimsReaderGermany(),
                 new SyntheticPopulationReaderGermany(),new EconomicStatusReader(),
                 new TripGenerationGermany(), new DestinationChoiceGermany(),
                 new AirTripsGeneration(), new ModeChoiceGermanyScenario(),
