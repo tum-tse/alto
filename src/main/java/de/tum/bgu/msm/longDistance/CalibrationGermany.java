@@ -40,7 +40,7 @@ public class CalibrationGermany implements ModelComponent {
     private DomesticDestinationChoiceGermany dcDomesticModel;
 
     private ModeChoiceGermany mcM;
-    private DomesticModeChoiceGermany mcDomesticModel;
+    private DomesticModeChoiceGermanyScenario mcDomesticModel;
 
     static Logger logger = Logger.getLogger(CalibrationGermany.class);
 
@@ -109,7 +109,7 @@ public class CalibrationGermany implements ModelComponent {
         dcDomesticModel = new DomesticDestinationChoiceGermany(prop, inputFolder);
         dcDomesticModel.load(dataSet);
 
-        mcDomesticModel = new DomesticModeChoiceGermany(prop, inputFolder);
+        mcDomesticModel = new DomesticModeChoiceGermanyScenario(prop, inputFolder);
         mcDomesticModel.loadDomesticModeChoice(dataSet);
 
         for (int iteration = 0; iteration < maxIter; iteration++) {
@@ -557,7 +557,7 @@ public class CalibrationGermany implements ModelComponent {
 //        return weight;
 //    }
 
-    public void printOutCalibrationResults(DomesticTripGenerationGermany domTg, DomesticDestinationChoiceGermany domDc, DomesticModeChoiceGermany domMc) {
+    public void printOutCalibrationResults(DomesticTripGenerationGermany domTg, DomesticDestinationChoiceGermany domDc, DomesticModeChoiceGermanyScenario domMc) {
 
         logger.info("Trip generation calibration");
         logger.info("model" + "\t" + "purpose" + "\t" + "tripState" + "\t" + "factor");
