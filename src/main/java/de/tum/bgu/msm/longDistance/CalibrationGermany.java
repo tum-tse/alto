@@ -534,7 +534,7 @@ public class CalibrationGermany implements ModelComponent {
             if (!t.isInternational()) {
                 Mode mode = mcDomesticModel.selectModeDomestic(t);
                 t.setMode(mode);
-                t.setTravelTime(mcDomesticModel.getDomesticModalTravelTime(t));
+                t.setTravelTimeByMode(mcDomesticModel.getDomesticModalTravelTime(t));
             }
         });
     }
