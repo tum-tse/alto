@@ -57,7 +57,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
     @Override
     public void run(DataSet dataSet, int nThreads) {
         runDestinationChoice(dataSet.getAllTrips());
-        sampleDestinationMicrolocation(dataSet.getAllTrips(), dataSet);
+        //sampleDestinationMicrolocation(dataSet.getAllTrips(), dataSet);
     }
 
     public void sampleDestinationMicrolocation(ArrayList<LongDistanceTrip> trips, DataSet dataSet){
