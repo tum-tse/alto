@@ -185,7 +185,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     public static String getHeader() {
         return "tripId,personId" +
                 ",international,tripPurpose,tripState,tripOriginZone,tripOriginType" +
-                ",tripDestZone,tripDestType,travelDistance_km" +
+                ",tripDestZone,tripDestType,travelDistanceByCar_km,travelDistance_km" +
                 ",tripMode,travelTimeByMode_h"+
                 ",departureTimeMin,departureTimeReturnDaytrip,ReturnOvernightTrip"+
                 ",CO2emissions_kg" +
@@ -234,6 +234,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getOrigZone().getZoneType()
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getDestZone().getZoneType()
+                    + "," + tr.getAutoTravelDistance() / 1000
                     + "," + tr.getDistanceByMode() / 1000
                     + "," + tr.getMode()
                     + "," + tr.getTravelTime() / 3600

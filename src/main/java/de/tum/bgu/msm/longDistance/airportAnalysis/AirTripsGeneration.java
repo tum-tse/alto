@@ -46,18 +46,18 @@ public final class AirTripsGeneration implements ModelComponent {
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
-        airportsInput = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.airportList_file"));
-        flightsInput = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"airport.flightList_file"));
-        airportDistance = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.distance_file"));
+        airportsInput = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "airport.airportList_file"));
+        flightsInput = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"airport.flightList_file"));
+        airportDistance = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "airport.distance_file"));
         airportDistance.buildStringIndex(airportDistance.getColumnPosition("ID"));
         detourFactorEU = JsonUtilMto.getFloatProp(prop, "airport.detour_factor_EU");
         detourFactorOVERSEAS = JsonUtilMto.getFloatProp(prop, "airport.detour_factor_OVERSEAS");
         cruiseSpeed = JsonUtilMto.getFloatProp(prop,"airport.cruise_speed");
-        ascendingTime = JsonUtilMto.getIntProp(prop, "airport.ascending_time_min") * 60;
-        descendingTime = JsonUtilMto.getIntProp(prop, "airport.descending_time_min") * 60;
-        boardingTime_sec = JsonUtilMto.getIntProp(prop, "airport.boardingTime_min") * 60;
-        postprocessTime_sec = JsonUtilMto.getIntProp(prop, "airport.postProcessTime_min") * 60;
-        transferTimes = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"airport.transferTime_file"));
+        ascendingTime = JsonUtilMto.getIntProp(prop, "airport.ascending_time") * 60;
+        descendingTime = JsonUtilMto.getIntProp(prop, "airport.descending_time") * 60;
+        boardingTime_sec = JsonUtilMto.getIntProp(prop, "airport.boardingTime") * 60;
+        postprocessTime_sec = JsonUtilMto.getIntProp(prop, "airport.postProcessTime") * 60;
+        transferTimes = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"airport.transferTime_file"));
         transferTimes.buildIndex(transferTimes.getColumnPosition("id_hub"));
         logger.info("Airport analysis set up");
     }

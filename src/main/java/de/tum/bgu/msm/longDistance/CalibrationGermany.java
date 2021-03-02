@@ -40,7 +40,7 @@ public class CalibrationGermany implements ModelComponent {
     private DomesticDestinationChoiceGermany dcDomesticModel;
 
     private ModeChoiceGermany mcM;
-    private DomesticModeChoiceGermany mcDomesticModel;
+    private DomesticModeChoiceGermanyScenario mcDomesticModel;
 
     static Logger logger = Logger.getLogger(CalibrationGermany.class);
 
@@ -73,7 +73,7 @@ public class CalibrationGermany implements ModelComponent {
         calibrationDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
         calibrationMC = JsonUtilMto.getBooleanProp(prop, "mode_choice.calibration");
         holiday = JsonUtilMto.getBooleanProp(prop, "holiday");
-        maxIter = 100;
+        maxIter = 2000;
 
     }
 
@@ -109,7 +109,7 @@ public class CalibrationGermany implements ModelComponent {
         dcDomesticModel = new DomesticDestinationChoiceGermany(prop, inputFolder);
         dcDomesticModel.load(dataSet);
 
-        mcDomesticModel = new DomesticModeChoiceGermany(prop, inputFolder);
+        mcDomesticModel = new DomesticModeChoiceGermanyScenario(prop, inputFolder);
         mcDomesticModel.loadDomesticModeChoice(dataSet);
 
         for (int iteration = 0; iteration < maxIter; iteration++) {
@@ -146,7 +146,7 @@ public class CalibrationGermany implements ModelComponent {
         Map<TgModelName, Map<Purpose, Map<Type, Double>>> simulatedTripStateShares = getAverageTripStateShares(allTrips, totalPopulation);
         Map<TgModelName, Map<Purpose, Map<Type, Double>>> surveyShares = new HashMap<>();
 
-        double stepFactor = 1;
+        double stepFactor = 10;
 
         //hard coded for calibration
         TgModelName type = TgModelName.residenceTg;
@@ -181,8 +181,8 @@ public class CalibrationGermany implements ModelComponent {
             surveyShares.get(type).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.AWAY, 0.0012);
         }
 
-        logger.info("Trip generation calibration factors");
-        logger.info("model" + "\t" + "purpose" + " \t" + "tripState" + "\t" + "factor");
+        logger.info("Trip generation calibration ");
+        //logger.info("model" + "\t" + "purpose" + " \t" + "tripState" + "\t" + "factor");
 
         for (TgModelName name : TgModelName.values()) {
             calibrationMatrix.put(name, new HashMap<>());
@@ -193,7 +193,7 @@ public class CalibrationGermany implements ModelComponent {
                     double simulatedShare = simulatedTripStateShares.get(name).get(purpose).get(tripState);
                     double factor = stepFactor * (observedShare - simulatedShare); //obtain a negative value if simulation larger than observation
                     calibrationMatrix.get(name).get(purpose).putIfAbsent(tripState, factor);
-                    logger.info(name + "\t" + purpose + " \t" + tripState + "\t" + factor);
+                    logger.info(name + "\t" + purpose + " \t" + tripState + "\t" + (simulatedShare-observedShare));
                 }
             }
         }
@@ -222,10 +222,10 @@ public class CalibrationGermany implements ModelComponent {
             addTripToTripStateShareCalculator(countsByTripState, t, name);
         }
 
-        logger.info("Simulated Trip State Shares");
+        //logger.info("Simulated Trip State Shares");
 
         Map<TgModelName, Map<Purpose, Map<Type, Double>>> tripStateShares = new HashMap<>();
-        logger.info("model" + "\t" + "purpose" + " \t" + "tripState" + "\t" + "share");
+        //logger.info("model" + "\t" + "purpose" + " \t" + "tripState" + "\t" + "share");
         for (TgModelName name : TgModelName.values()) {
             tripStateShares.putIfAbsent(name, new HashMap<>());
             for (Purpose purpose : PurposeGermany.values()) {
@@ -233,7 +233,7 @@ public class CalibrationGermany implements ModelComponent {
                 for (Type tripState : TypeGermany.values()) {
                     double tripStateShare = countsByTripState.get(name).get(purpose).get(tripState) / totalPopulation;
                     tripStateShares.get(name).get(purpose).put(tripState, tripStateShare);
-                    logger.info(name + "\t" + purpose + " \t" + tripState + "\t" + tripStateShare);
+                    //logger.info(name + "\t" + purpose + " \t" + tripState + "\t" + tripStateShare);
                 }
             }
         }
@@ -438,7 +438,7 @@ public class CalibrationGermany implements ModelComponent {
         surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
 
         logger.info("Mode choice calibration factors");
-        logger.info("model" + "\t" + "purpose" + " \t" + "mode" + "\t" + "factor");
+        logger.info("model" + "\t" + "purpose" + " \t" + "mode" + "\t" + "diff(obs-sim)");
 
         for (McModelName name : McModelName.values()) {
             calibrationMatrix.put(name, new HashMap<>());
@@ -459,7 +459,8 @@ public class CalibrationGermany implements ModelComponent {
 
                         calibrationMatrix.get(name).get(purpose).get(tripState).putIfAbsent(mode, factor);
 
-                        logger.info(name + "\t" + purpose + " \t" + mode + "\t" + factor);
+                        //logger.info(name + "\t" + purpose + " \t" + tripState + " \t" + mode + "\t" + factor);
+                        logger.info(name + "\t" + purpose + " \t" + tripState + " \t" + mode + "\t" + (observedShare - simulatedShare));
                     }
                 }
             }
@@ -494,10 +495,10 @@ public class CalibrationGermany implements ModelComponent {
             }
         }
 
-        logger.info("Simulated Modal Shares");
+        //logger.info("Simulated Modal Shares");
 
         Map<McModelName, Map<Purpose, Map<Type, Map<Mode, Double>>>> modalShares = new HashMap<>();
-        logger.info("model" + "\t" + "purpose" + " \t" + "mode" + "\t" + "share");
+        //logger.info("model" + "\t" + "purpose" + " \t" + "mode" + "\t" + "share");
         for (McModelName name : McModelName.values()) {
             modalShares.putIfAbsent(name, new HashMap<>());
             for (Purpose purpose : PurposeGermany.values()) {
@@ -512,7 +513,7 @@ public class CalibrationGermany implements ModelComponent {
                     for (Mode mode : ModeGermany.values()) {
                         double modalShare = countsByMode.get(name).get(purpose).get(tripState).get(mode) / total;
                         modalShares.get(name).get(purpose).get(tripState).put(mode, modalShare);
-                        logger.info(name + "\t" + purpose + " \t" + tripState+ " \t" + mode + "\t" + modalShare);
+                        //logger.info(name + "\t" + purpose + " \t" + tripState+ " \t" + mode + "\t" + modalShare);
                     }
                 }
             }
@@ -556,7 +557,7 @@ public class CalibrationGermany implements ModelComponent {
 //        return weight;
 //    }
 
-    public void printOutCalibrationResults(DomesticTripGenerationGermany domTg, DomesticDestinationChoiceGermany domDc, DomesticModeChoiceGermany domMc) {
+    public void printOutCalibrationResults(DomesticTripGenerationGermany domTg, DomesticDestinationChoiceGermany domDc, DomesticModeChoiceGermanyScenario domMc) {
 
         logger.info("Trip generation calibration");
         logger.info("model" + "\t" + "purpose" + "\t" + "tripState" + "\t" + "factor");

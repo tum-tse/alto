@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.io.reader;
 
 import com.pb.common.datafile.TableDataSet;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
@@ -106,7 +107,7 @@ public class ZoneReaderGermany implements ZoneReader {
                 zoneType = ZoneTypeGermany.EXTOVERSEAS;
             }
             int area = (int) zoneTable.getIndexedValueAt(zone, "Area");
-            int emptyZone = (int) zoneTable.getIndexedValueAt(zone, "emptyZone");
+            boolean emptyZone = zoneTable.getIndexedValueAt(zone, "emptyZone") == 1;
             //zones are created as empty as they are filled out using sp
             Zone internalZone = new ZoneGermany(zone, 0, 0, zoneType, area, AreaTypeGermany.valueOf(areaType), emptyZone);
             ((ZoneGermany)internalZone).setHotels(hotels);

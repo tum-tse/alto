@@ -145,6 +145,7 @@ public class DomesticTripGenerationGermany {
 
     public ArrayList<LongDistanceTripGermany> runCalibration() {
         ArrayList<LongDistanceTripGermany> trips = new ArrayList<>();
+        atomicInteger = new AtomicInteger(0);
 
         //initialize utility vectors
         Map<Type, Double> expUtilities = new HashMap<>();

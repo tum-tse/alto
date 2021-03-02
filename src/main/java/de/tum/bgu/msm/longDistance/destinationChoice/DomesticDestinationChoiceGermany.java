@@ -123,14 +123,15 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
 
         int origin = trip.getOrigZone().getId();
         float distance = autoDist.getValueAt(origin, destination) / 1000; //to convert meters to km
+        ZoneGermany destinationZone = (ZoneGermany) dataSet.getZones().get(destination);
+        boolean populatedZone = !destinationZone.getEmptyZone();
 
-        if (distance > longDistanceThreshold) {
+        if (distance > longDistanceThreshold && populatedZone) {
 
-            ZoneGermany destinationZone = (ZoneGermany) dataSet.getZones().get(destination);
+
             double population = destinationZone.getPopulation();
             double employment = destinationZone.getEmployment();
             double hotels = destinationZone.getHotels();
-            int emptyZone = destinationZone.getEmptyZone();
 
             Purpose tripPurpose = trip.getTripPurpose();
             TypeGermany tripState = (TypeGermany) trip.getTripState();
@@ -151,8 +152,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
             double u =
                     b_distance_log * k_calibration * log_distance +
                             b_hotel * hotels / 1000 +  //hotels in thousands
-                            b_popEmployment * (population + employment) / 1000000 + //population and employment in millions
-                            emptyZone * -999999; // add penalty to empty zones
+                            b_popEmployment * (population + employment) / 1000000;
 
             return u;
         } else {
