@@ -92,13 +92,13 @@ public class DataSet {
     private Map<Mode, Matrix> frequencyMatrix;
 
     //Grids
-    private Map<Integer, Grid> grids = new HashMap<>();
+    private Map<Integer, List> grids = new HashMap<>();
 
-    public Map<Integer, Grid> getGrids() {
+    public Map<Integer, List> getGrids() {
         return grids;
     }
 
-    public void setGrids(Map<Integer, Grid> grids) {
+    public void setGrids(Map<Integer, List> grids) {
         this.grids = grids;
     }
 
