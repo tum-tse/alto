@@ -14,7 +14,9 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GridReaderGermany implements GridReader{
@@ -46,13 +48,12 @@ public class GridReaderGermany implements GridReader{
     public void load(DataSet dataSet) {
 
         this.dataSet=dataSet;
-        List<Grid> gridList;
-        List<Grid> internalGrids = readInternalGrids();
 
-        gridList = new ArrayList<>();
-        gridList.addAll(internalGrids);
+        Map<Integer, List> gridMap = new HashMap<>();
+        Map<Integer, List> internalGridMap = readInternalGrids();
 
-        dataSet.setGrids(gridList.stream().collect(Collectors.toMap(Grid::getId, x -> x)));
+        gridMap.putAll(internalGridMap);
+        dataSet.setGrids(gridMap);
 
         logger.info("Grid data loaded");
 
@@ -63,28 +64,44 @@ public class GridReaderGermany implements GridReader{
 
     }
 
-    private List<Grid> readInternalGrids() {
+    private Map<Integer,List> readInternalGrids() {
         //create grids objects (empty) and a map to find them in trips microlocation
 
-        int[] grids;
-        List<Grid> internalGridList = new ArrayList<>();
+        Map<Integer,List> internalGridList = new HashMap<>();
 
-        grids = gridTable.getColumnAsInt("id");
-        for (int grid : grids) {
+        int zones = dataSet.getZones().size();
+        int[] grids = gridTable.getColumnAsInt("id");
+        int counter = 1;
+        for (int zone = 1; zone <= zones; zone++){
 
-            int id = (int) gridTable.getIndexedValueAt(grid, "id");
-            String gridName = gridTable.getIndexedStringValueAt(grid, "name");
-            double popDensity = gridTable.getIndexedValueAt(grid, "popDensity");
-            double jobDensity = gridTable.getIndexedValueAt(grid, "jobDensity");
-            int taz = (int) gridTable.getIndexedValueAt(grid, "zone");
-            double coordX = gridTable.getIndexedValueAt(grid, "x_mp_31468");
-            double coordY = gridTable.getIndexedValueAt(grid, "y_mp_31468");
+            List<Grid> tempGridList = new ArrayList<>();
+            System.out.println("For Zone: " + zone);
+            for (int grid : grids){
 
-            Grid internalGrid = new GridGermany(id, gridName, taz, popDensity, jobDensity, coordX, coordY);
-            internalGridList.add(internalGrid);
+                int taz = (int) gridTable.getIndexedValueAt(grid, "zone");
+
+                if (taz==zone){
+                    int id = (int) gridTable.getIndexedValueAt(grid, "id");
+                    String gridName = gridTable.getIndexedStringValueAt(grid, "name");
+                    double popDensity = gridTable.getIndexedValueAt(grid, "popDensity");
+                    double jobDensity = gridTable.getIndexedValueAt(grid, "jobDensity");
+
+                    double coordX = gridTable.getIndexedValueAt(grid, "x_mp_31468");
+                    double coordY = gridTable.getIndexedValueAt(grid, "y_mp_31468");
+
+                    Grid internalGrid = new GridGermany(id, gridName, taz, popDensity, jobDensity, coordX, coordY);
+                    tempGridList.add(internalGrid);
+                    System.out.println(counter + " grid read");
+                    counter += 1;
+                }
+
+
+
+            }
+
+            internalGridList.put(zone, tempGridList);
+
         }
-
         return internalGridList;
-
     }
 }
