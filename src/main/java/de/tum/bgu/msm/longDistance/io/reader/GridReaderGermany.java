@@ -71,11 +71,11 @@ public class GridReaderGermany implements GridReader{
 
         int zones = dataSet.getZones().size();
         int[] grids = gridTable.getColumnAsInt("id");
-        int counter = 1;
+
         for (int zone = 1; zone <= zones; zone++){
 
             List<Grid> tempGridList = new ArrayList<>();
-            System.out.println("For Zone: " + zone);
+
             for (int grid : grids){
 
                 int taz = (int) gridTable.getIndexedValueAt(grid, "zone");
@@ -91,8 +91,7 @@ public class GridReaderGermany implements GridReader{
 
                     Grid internalGrid = new GridGermany(id, gridName, taz, popDensity, jobDensity, coordX, coordY);
                     tempGridList.add(internalGrid);
-                    System.out.println(counter + " grid read");
-                    counter += 1;
+
                 }
 
 
