@@ -39,12 +39,11 @@ public class TimeOfDayChoiceGermany implements TimeOfDayChoice {
         ArrayList<LongDistanceTrip> trips = dataSet.getTripsofPotentialTravellers();
         logger.info("Running time-of-day choice for " + trips.size() + " trips");
 
-        trips.parallelStream().forEach(tripFromArray -> {
-            LongDistanceTripGermany trip = (LongDistanceTripGermany) tripFromArray;
-            if (trip.getTripState().equals(TypeGermany.AWAY)){
+        trips.parallelStream().forEach(t -> {
+            if (t.getTripState().equals(TypeGermany.AWAY)){
                 //away
             } else {
-                calculateDepartureTime(trip);
+                calculateDepartureTime(t);
             }
         });
         logger.info("Finished time-of-day choice");
