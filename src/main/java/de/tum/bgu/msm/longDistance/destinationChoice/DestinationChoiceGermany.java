@@ -13,7 +13,9 @@ import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
+import java.awt.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,74 +61,62 @@ public class DestinationChoiceGermany implements DestinationChoice {
     @Override
     public void run(DataSet dataSet, int nThreads) {
         runDestinationChoice(dataSet.getAllTrips());
-        //sampleDestinationMicrolocation(dataSet.getAllTrips(), dataSet);
+        sampleDestinationMicrolocation(dataSet.getAllTrips(), dataSet);
     }
 
     public void sampleDestinationMicrolocation(ArrayList<LongDistanceTrip> trips, DataSet dataSet){
 
         logger.info("Sampling Microlocation of Destination for " + trips.size() + " trips");
-        Map<Integer, Grid> gridMap = dataSet.getGrids();
 
         trips.parallelStream().forEach( t ->{
-
-            int destZoneId = ((LongDistanceTripGermany)t).getDestZone().getId();
-
-            double selPosition = Math.random();
-            double prob = 0.0;
-
-            for (int i=1; i<=gridMap.size(); i++){
-                GridGermany gg = (GridGermany) gridMap.get(i);
-
-                if (t.getTripPurpose().toString().equals(PurposeGermany.PRIVATE.toString()) | t.getTripPurpose().toString().equals(PurposeGermany.LEISURE.toString())){
-
-                    if(gg.getTaz()==destZoneId){
-                        prob += gg.getPopDensity();
-                        double destX = gg.getCoordX();
-                        double destY = gg.getCoordY();
-
-                        if (prob >= selPosition){
-                            ((LongDistanceTripGermany) t).setDestX(destX);
-                            ((LongDistanceTripGermany) t).setDestY(destY);
-                            break;
-                        }else if(i==gridMap.size()){
-                            ((LongDistanceTripGermany) t).setDestX(destX);
-                            ((LongDistanceTripGermany) t).setDestY(destY);
-                        }
-                    }
-
-                }else{
-
-                    if(gg.getTaz()==destZoneId){
-                        prob += gg.getJobDensity();
-                        double destX = gg.getCoordX();
-                        double destY = gg.getCoordY();
-
-                        if (prob >= selPosition){
-                            ((LongDistanceTripGermany) t).setDestX(destX);
-                            ((LongDistanceTripGermany) t).setDestY(destY);
-                            break;
-                        }else if(i==gridMap.size()){
-                            ((LongDistanceTripGermany) t).setDestX(destX);
-                            ((LongDistanceTripGermany) t).setDestY(destY);
-                        }
-                    }
-
-                }
-
-            }
-
-
-        //    if(t.getTripPurpose().toString().equals(PurposeGermany.PRIVATE.toString())){
-                //Generate a random number
-                //Subset a dd with given zone
-                //loop through the subset dd
-                //condition match
-                //set coords
-        //    }
-
-
+            selectFromGrids(dataSet, (LongDistanceTripGermany) t);
         });
         logger.info("Finished Sampling Microlocation of Destination for " + trips.size() + " trips");
+    }
+
+    public void selectFromGrids(DataSet dataSet, LongDistanceTripGermany t){
+        Map<Integer, List> gridMap = dataSet.getGrids();
+
+        int destZoneId = t.getDestZone().getId();
+        List subGrid = gridMap.get(destZoneId);
+
+        double selPosition = Math.random();
+        double prob = 0.0;
+
+        for (int i=0; i<subGrid.size(); i++){
+            GridGermany gg = (GridGermany) subGrid.get(i);
+
+            if (t.getTripPurpose().toString().equals(PurposeGermany.PRIVATE.toString()) | t.getTripPurpose().toString().equals(PurposeGermany.LEISURE.toString())){
+
+                prob += gg.getPopDensity();
+                double destX = gg.getCoordX();
+                double destY = gg.getCoordY();
+
+                if (prob >= selPosition){
+                    t.setDestX(destX);
+                    t.setDestY(destY);
+                    break;
+                }else if(i==gridMap.size()){
+                    t.setDestX(destX);
+                    t.setDestY(destY);
+                }
+
+            }else{
+
+                prob += gg.getJobDensity();
+                double destX = gg.getCoordX();
+                double destY = gg.getCoordY();
+
+                if (prob >= selPosition){
+                    t.setDestX(destX);
+                    t.setDestY(destY);
+                    break;
+                }else if(i==gridMap.size()){
+                    t.setDestX(destX);
+                    t.setDestY(destY);
+                }
+            }
+        }
     }
 
 
