@@ -27,6 +27,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
     private DomesticDestinationChoiceGermany dcModel;
     private Map<Integer, Zone> zonesMap;
     private Matrix distanceByAuto;
+    private Matrix travelTimeByAuto;
     private AtomicInteger atomicInteger = new AtomicInteger(0);
     private Map<Integer, Household> hhMap;
     int count = 0;
@@ -48,6 +49,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
         dcModel.load(dataSet);
         zonesMap = dataSet.getZones();
         distanceByAuto = dataSet.getDistanceMatrix().get(ModeGermany.AUTO);
+        travelTimeByAuto = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO);
         //TODO. code the international destination choice model
         // replace the commented the lines for inbound and outbound models by the new model
 
@@ -138,7 +140,9 @@ public class DestinationChoiceGermany implements DestinationChoice {
                 ((LongDistanceTripGermany)t).setDestZoneType(ZoneTypeGermany.GERMANY);
                 ((LongDistanceTripGermany)t).setDestZone(zonesMap.get(destZoneId));
                 float distance = distanceByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
+                float time = travelTimeByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
                 ((LongDistanceTripGermany)t).setAutoTravelDistance(distance);
+                ((LongDistanceTripGermany)t).setAutoTravelTime(time);
                 if (  Util.isPowerOfFour(counter.getAndIncrement())){
                     logger.info("Domestic trips: " + counter.get());
                 }
