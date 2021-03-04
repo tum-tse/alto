@@ -169,8 +169,8 @@ public class DomesticModeChoiceGermanyScenario {
                 if (m.equals(ModeGermany.AIR)) {
                     float increaseAirCost = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"cost");
                     cost = cost * increaseAirCost;
-                    cost = cost + distanceAccessEgress * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
-                            Math.pow(distanceAccessEgress, costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
+                    cost = cost + distanceAccessEgress / 1000 * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
+                            Math.pow(distanceAccessEgress / 1000 , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
                 }
                 impedance = cost / (vot) + time;
                 attr.put("cost_"+ m.toString(), (float) cost);
@@ -206,7 +206,8 @@ public class DomesticModeChoiceGermanyScenario {
             double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
             double k_calibration = mcGermany.getStringIndexedValueAt("k_calibration", column);
 
-            double impedance_exp = Math.exp(alpha_impedance * impedance);
+
+            double impedance_exp = Math.exp(alpha_impedance * impedance * 60);
             attr.put("impedance_" + m.toString(), (float) impedance_exp);
 
             if (calibration) k_calibration = k_calibration + calibrationDomesticMcMatrix.get(trip.getTripPurpose()).get(trip.getTripState()).get(m);
@@ -227,7 +228,7 @@ public class DomesticModeChoiceGermanyScenario {
                     b_lowEconomicStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.LOW), false) +
                     b_highStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.HIGH), false) +
                     b_veryHighStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYHIGH), false) +
-                    b_impedance * Math.exp(alpha_impedance * impedance) +
+                    b_impedance * Math.exp(alpha_impedance * impedance * 60) +
                     k_calibration
             ;
             if (m.equals(ModeGermany.AIR)) {
