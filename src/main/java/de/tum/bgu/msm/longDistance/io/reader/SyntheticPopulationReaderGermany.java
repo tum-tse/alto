@@ -1,5 +1,6 @@
 package de.tum.bgu.msm.longDistance.io.reader;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
@@ -8,7 +9,6 @@ import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
-import org.locationtech.jts.geom.Coordinate;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

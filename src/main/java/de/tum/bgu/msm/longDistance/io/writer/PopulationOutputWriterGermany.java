@@ -13,7 +13,6 @@ import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReaderGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
-import org.locationtech.jts.geom.Coordinate;
 
 import java.io.*;
 import java.util.ArrayList;
