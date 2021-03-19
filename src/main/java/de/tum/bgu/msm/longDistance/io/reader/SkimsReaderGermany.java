@@ -59,40 +59,31 @@ public class SkimsReaderGermany implements SkimsReader {
         this.outputFolder = outputFolder;
         this.prop = prop;
 
-        for (ModeGermany m : ModeGermany.values()) {
-            switch (m) {
-                case AUTO:
-                    travelTimeFileNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_auto"));
-                    travelTimeMatrixNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_auto"));
-                    distanceFileNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.distance_file_auto"));
-                    distanceMatrixNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_auto"));
-                    lookUps.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup"));
-                    break;
-                case RAIL:
-                    inPtTimeFileNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
-                    accessTimeFileNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
-                    egressTimeFileNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
-                    distanceFileNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
-                    distanceMatrixNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
-                    lookUps.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
-                    accessToTrainFileName = JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
-                    break;
-                case BUS:
-                    inPtTimeFileNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
-                    accessTimeFileNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
-                    egressTimeFileNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
-                    distanceFileNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
-                    distanceMatrixNames.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
-                    lookUps.put(m, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
-                    break;
-                case AIR:
-                    airAccessAirportFileName = JsonUtilMto.getStringProp(prop, "airport.access_airport_file");
-                    airEgressAirportFileName = JsonUtilMto.getStringProp(prop, "airport.egress_airport_file");
-                    break;
-                default:
-                    throw new RuntimeException("This mode is not implemented: " + m);
-            }
-        }
+        //AUTO:
+        travelTimeFileNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_auto"));
+        travelTimeMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_auto"));
+        distanceFileNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.distance_file_auto"));
+        distanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_auto"));
+        lookUps.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup"));
+
+        //RAIL:
+        inPtTimeFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        accessTimeFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        egressTimeFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        distanceFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        distanceMatrixNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
+        lookUps.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
+        accessToTrainFileName = JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
+        //BUS:
+        inPtTimeFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        accessTimeFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        egressTimeFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        distanceFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        distanceMatrixNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
+        lookUps.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
+        //AIR:
+        airAccessAirportFileName = JsonUtilMto.getStringProp(prop, "airport.access_airport_file");
+        airEgressAirportFileName = JsonUtilMto.getStringProp(prop, "airport.egress_airport_file");
 
 
     }
@@ -181,80 +172,88 @@ public class SkimsReaderGermany implements SkimsReader {
         Map<Mode, Matrix> modeDistanceMatrixMap = new HashMap<>();
 
         // read skim file
-        for (ModeGermany m : ModeGermany.values()) {
+        ModeGermany m;
 
-            switch (m) {
-                case AUTO:
-                    Matrix autoTravelTime = omxToMatrix(travelTimeFileNames.get(m), travelTimeMatrixNames.get(m), lookUps.get(m));
-                    modeTimeMatrixMap.put(m, autoTravelTime);
-                    dataSet.setAutoTravelTime(autoTravelTime);
-                    Matrix autoDistance = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-                    modeDistanceMatrixMap.put(m, autoDistance);
-                    dataSet.setAutoTravelDistance(autoDistance); //for safety and compatibility
-                    break;
-                case AIR:
-                    //initialize empty matrices
-                    Set<Integer> zones = dataSet.getZones().keySet();
-                    Matrix airTravelTime = new Matrix(zones.size(), zones.size());
-                    Matrix airTravelDistance = new Matrix(zones.size(), zones.size());
-                    int[] externalNumbers = new int[zones.size()];
-                    int index = 0;
-                    for (int i : zones){
-                        externalNumbers[index] = i;
-                        index++;
-                    }
-                    airTravelTime.setExternalNumbersZeroBased(externalNumbers);
-                    airTravelDistance.setExternalNumbersZeroBased(externalNumbers);
-                    modeTimeMatrixMap.put(m, airTravelTime);
-                    modeDistanceMatrixMap.put(m, airTravelDistance);
-                    break;
-                case BUS:
-                    List<Matrix> matricesBus = new ArrayList<>();
-                    matricesBus.add(omxToMatrix(inPtTimeFileNames.get(m), "travel_time_s", lookUps.get(m)));
-                    logger.info("Finished reading " + m + " time skim.");
-                    matricesBus.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
-                    logger.info("Finished reading " + m + " access skim.");
-                    matricesBus.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
-                    logger.info("Finished reading " + m + " egress skim.");
-                    Matrix totalTravelTimeBus = sumMatrices(matricesBus);
-                    modeTimeMatrixMap.put(m, totalTravelTimeBus);
-                    Matrix distanceBus = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-                    modeDistanceMatrixMap.put(m, distanceBus);
-                    break;
-                case RAIL:
-                    List<Matrix> matricesRail = new ArrayList<>();
-                    matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "travel_time_s", lookUps.get(m)));
-                    logger.info("Finished reading " + m + " time skim.");
-                    matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
-                    logger.info("Finished reading " + m + " access skim.");
-                    matricesRail.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
-                    logger.info("Finished reading " + m + " egress skim.");
-                    Matrix totalTravelTimeRail = sumMatrices(matricesRail);
-                    modeTimeMatrixMap.put(m, totalTravelTimeRail);
-                    Matrix distanceRail = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-                    modeDistanceMatrixMap.put(m, distanceRail);
-                    //todo is this not the same as the one above called access_time_s?
-                    readTimeToRail(dataSet,accessToTrainFileName, "mat1", "lookup1");
-                    break;
-                default:
-                    throw new RuntimeException();
-            }
+        long time = System.currentTimeMillis();
 
-            logger.info("Finished reading " + m + " skims.");
+        m = ModeGermany.AUTO;
+        Matrix autoTravelTime = omxToMatrix(travelTimeFileNames.get(m), travelTimeMatrixNames.get(m), lookUps.get(m));
+        modeTimeMatrixMap.put(m, autoTravelTime);
+        dataSet.setAutoTravelTime(autoTravelTime);
+        time = logReading(time, "car time");
+        Matrix autoDistance = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
+        modeDistanceMatrixMap.put(m, autoDistance);
+        dataSet.setAutoTravelDistance(autoDistance); //for safety and compatibility
+        time = logReading(time, "car distance");
+
+        m = ModeGermany.AIR;
+        //initialize empty matrices
+        Set<Integer> zones = dataSet.getZones().keySet();
+        Matrix airTravelTime = new Matrix(zones.size(), zones.size());
+        Matrix airTravelDistance = new Matrix(zones.size(), zones.size());
+        int[] externalNumbers = new int[zones.size()];
+        int index = 0;
+        for (int i : zones) {
+            externalNumbers[index] = i;
+            index++;
         }
+        airTravelTime.setExternalNumbersZeroBased(externalNumbers);
+        airTravelDistance.setExternalNumbersZeroBased(externalNumbers);
+        modeTimeMatrixMap.put(m, airTravelTime);
+        modeDistanceMatrixMap.put(m, airTravelDistance);
+        time = logReading(time, "air empty matrices");
+
+        m = ModeGermany.BUS;
+        List<Matrix> matricesBus = new ArrayList<>();
+        matricesBus.add(omxToMatrix(inPtTimeFileNames.get(m), "travel_time_s", lookUps.get(m)));
+        time = logReading(time, "bus time");
+        matricesBus.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
+        time = logReading(time, "bus access");
+        matricesBus.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
+        time = logReading(time, "bus egress");
+        Matrix totalTravelTimeBus = sumMatrices(matricesBus);
+        modeTimeMatrixMap.put(m, totalTravelTimeBus);
+        Matrix distanceBus = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
+        modeDistanceMatrixMap.put(m, distanceBus);
+        time = logReading(time, "bus distance");
+
+        m = ModeGermany.RAIL;
+        List<Matrix> matricesRail = new ArrayList<>();
+        matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "travel_time_s", lookUps.get(m)));
+        time = logReading(time, "rail time");
+        matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
+        time = logReading(time, "rail access");
+        matricesRail.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
+        time = logReading(time, "rail egress");
+        Matrix totalTravelTimeRail = sumMatrices(matricesRail);
+        modeTimeMatrixMap.put(m, totalTravelTimeRail);
+        Matrix distanceRail = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
+        modeDistanceMatrixMap.put(m, distanceRail);
+        time = logReading(time, "rail distance");
+        //todo is this not the same as the one above called access_time_s?
+        readTimeToRail(dataSet, accessToTrainFileName, "mat1", "lookup1");
+        time = logReading(time, "access to train");
+
 
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
         dataSet.setDistanceMatrix(modeDistanceMatrixMap);
 
     }
 
+    private static long logReading(long time, String object) {
+        long duration;
+        duration = System.currentTimeMillis() - time;
+        logger.info("Read " + object + " in (s): " + duration/1000  );
+        return System.currentTimeMillis();
+    }
+
     private static Matrix sumMatrices(List<Matrix> matrices) {
 
         Matrix sumMatrix = new Matrix(matrices.get(0).getRowCount(), matrices.get(0).getColumnCount());
         sumMatrix.setExternalNumbers(matrices.get(0).getExternalNumbers());
-        for (Matrix matrix : matrices){
-            for (int orig : sumMatrix.getExternalRowNumbers()){
-                for (int dest : sumMatrix.getExternalColumnNumbers()){
+        for (Matrix matrix : matrices) {
+            for (int orig : sumMatrix.getExternalRowNumbers()) {
+                for (int dest : sumMatrix.getExternalColumnNumbers()) {
                     float current = sumMatrix.getValueAt(orig, dest);
                     current += matrix.getValueAt(orig, dest);
                     sumMatrix.setValueAt(orig, dest, current);
