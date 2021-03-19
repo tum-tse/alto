@@ -97,7 +97,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
         destinationChoice.setup(prop, inputFolder, outputFolder);
         airTripsGeneration.setup(prop, inputFolder, outputFolder);
         mcModel.setup(prop, inputFolder, outputFolder);
-        //timeOfDayChoice.setup(prop, inputFolder, outputFolder);
+        timeOfDayChoice.setup(prop, inputFolder, outputFolder);
         emissions.setup(prop, inputFolder, outputFolder);
         outputWriter.setup(prop, inputFolder, outputFolder);
         calibrationGermany.setup(prop, inputFolder, outputFolder);
@@ -117,6 +117,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
         destinationChoice.load(dataSet);
         tripGenModel.load(dataSet);
         calibrationGermany.load(dataSet);
+        timeOfDayChoice.load(dataSet);
         emissions.load(dataSet);
         outputWriter.load(dataSet);
         airTripsGeneration.load(dataSet);
@@ -134,7 +135,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
             for (int policyScenario = 1; policyScenario <= dataSet.getNumberOfScenarios(); policyScenario++) {
                 dataSet.setScenario(policyScenario);
                 mcModel.run(dataSet, -1);
-                //timeOfDayChoice.run(dataSet, -1);
+                timeOfDayChoice.run(dataSet, -1);
                 calibrationGermany.run(dataSet, -1);
                 emissions.run(dataSet, -1);
                 outputWriter.run(dataSet, -1);

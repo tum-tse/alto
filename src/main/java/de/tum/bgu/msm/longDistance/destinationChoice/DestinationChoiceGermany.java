@@ -139,7 +139,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
                 ((LongDistanceTripGermany)t).setDestZone(zonesMap.get(destZoneId));
                 float distance = distanceByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
                 ((LongDistanceTripGermany)t).setAutoTravelDistance(distance);
-                if (  Util.isPowerOfFour(counter.getAndIncrement())){
+                if (Util.isPowerOfFour(counter.getAndIncrement())){
                     logger.info("Domestic trips: " + counter.get());
                 }
             } else {

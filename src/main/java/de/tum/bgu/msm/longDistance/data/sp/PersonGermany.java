@@ -1,9 +1,9 @@
 package de.tum.bgu.msm.longDistance.data.sp;
 
 
+import com.vividsolutions.jts.geom.Coordinate;
 import de.tum.bgu.msm.longDistance.data.trips.Purpose;
 import de.tum.bgu.msm.longDistance.data.trips.Type;
-import org.locationtech.jts.geom.Coordinate;
 
 import java.util.Map;
 import java.util.Optional;

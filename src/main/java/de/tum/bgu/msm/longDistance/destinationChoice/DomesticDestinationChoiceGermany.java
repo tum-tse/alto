@@ -83,7 +83,7 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         if (choice_set_size == 10000){
             choiceSet = dataSet.getZones().keySet().size();
         }
-        int[] alternatives = new int[choiceSet];
+        int[] alternatives;
         if (choice_set_size == 10000){
             alternatives = dataSet.getZones().keySet().stream().mapToInt(u ->u).toArray(); //select all the zones
         } else {
