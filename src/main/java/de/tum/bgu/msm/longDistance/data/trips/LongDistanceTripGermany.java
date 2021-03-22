@@ -65,6 +65,10 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         return traveller;
     }
 
+    public void setInternational(boolean international) {
+        this.international = international;
+    }
+
     public boolean isInternational() {
         return international;
     }
