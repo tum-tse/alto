@@ -28,6 +28,7 @@ public class ZoneGermany implements Zone {
     private int area;
     private AreaTypeGermany areatype;
     private int hotels = 0;
+    private double touristsAtHotel = 0;
     private float timeToLongDistanceRail = 0;
 
 
@@ -137,6 +138,14 @@ public class ZoneGermany implements Zone {
 
     public void setHotels(int hotels) {
         this.hotels = hotels;
+    }
+
+    public double getTouristsAtHotel() {
+        return touristsAtHotel;
+    }
+
+    public void setTouristsAtHotel(double touristsAtHotel) {
+        this.touristsAtHotel = touristsAtHotel;
     }
 
     public float getTimeToLongDistanceRail() {
