@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class Airport implements Id {
 
-    private static final Logger logger = Logger.getLogger(de.tum.bgu.msm.longDistance.data.airport.Airport.class);
+    private static final Logger logger = Logger.getLogger(Airport.class);
 
     private final int id;
     private final String name;

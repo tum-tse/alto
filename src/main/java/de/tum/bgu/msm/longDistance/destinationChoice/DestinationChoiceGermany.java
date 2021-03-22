@@ -133,7 +133,8 @@ public class DestinationChoiceGermany implements DestinationChoice {
                 float time = travelTimeByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
                 ((LongDistanceTripGermany)t).setAutoTravelDistance(distance);
                 ((LongDistanceTripGermany)t).setAutoTravelTime(time);
-                if (  Util.isPowerOfFour(counter.getAndIncrement())){
+
+                if (Util.isPowerOfFour(counter.getAndIncrement())){
                     logger.info("Domestic trips: " + counter.get());
                 }
             } else {

@@ -1,11 +1,11 @@
 package de.tum.bgu.msm.longDistance.data.sp;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
 import de.tum.bgu.msm.longDistance.data.trips.ModeGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
 import org.apache.log4j.Logger;
-import org.locationtech.jts.geom.Coordinate;
 
 /**
  *
