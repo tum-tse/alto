@@ -1,7 +1,6 @@
 package de.tum.bgu.msm.longDistance.io.reader;
 
 import com.pb.common.datafile.TableDataSet;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
@@ -66,11 +65,12 @@ public class ZoneReaderGermany implements ZoneReader {
 
         this.dataSet = dataset;
         List<Zone> zoneList;
-        List<Zone> internalZones = readInternalZones();
+        List<Zone> allZones = readZones();
+        //List<Zone> internalZones = readInternalZones();
         //List<Zone> externalZones = readExternalZones();
 
         zoneList = new ArrayList<>();
-        zoneList.addAll(internalZones);
+        zoneList.addAll(allZones);
         //zoneList.addAll(externalZones);
 
         dataSet.setZones(zoneList.stream().collect(Collectors.toMap(Zone::getId, x -> x)));
@@ -86,7 +86,7 @@ public class ZoneReaderGermany implements ZoneReader {
 
 
 
-    private List<Zone> readInternalZones() {
+    private List<Zone> readZones() {
         //create zones objects (empty) and a map to find them in hh zone assignment
 
         int[] zones;
@@ -94,26 +94,28 @@ public class ZoneReaderGermany implements ZoneReader {
 
         zones = zoneTable.getColumnAsInt("TAZ_id");
         for (int zone : zones) {
-            String zoneTypeStr = zoneTable.getIndexedStringValueAt(zone,"type");
+            String zoneTypeStr = zoneTable.getIndexedStringValueAt(zone,"Zone_Type");
             int areaType = (int) zoneTable.getIndexedValueAt(zone, "areaType");
             int hotels = (int) zoneTable.getIndexedValueAt(zone, "hotels");
             int population = (int) zoneTable.getIndexedValueAt(zone, "population");
             int households = (int) zoneTable.getIndexedValueAt(zone, "households");
             int jobs = (int) zoneTable.getIndexedValueAt(zone, "emp"); //do not use "jobs" because it has artificially more vacant jobs
             ZoneTypeGermany zoneType = ZoneTypeGermany.GERMANY;
-            if (zoneTypeStr.equals("eu")){
+            if (zoneTypeStr.equals("EU")){
                 zoneType = ZoneTypeGermany.EXTEU;
-            } else if (zoneTypeStr.equals("ov")){
+            } else if (zoneTypeStr.equals("Overseas")){
                 zoneType = ZoneTypeGermany.EXTOVERSEAS;
             }
             int area = (int) zoneTable.getIndexedValueAt(zone, "Area");
             boolean emptyZone = zoneTable.getIndexedValueAt(zone, "emptyZone") == 1;
+            double touristsAtHotel = zoneTable.getIndexedValueAt(zone, "touristsAtHotel");
             //zones are created as empty as they are filled out using sp
-            Zone internalZone = new ZoneGermany(zone, 0, 0, zoneType, area, AreaTypeGermany.valueOf(areaType), emptyZone);
-            ((ZoneGermany)internalZone).setHotels(hotels);
-            ((ZoneGermany)internalZone).addPopulation(population);
-            ((ZoneGermany)internalZone).addHouseholds(households);
-            ((ZoneGermany)internalZone).addEmployment(jobs);
+            ZoneGermany internalZone = new ZoneGermany(zone, 0, 0, zoneType, area, AreaTypeGermany.valueOf(areaType), emptyZone);
+            internalZone.setHotels(hotels);
+            internalZone.addPopulation(population);
+            internalZone.addHouseholds(households);
+            internalZone.addEmployment(jobs);
+            internalZone.setTouristsAtHotel(touristsAtHotel);
             internalZoneList.add(internalZone);
         }
 
