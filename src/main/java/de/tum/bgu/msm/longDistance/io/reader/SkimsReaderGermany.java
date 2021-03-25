@@ -60,25 +60,25 @@ public class SkimsReaderGermany implements SkimsReader {
         this.prop = prop;
 
         //AUTO:
-        travelTimeFileNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_auto"));
-        travelTimeMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_auto"));
-        distanceFileNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.distance_file_auto"));
-        distanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_auto"));
+        travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
+        distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
+        travelTimeMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixTime_auto"));
+        distanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixDistance_auto"));
         lookUps.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup"));
 
         //RAIL:
-        inPtTimeFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
-        accessTimeFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
-        egressTimeFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
-        distanceFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        inPtTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        accessTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        egressTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        distanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
         distanceMatrixNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
         lookUps.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
-        accessToTrainFileName = JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
+        accessToTrainFileName = inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
         //BUS:
-        inPtTimeFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
-        accessTimeFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
-        egressTimeFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
-        distanceFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        inPtTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        accessTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        egressTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        distanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
         distanceMatrixNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
         lookUps.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
         //AIR:
@@ -231,8 +231,8 @@ public class SkimsReaderGermany implements SkimsReader {
         modeDistanceMatrixMap.put(m, distanceRail);
         time = logReading(time, "rail distance");
         //todo is this not the same as the one above called access_time_s?
-        readTimeToRail(dataSet, accessToTrainFileName, "mat1", "lookup1");
-        time = logReading(time, "access to train");
+        //readTimeToRail(dataSet, accessToTrainFileName, "mat1", "lookup1");
+        //time = logReading(time, "access to train");
 
 
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
