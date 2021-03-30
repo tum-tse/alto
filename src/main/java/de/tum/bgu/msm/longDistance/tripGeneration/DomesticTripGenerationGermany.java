@@ -238,7 +238,8 @@ public class DomesticTripGenerationGermany {
         if (calibrationTG) k_calibration = k_calibration + calibrationTgMatrix.get(tripPurpose).get(tripState);
         //System.out.println("k-factor: " + tripPurpose + "\t" + tripState + "\t" + k_calibration);
 
-        return intercept +
+        double utility =
+                intercept +
                 b_autos * hh.getHhAutos() +
                 b_econStMedium * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.MEDIUM), false) +
                 b_econStHigh * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.HIGH), false) +
@@ -254,6 +255,11 @@ public class DomesticTripGenerationGermany {
                 b_ruralOrTown * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.RURAL), false) +
                 b_ruralOrTown * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.TOWN), false)+
                 k_calibration;
+
+        System.out.println(hh.getZone().getTimeToLongDistanceRail());
+        System.out.println(b_distanceLog * Math.log10(hh.getZone().getTimeToLongDistanceRail() / 60));
+
+        return utility;
 
     }
 
