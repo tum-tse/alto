@@ -3,7 +3,6 @@ package de.tum.bgu.msm.longDistance.destinationChoice;
 import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
-import de.tum.bgu.msm.longDistance.data.grids.Grid;
 import de.tum.bgu.msm.longDistance.data.grids.GridGermany;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.trips.*;
@@ -13,7 +12,6 @@ import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +24,11 @@ public class DestinationChoiceGermany implements DestinationChoice {
 
     static Logger logger = Logger.getLogger(DestinationChoiceGermany.class);
 
-    private DomesticDestinationChoiceGermany dcModel;
+    private DaytripDestinationChoiceGermany daytripDcModel;
+    private OvernightFirstLayerDestinationChoiceGermany overnightFirstLayerDcModel;
+    private OvernightDomesticDestinationChoiceGermany overnightDomesticDcModel;
+    private OvernightEuropeDestinationChoiceGermany overnightEuropeDcModel;
+    private OvernightOverseasDestinationChoiceGermany overnightOverseasDcModel;
     private Map<Integer, Zone> zonesMap;
     private Matrix distanceByAuto;
     private Matrix travelTimeByAuto;
@@ -40,7 +42,11 @@ public class DestinationChoiceGermany implements DestinationChoice {
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
-        dcModel = new DomesticDestinationChoiceGermany(prop, inputFolder);
+        daytripDcModel = new DaytripDestinationChoiceGermany(prop, inputFolder);
+        overnightFirstLayerDcModel = new OvernightFirstLayerDestinationChoiceGermany(prop, inputFolder);
+        overnightDomesticDcModel = new OvernightDomesticDestinationChoiceGermany(prop, inputFolder);
+        overnightEuropeDcModel = new OvernightEuropeDestinationChoiceGermany(prop, inputFolder);
+        overnightOverseasDcModel = new OvernightOverseasDestinationChoiceGermany(prop, inputFolder);
 
     }
 
@@ -48,20 +54,22 @@ public class DestinationChoiceGermany implements DestinationChoice {
     public void load(DataSet dataSet) {
 
         //load submodels
-        dcModel.load(dataSet);
+        daytripDcModel.load(dataSet);
+        overnightFirstLayerDcModel.load(dataSet);
+        overnightDomesticDcModel.load(dataSet);
+        overnightEuropeDcModel.load(dataSet);
+        overnightOverseasDcModel.load(dataSet);
+
         zonesMap = dataSet.getZones();
         distanceByAuto = dataSet.getDistanceMatrix().get(ModeGermany.AUTO);
         travelTimeByAuto = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO);
-        //TODO. code the international destination choice model
-        // replace the commented the lines for inbound and outbound models by the new model
-
 
     }
 
     @Override
     public void run(DataSet dataSet, int nThreads) {
-        runDestinationChoice(dataSet.getAllTrips());
-        sampleDestinationMicrolocation(dataSet.getAllTrips(), dataSet);
+        runDestinationChoice(dataSet);
+        //sampleDestinationMicrolocation(dataSet.getAllTrips(), dataSet);
     }
 
     public void sampleDestinationMicrolocation(ArrayList<LongDistanceTrip> trips, DataSet dataSet){
@@ -120,51 +128,77 @@ public class DestinationChoiceGermany implements DestinationChoice {
     }
 
 
-    public void runDestinationChoice(ArrayList<LongDistanceTrip> trips) {
+    public void runDestinationChoice(DataSet dataSet) {
+        ArrayList<LongDistanceTrip> trips = dataSet.getAllTrips();
         logger.info("Running Destination Choice Model for " + trips.size() + " trips");
         AtomicInteger counter = new AtomicInteger(0);
 
         trips.parallelStream().forEach(t -> {
-            if (! ((LongDistanceTripGermany)t).isInternational()) {
-                int destZoneId = dcModel.selectDestination(t);  // trips with an origin and a destination in Canada
-                ((LongDistanceTripGermany)t).setDestZoneType(ZoneTypeGermany.GERMANY);
+
+            if(t.getTripState().equals(TypeGermany.DAYTRIP)){
+                int destZoneId = daytripDcModel.selectDestination(t);  // trips with an origin and a destination in Canada
+                ((LongDistanceTripGermany)t).setDestZoneType((ZoneTypeGermany) zonesMap.get(destZoneId).getZoneType());
                 ((LongDistanceTripGermany)t).setDestZone(zonesMap.get(destZoneId));
                 float distance = distanceByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
                 float time = travelTimeByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
                 ((LongDistanceTripGermany)t).setAutoTravelDistance(distance);
                 ((LongDistanceTripGermany)t).setAutoTravelTime(time);
 
-                if (Util.isPowerOfFour(counter.getAndIncrement())){
-                    logger.info("Domestic trips: " + counter.get());
+                if (zonesMap.get(destZoneId).getZoneType().equals(ZoneTypeGermany.GERMANY)){
+                    ((LongDistanceTripGermany) t).setInternational(false);
+                }else{
+                    ((LongDistanceTripGermany) t).setInternational(true);
                 }
-            } else {
-                //TODO. Replace by the international destination choice model
-/*                if (t.getOrigZone().getZoneType() == ZoneTypeOntario.ONTARIO || t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTCANADA) {
-                    // residents to international
-                    int destZoneId = dcOutboundModel.selectDestination(t);
-                    t.setCombinedDestZoneId(destZoneId);
-                    t.setDestZoneType(dcOutboundModel.getDestinationZoneType(destZoneId));
-                    if (t.getDestZoneType().equals(ZoneTypeOntario.EXTUS))
-                        t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
 
-                } else if (t.getOrigZone().getZoneType() == ZoneTypeOntario.EXTUS) {
-                    // us visitors with destination in CANADA
-                    int destZoneId = dcInBoundModel.selectDestination(t);
-                    t.setCombinedDestZoneId(destZoneId);
-                    t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
-                    t.setTravelDistanceLevel2(dcModel.getAutoDist().getValueAt(t.getOrigZone().getCombinedZoneId(), destZoneId));
-                } else {
-                    //os visitors to Canada
-                    int destZoneId = dcInBoundModel.selectDestination(t);
-                    t.setCombinedDestZoneId(destZoneId);
-                    t.setDestZoneType(dcModel.getDestinationZoneType(destZoneId));
-                }*/
+                if (Util.isPowerOfFour(counter.getAndIncrement())){
+                    logger.info("Daytrips: " + counter.get());
+                }
+            }else if(t.getTripState().equals(TypeGermany.OVERNIGHT) || t.getTripState().equals(TypeGermany.AWAY)){
+
+                ZoneTypeGermany zoneType = overnightFirstLayerDcModel.selectFirstLayerDestination(t);
+
+                if(zoneType.equals(ZoneTypeGermany.GERMANY)){
+
+                    int destZoneId = overnightDomesticDcModel.selectDestination(t);
+                    ((LongDistanceTripGermany)t).setDestZoneType((ZoneTypeGermany) zonesMap.get(destZoneId).getZoneType());
+                    ((LongDistanceTripGermany)t).setDestZone(zonesMap.get(destZoneId));
+                    float distance = distanceByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
+                    float time = travelTimeByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
+                    ((LongDistanceTripGermany)t).setAutoTravelDistance(distance);
+                    ((LongDistanceTripGermany)t).setAutoTravelTime(time);
+                    ((LongDistanceTripGermany) t).setInternational(false);
+
+                }else if(zoneType.equals(ZoneTypeGermany.EXTEU)){
+
+                    int destZoneId = overnightEuropeDcModel.selectDestination(t);
+                    ((LongDistanceTripGermany)t).setDestZoneType((ZoneTypeGermany) zonesMap.get(destZoneId).getZoneType());
+                    ((LongDistanceTripGermany)t).setDestZone(zonesMap.get(destZoneId));
+                    float distance = distanceByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
+                    float time = travelTimeByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
+                    ((LongDistanceTripGermany)t).setAutoTravelDistance(distance);
+                    ((LongDistanceTripGermany)t).setAutoTravelTime(time);
+                    ((LongDistanceTripGermany) t).setInternational(true);
+
+                }else{
+
+                    int destZoneId = overnightOverseasDcModel.selectDestination(t);
+                    ((LongDistanceTripGermany)t).setDestZoneType((ZoneTypeGermany) zonesMap.get(destZoneId).getZoneType());
+                    ((LongDistanceTripGermany)t).setDestZone(zonesMap.get(destZoneId));
+                    float distance = distanceByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
+                    float time = travelTimeByAuto.getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), destZoneId);
+                    ((LongDistanceTripGermany)t).setAutoTravelDistance(distance);
+                    ((LongDistanceTripGermany)t).setAutoTravelTime(time);
+                    ((LongDistanceTripGermany) t).setInternational(true);
+
+                }
+
+                if (Util.isPowerOfFour(counter.getAndIncrement())){
+                    logger.info("Overnight trips: " + counter.get());
+                }
+
+            }else{
+                //TODO. Add code for away trips; for now it is assume to be the same as  overnight trips
             }
-
-/*            if (Util.isPowerOfFour(counter.getAndIncrement())){
-                logger.info("dc done for: " + counter.get());
-            }*/
-
         });
         logger.info("Finished Destination Choice Model");
     }
