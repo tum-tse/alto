@@ -256,9 +256,6 @@ public class DomesticTripGenerationGermany {
                 b_ruralOrTown * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.TOWN), false)+
                 k_calibration;
 
-        System.out.println(hh.getZone().getTimeToLongDistanceRail());
-        System.out.println(b_distanceLog * Math.log10(hh.getZone().getTimeToLongDistanceRail() / 60));
-
         return utility;
 
     }
