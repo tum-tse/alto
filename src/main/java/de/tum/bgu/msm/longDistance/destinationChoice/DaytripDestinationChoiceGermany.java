@@ -8,6 +8,7 @@ import de.tum.bgu.msm.longDistance.LDModelGermany;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
@@ -22,31 +23,31 @@ import java.util.*;
  * Adapted from Destination Choice Model from Joe, Created by Joe on 26/10/2016.
  */
 
-public class DomesticDestinationChoiceGermany implements DestinationChoiceModule {
+public class DaytripDestinationChoiceGermany implements DestinationChoiceModule {
     private ResourceBundle rb;
-    private static Logger logger = Logger.getLogger(DomesticDestinationChoiceGermany.class);
+    private static Logger logger = Logger.getLogger(DaytripDestinationChoiceGermany.class);
     public static int choice_set_size;
     public static int longDistanceThreshold;
     public static float scaleFactor;
     private TableDataSet coefficients;
     protected Matrix autoDist;
     private boolean calibration;
-    private Map<Purpose, Map<Type, Double>> calibrationDomesticDcMatrix;
+    private Map<Purpose, Map<Type, Double>> calibrationDaytripDcMatrix;
     private int[] destinations;
     private DataSet dataSet;
-    private boolean calibrationDomesticDC;
+    private boolean calibrationDaytripDC;
 
-    public DomesticDestinationChoiceGermany(JSONObject prop, String inputFolder) {
-        coefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "destination_choice.domestic.coef_file"));
+    public DaytripDestinationChoiceGermany(JSONObject prop, String inputFolder) {
+        coefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "destination_choice.daytrip.coef_file"));
         coefficients.buildStringIndex(1);
 
         choice_set_size = JsonUtilMto.getIntProp(prop, "destination_choice.choice_set_size");
         longDistanceThreshold = JsonUtilMto.getIntProp(prop, "threshold_long_distance");
         scaleFactor = JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
         //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
-        calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
-        this.calibrationDomesticDcMatrix = new HashMap<>();
-        calibrationDomesticDC = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration");
+        //calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration_daytrip");
+        this.calibrationDaytripDcMatrix = new HashMap<>();
+        calibrationDaytripDC = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration_daytrip");
         logger.info("Domestic DC set up");
 
     }
@@ -58,9 +59,9 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         this.dataSet = dataSet;
 
         for(Purpose purpose : PurposeGermany.values()){
-            this.calibrationDomesticDcMatrix.put(purpose, new HashMap<>());
+            this.calibrationDaytripDcMatrix.put(purpose, new HashMap<>());
             for (Type tripState : TypeGermany.values()){
-                this.calibrationDomesticDcMatrix.get(purpose).putIfAbsent(tripState, 1.0);
+                this.calibrationDaytripDcMatrix.get(purpose).putIfAbsent(tripState, 1.0);
             }
         }
         logger.info("Domestic DC loaded");
@@ -77,18 +78,8 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
     //given a trip, calculate the utility of each destination
     public int selectDestination(LongDistanceTripGermany trip, DataSet dataSet) {
 
+        int[] alternatives = dataSet.getZones().keySet().stream().mapToInt(u ->u).toArray(); //select all the zones
 
-        Purpose tripPurpose = trip.getTripPurpose();
-        int choiceSet = choice_set_size;
-        if (choice_set_size == 10000){
-            choiceSet = dataSet.getZones().keySet().size();
-        }
-        int[] alternatives;
-        if (choice_set_size == 10000){
-            alternatives = dataSet.getZones().keySet().stream().mapToInt(u ->u).toArray(); //select all the zones
-        } else {
-            alternatives = selectRandomDestinations(trip.getOrigZone().getId());
-        }
         double[] expUtilities = Arrays.stream(alternatives)
                 //calculate exp(Ui) for each destination
                 .mapToDouble(a -> Math.exp(calculateUtility(trip, a))).toArray();
@@ -125,13 +116,25 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
         float distance = autoDist.getValueAt(origin, destination) / 1000; //to convert meters to km
         ZoneGermany destinationZone = (ZoneGermany) dataSet.getZones().get(destination);
         boolean populatedZone = !destinationZone.getEmptyZone();
+        boolean isOverseas = destinationZone.getZoneType().equals(ZoneTypeGermany.EXTEU);
 
-        if (distance > longDistanceThreshold && populatedZone) {
+        if (distance > longDistanceThreshold && populatedZone && !isOverseas) {
 
 
             double population = destinationZone.getPopulation();
+            if(population<=0){
+                population=0;
+            }
+
             double employment = destinationZone.getEmployment();
-            double hotels = destinationZone.getHotels();
+            if(employment<=0){
+                employment=0;
+            }
+
+            double touristsAtHotel = destinationZone.getTouristsAtHotel();
+            if(touristsAtHotel<=0){
+                touristsAtHotel=0;
+            }
 
             Purpose tripPurpose = trip.getTripPurpose();
             TypeGermany tripState = (TypeGermany) trip.getTripState();
@@ -139,19 +142,19 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
             String coefficientColumn = tripState + "." + tripPurpose;
             double b_distance_log = coefficients.getStringIndexedValueAt("log_distance", coefficientColumn);
             double b_popEmployment = coefficients.getStringIndexedValueAt("popEmployment", coefficientColumn);
-            double b_hotel = coefficients.getStringIndexedValueAt("hotel", coefficientColumn);
+            double b_touristAtHotel = coefficients.getStringIndexedValueAt("hotel", coefficientColumn);
             double k_calibration = coefficients.getStringIndexedValueAt("k_calibration", coefficientColumn);
 
             //log conversions
             double log_distance = distance > 0 ? Math.log10(distance) : 0;
 
-            if (calibrationDomesticDC) {
-                k_calibration = k_calibration * calibrationDomesticDcMatrix.get(tripPurpose).get(tripState);
+            if (calibrationDaytripDC) {
+                k_calibration = k_calibration * calibrationDaytripDcMatrix.get(tripPurpose).get(tripState);
             }
 
             double u =
                     b_distance_log * k_calibration * log_distance +
-                            b_hotel * hotels / 1000 +  //hotels in thousands
+                            b_touristAtHotel * touristsAtHotel / 1000 +  //touristsAtHotel in thousands
                             b_popEmployment * (population + employment) / 1000000;
 
             return u;
@@ -161,16 +164,16 @@ public class DomesticDestinationChoiceGermany implements DestinationChoiceModule
     }
 
     public Map<Purpose, Map<Type, Double>> getDomesticDcCalibration() {
-        return calibrationDomesticDcMatrix;
+        return calibrationDaytripDcMatrix;
     }
 
-    public void updateDomesticDcCalibration(Map<Purpose, Map<Type, Double>> updatedMatrix) {
+    public void updateDaytripDcCalibration(Map<Purpose, Map<Type, Double>> updatedMatrix) {
 
         for (Purpose purpose : PurposeGermany.values()){
             for (Type tripState : TypeGermany.values()){
-                double newValue = calibrationDomesticDcMatrix.get(purpose).get(tripState) * updatedMatrix.get(purpose).get(tripState);
-                calibrationDomesticDcMatrix.get(purpose).put(tripState, newValue);
-                System.out.println("k-factor: " + purpose + "\t" + tripState + "\t" + calibrationDomesticDcMatrix.get(purpose).get(tripState));
+                double newValue = calibrationDaytripDcMatrix.get(purpose).get(tripState) * updatedMatrix.get(purpose).get(tripState);
+                calibrationDaytripDcMatrix.get(purpose).put(tripState, newValue);
+                System.out.println("k-factor: " + purpose + "\t" + tripState + "\t" + calibrationDaytripDcMatrix.get(purpose).get(tripState));
             }
         }
     }
