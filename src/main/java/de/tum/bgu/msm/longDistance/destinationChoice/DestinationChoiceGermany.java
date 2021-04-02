@@ -197,7 +197,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
                 }
 
             }else{
-                //TODO. Add code for away trips; for now it is assume to be the same as  overnight trips
+                //TODO. Add code for away trips; for now it is assume to be the same as overnight trips
             }
         });
         logger.info("Finished Destination Choice Model");
