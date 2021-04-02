@@ -144,7 +144,7 @@ public class OvernightFirstLayerDestinationChoiceGermany implements DestinationC
         return calibrationOvernightFirstLayerDcMatrix;
     }
 
-    public void updateOvernightFirstLayerDcCalibration(Map<Purpose, Map<Type, Double>> updatedMatrix) {
+    public void updateOvernightFirstLayerDcCalibration(Map<Purpose, Map<ZoneType, Double>> updatedMatrix) {
 
         for (Purpose purpose : PurposeGermany.values()){
             for (ZoneType zoneType : ZoneTypeGermany.values()){

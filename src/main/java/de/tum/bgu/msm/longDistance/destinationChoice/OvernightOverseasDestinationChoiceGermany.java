@@ -23,7 +23,7 @@ public class OvernightOverseasDestinationChoiceGermany implements DestinationCho
     private TableDataSet proportionsByContinents;
     protected Matrix autoDist;
     private boolean calibration;
-    private Map<Purpose, Map<ZoneType, Double>> calibrationOvernightOverseasDcMatrix;
+    private Map<Type, Map<ZoneType, Map<Purpose, Double>>> calibrationOvernightOverseasDcMatrix;
     private int[] destinations;
     private DataSet dataSet;
     private boolean calibrationOvernightOverseasDc;
@@ -43,12 +43,12 @@ public class OvernightOverseasDestinationChoiceGermany implements DestinationCho
 
         this.dataSet = dataSet;
 
-        for(Purpose purpose : PurposeGermany.values()){
-            this.calibrationOvernightOverseasDcMatrix.put(purpose, new HashMap<>());
-            for (ZoneType zoneType : ZoneTypeGermany.values()){
-                this.calibrationOvernightOverseasDcMatrix.get(purpose).putIfAbsent(zoneType, 1.0);
-            }
+        this.calibrationOvernightOverseasDcMatrix.put(TypeGermany.OVERNIGHT, new HashMap<>());
+        this.calibrationOvernightOverseasDcMatrix.get(TypeGermany.OVERNIGHT).putIfAbsent(ZoneTypeGermany.EXTOVERSEAS,new HashMap<>());
+        for (Purpose purpose : PurposeGermany.values()){
+            this.calibrationOvernightOverseasDcMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).putIfAbsent(purpose,1.0);
         }
+
         logger.info("Overnight Overseas DC loaded");
 
     }
@@ -75,6 +75,19 @@ public class OvernightOverseasDestinationChoiceGermany implements DestinationCho
 
         return Util.selectGermany(probabilities, alternatives);
 
+    }
+
+    public Map<Type, Map<ZoneType, Map<Purpose, Double>>> getOvernightOverseasDcCalibration() {
+        return calibrationOvernightOverseasDcMatrix;
+    }
+
+    public void updateOvernightOverseasDcCalibration(Map<Type, Map<ZoneType, Map<Purpose, Double>>> updatedMatrix) {
+
+        for (Purpose purpose : PurposeGermany.values()){
+            double newValue = calibrationOvernightOverseasDcMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).get(purpose) * updatedMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).get(purpose);
+            calibrationOvernightOverseasDcMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).put(purpose, newValue);
+            System.out.println("k-factor: " + TypeGermany.OVERNIGHT + "\t" + ZoneTypeGermany.EXTOVERSEAS + "\t" + purpose + "\t" + calibrationOvernightOverseasDcMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).get(purpose));
+        }
     }
 
 

@@ -8,6 +8,7 @@ import de.tum.bgu.msm.longDistance.LDModelGermany;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneType;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -32,7 +33,7 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
     private TableDataSet coefficients;
     protected Matrix autoDist;
     private boolean calibration;
-    private Map<Purpose, Map<Type, Double>> calibrationDaytripDcMatrix;
+    private Map<Type, Map<ZoneType, Map<Purpose, Double>>> calibrationDaytripDcMatrix;
     private int[] destinations;
     private DataSet dataSet;
     private boolean calibrationDaytripDC;
@@ -58,12 +59,14 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
         destinations = dataSet.getZones().keySet().stream().mapToInt(Integer::intValue).toArray();
         this.dataSet = dataSet;
 
-        for(Purpose purpose : PurposeGermany.values()){
-            this.calibrationDaytripDcMatrix.put(purpose, new HashMap<>());
-            for (Type tripState : TypeGermany.values()){
-                this.calibrationDaytripDcMatrix.get(purpose).putIfAbsent(tripState, 1.0);
-            }
+
+        this.calibrationDaytripDcMatrix.put(TypeGermany.DAYTRIP, new HashMap<>());
+        this.calibrationDaytripDcMatrix.get(TypeGermany.DAYTRIP).putIfAbsent(ZoneTypeGermany.GERMANY,new HashMap<>());
+        for (Purpose purpose : PurposeGermany.values()){
+            this.calibrationDaytripDcMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).putIfAbsent(purpose,1.0);
         }
+
+
         logger.info("Domestic DC loaded");
 
     }
@@ -149,7 +152,7 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
             double log_distance = distance > 0 ? Math.log10(distance) : 0;
 
             if (calibrationDaytripDC) {
-                k_calibration = k_calibration * calibrationDaytripDcMatrix.get(tripPurpose).get(tripState);
+                k_calibration = k_calibration * calibrationDaytripDcMatrix.get(tripState).get(ZoneTypeGermany.GERMANY).get(tripPurpose);
             }
 
             double u =
@@ -163,18 +166,15 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
         }
     }
 
-    public Map<Purpose, Map<Type, Double>> getDomesticDcCalibration() {
+    public Map<Type, Map<ZoneType, Map<Purpose, Double>>> getDomesticDcCalibration() {
         return calibrationDaytripDcMatrix;
     }
 
-    public void updateDaytripDcCalibration(Map<Purpose, Map<Type, Double>> updatedMatrix) {
-
+    public void updateDaytripDcCalibration(Map<Type, Map<ZoneType, Map<Purpose, Double>>> updatedMatrix) {
         for (Purpose purpose : PurposeGermany.values()){
-            for (Type tripState : TypeGermany.values()){
-                double newValue = calibrationDaytripDcMatrix.get(purpose).get(tripState) * updatedMatrix.get(purpose).get(tripState);
-                calibrationDaytripDcMatrix.get(purpose).put(tripState, newValue);
-                System.out.println("k-factor: " + purpose + "\t" + tripState + "\t" + calibrationDaytripDcMatrix.get(purpose).get(tripState));
-            }
+            double newValue = calibrationDaytripDcMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(purpose) * updatedMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(purpose);
+            calibrationDaytripDcMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(purpose, newValue);
+            System.out.println("k-factor: " + TypeGermany.DAYTRIP + "\t" + ZoneTypeGermany.GERMANY + "\t" + purpose + "\t" + calibrationDaytripDcMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(purpose));
         }
     }
 

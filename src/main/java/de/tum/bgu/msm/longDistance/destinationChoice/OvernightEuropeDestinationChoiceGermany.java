@@ -25,7 +25,7 @@ public class OvernightEuropeDestinationChoiceGermany implements DestinationChoic
     private TableDataSet coefficients;
     protected Matrix autoDist;
     private boolean calibration;
-    private Map<Purpose, Map<ZoneType, Double>> calibrationOvernightEuropeDcMatrix;
+    private Map<Type, Map<ZoneType, Map<Purpose, Double>>> calibrationOvernightEuropeDcMatrix;
     private int[] destinations;
     private DataSet dataSet;
     private boolean calibrationOvernightEuropeDc;
@@ -45,12 +45,12 @@ public class OvernightEuropeDestinationChoiceGermany implements DestinationChoic
 
         this.dataSet = dataSet;
 
-        for(Purpose purpose : PurposeGermany.values()){
-            this.calibrationOvernightEuropeDcMatrix.put(purpose, new HashMap<>());
-            for (ZoneType zoneType : ZoneTypeGermany.values()){
-                this.calibrationOvernightEuropeDcMatrix.get(purpose).putIfAbsent(zoneType, 1.0);
-            }
+        this.calibrationOvernightEuropeDcMatrix.put(TypeGermany.OVERNIGHT, new HashMap<>());
+        this.calibrationOvernightEuropeDcMatrix.get(TypeGermany.OVERNIGHT).putIfAbsent(ZoneTypeGermany.EXTEU,new HashMap<>());
+        for (Purpose purpose : PurposeGermany.values()){
+            this.calibrationOvernightEuropeDcMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).putIfAbsent(purpose,1.0);
         }
+
         logger.info("Overnight Europe DC loaded");
 
     }
@@ -121,7 +121,7 @@ public class OvernightEuropeDestinationChoiceGermany implements DestinationChoic
             double log_distance = distance > 0 ? Math.log10(distance) : 0;
 
             if (calibrationOvernightEuropeDc) {
-                k_calibration = k_calibration * calibrationOvernightEuropeDcMatrix.get(tripPurpose).get(tripState);
+                k_calibration = k_calibration * calibrationOvernightEuropeDcMatrix.get(tripState).get(ZoneTypeGermany.EXTEU).get(tripPurpose);
             }
 
             double u =
@@ -135,19 +135,16 @@ public class OvernightEuropeDestinationChoiceGermany implements DestinationChoic
         }
     }
 
-    public Map<Purpose, Map<ZoneType, Double>> getOvernightEuropeDcCalibration() {
+    public Map<Type, Map<ZoneType, Map<Purpose, Double>>> getOvernightEuropeDcCalibration() {
         return calibrationOvernightEuropeDcMatrix;
     }
 
-    public void updateOvernightEuropeDcCalibration(Map<Purpose, Map<Type, Double>> updatedMatrix) {
+    public void updateOvernightEuropeDcCalibration(Map<Type, Map<ZoneType, Map<Purpose, Double>>> updatedMatrix) {
 
         for (Purpose purpose : PurposeGermany.values()){
-            for (ZoneType zoneType : ZoneTypeGermany.values()){
-                double newValue = calibrationOvernightEuropeDcMatrix.get(purpose).get(zoneType) * updatedMatrix.get(purpose).get(zoneType);
-                calibrationOvernightEuropeDcMatrix.get(purpose).put(zoneType, newValue);
-                System.out.println("k-factor: " + purpose + "\t" + zoneType + "\t" + calibrationOvernightEuropeDcMatrix.get(purpose).get(zoneType));
-            }
+            double newValue = calibrationOvernightEuropeDcMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(purpose) * updatedMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(purpose);
+            calibrationOvernightEuropeDcMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(purpose, newValue);
+            System.out.println("k-factor: " + TypeGermany.OVERNIGHT + "\t" + ZoneTypeGermany.EXTEU + "\t" + purpose + "\t" + calibrationOvernightEuropeDcMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(purpose));
         }
     }
-
 }
