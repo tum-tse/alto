@@ -179,6 +179,7 @@ public class SkimsReaderGermany implements SkimsReader {
 
         m = ModeGermany.AUTO;
         Matrix autoTravelTime = omxToMatrix(travelTimeFileNames.get(m), travelTimeMatrixNames.get(m), lookUps.get(m));
+
         time = logReading(time, "car time");
         Matrix autoDistance = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
         time = logReading(time, "car distance");
@@ -361,7 +362,7 @@ public class SkimsReaderGermany implements SkimsReader {
         }
 
         int nonIntrazonalCounter = 0;
-        for (int i = 1; i < travelTimeMatrix.getColumnCount(); i++) {
+        for (int i = 0; i < travelTimeMatrix.getColumnCount(); i++) {
             int i_id = travelTimeMatrix.getInternalColumnNumber(i);
             double[] minTimeValues = new double[numberOfNeighbours];
             double[] minDistValues = new double[numberOfNeighbours];
@@ -370,7 +371,7 @@ public class SkimsReaderGermany implements SkimsReader {
                 minDistValues[k] = maximumSeconds / 60 * speed; //maximum distance results from maximum time at 50 km/h
             }
             //find the  n closest neighbors - the lower travel time values in the matrix column
-            for (int j = 1; j < travelTimeMatrix.getRowCount(); j++) {
+            for (int j = 0; j < travelTimeMatrix.getRowCount(); j++) {
                 int j_id = travelTimeMatrix.getInternalRowNumber(j);
                 int minimumPosition = 0;
                 while (minimumPosition < numberOfNeighbours) {
@@ -396,9 +397,9 @@ public class SkimsReaderGermany implements SkimsReader {
             }
             globalMinTime = globalMinTime / numberOfNeighbours * proportionOfTime;
             globalMinDist = globalMinDist / numberOfNeighbours * proportionOfTime;
-            logger.info("Zone, " + i + ", intrazonal time, " + globalMinTime + ", intrazonal distance");
+
             //fill with the calculated value the cells with zero
-            for (int j = 1; j < travelTimeMatrix.getRowCount(); j++) {
+            for (int j = 0; j < travelTimeMatrix.getRowCount(); j++) {
                 int j_id = travelTimeMatrix.getInternalColumnNumber(j);
                 if (travelTimeMatrix.getValueAt(i_id, j_id) == 0) {
                     travelTimeMatrix.setValueAt(i_id, j_id, globalMinTime);
@@ -442,22 +443,24 @@ public class SkimsReaderGermany implements SkimsReader {
 
 
         int nonIntrazonalCounter = 0;
-        for (int i : accessTimeMatrix.getExternalColumnNumbers()) {
-            //int i_id = accessTimeMatrix.getExternalColumnNumber(i); deleted
+        for (int i = 0; i < accessTimeMatrix.getColumnCount(); i++) {
+            int i_id = accessTimeMatrix.getExternalColumnNumber(i); //deleted
+
             double[] minTimeValues = new double[numberOfNeighbours];
             for (int k = 0; k < numberOfNeighbours; k++) {
                 minTimeValues[k] = maximumSeconds;
             }
             //find the  n closest neighbors - the lower travel time values in the matrix column
-            for (int j : accessTimeMatrix.getExternalRowNumbers()) {
-                //int j_id = accessTimeMatrix.getExternalRowNumber(j);
+            for (int j = 0; j< accessTimeMatrix.getRowCount(); j++) {
+                int j_id = accessTimeMatrix.getExternalRowNumber(j);
+
                 int minimumPosition = 0;
                 while (minimumPosition < numberOfNeighbours) {
-                    if (minTimeValues[minimumPosition] > accessTimeMatrix.getValueAt(i, j) && accessTimeMatrix.getValueAt(i, j) != 0) {
+                    if (minTimeValues[minimumPosition] > accessTimeMatrix.getValueAt(i_id, j_id) && accessTimeMatrix.getValueAt(i_id, j_id) != 0) {
                         for (int k = numberOfNeighbours - 1; k > minimumPosition; k--) {
                             minTimeValues[k] = minTimeValues[k - 1];
                         }
-                        minTimeValues[minimumPosition] = accessTimeMatrix.getValueAt(i, j);
+                        minTimeValues[minimumPosition] = accessTimeMatrix.getValueAt(i_id, j_id);
                         break;
                     }
                     minimumPosition++;
@@ -470,9 +473,7 @@ public class SkimsReaderGermany implements SkimsReader {
             globalMinTime = globalMinTime / numberOfNeighbours * proportionOfTime;
 
             //fill with the calculated value the cells with zero
-            ((ZoneGermany) dataSet.getZones().get(i)).setTimeToLongDistanceRail(globalMinTime);
-            logger.info("i: " + i + " iExternal: " + i);
-
+            ((ZoneGermany) dataSet.getZones().get(i_id)).setTimeToLongDistanceRail(globalMinTime);
         }
         logger.info("Added rail access time using the " + numberOfNeighbours + " nearest neighbours and maximum minutes of " + maximumSeconds/60 +".");
 
