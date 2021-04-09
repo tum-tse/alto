@@ -22,7 +22,6 @@ public class OvernightOverseasDestinationChoiceGermany implements DestinationCho
     public static int longDistanceThreshold;
     private TableDataSet proportionsByContinents;
     protected Matrix autoDist;
-    private boolean calibration;
     private Map<Type, Map<ZoneType, Map<Purpose, Double>>> calibrationOvernightOverseasDcMatrix;
     private int[] destinations;
     private DataSet dataSet;
@@ -30,11 +29,10 @@ public class OvernightOverseasDestinationChoiceGermany implements DestinationCho
 
     public OvernightOverseasDestinationChoiceGermany(JSONObject prop, String inputFolder) {
         proportionsByContinents = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "destination_choice.overnightOverseas.coef_file"));
-        proportionsByContinents.buildStringIndex(1);
+        proportionsByContinents.buildStringIndex(3);
 
-        //calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
         this.calibrationOvernightOverseasDcMatrix = new HashMap<>();
-        calibrationOvernightOverseasDc = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration_overnightOverseas");
+        calibrationOvernightOverseasDc = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration.overnightOverseas");
         logger.info("Overnight Overseas DC set up");
     }
 
@@ -61,7 +59,7 @@ public class OvernightOverseasDestinationChoiceGermany implements DestinationCho
 
     //given a trip, calculate the utility of each destination
     public int selectDestination(LongDistanceTripGermany trip, DataSet dataSet) {
-        String columnName = "test";
+        String columnName = "Share";
         int[] alternatives = new int[4];
         int countAlternatives = 0;
         for (int i = 1; i<=dataSet.getZones().size(); i++){

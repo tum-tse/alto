@@ -36,8 +36,6 @@ public class OvernightFirstLayerDestinationChoiceGermany implements DestinationC
     private ResourceBundle rb;
     private static Logger logger = Logger.getLogger(OvernightFirstLayerDestinationChoiceGermany.class);
     private TableDataSet coefficients;
-    protected Matrix autoDist;
-    private boolean calibration;
     private Map<Purpose, Map<ZoneType, Double>> calibrationOvernightFirstLayerDcMatrix;
     private int[] destinations;
     private DataSet dataSet;
@@ -46,10 +44,8 @@ public class OvernightFirstLayerDestinationChoiceGermany implements DestinationC
     public OvernightFirstLayerDestinationChoiceGermany(JSONObject prop, String inputFolder) {
         coefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "destination_choice.overnightFirstLayer.coef_file"));
         coefficients.buildStringIndex(1);
-
-        //calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
         this.calibrationOvernightFirstLayerDcMatrix = new HashMap<>();
-        calibrationOvernightFirstLayerDc = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration_overnightFirstLayer");
+        calibrationOvernightFirstLayerDc = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration.overnightFirstLayer");
         logger.info("Overnight First Layer DC set up");
     }
 
@@ -61,7 +57,7 @@ public class OvernightFirstLayerDestinationChoiceGermany implements DestinationC
         for(Purpose purpose : PurposeGermany.values()){
             this.calibrationOvernightFirstLayerDcMatrix.put(purpose, new HashMap<>());
             for (ZoneType zoneType : ZoneTypeGermany.values()){
-                this.calibrationOvernightFirstLayerDcMatrix.get(purpose).putIfAbsent(zoneType, 1.0);
+                this.calibrationOvernightFirstLayerDcMatrix.get(purpose).putIfAbsent(zoneType, 0.0);
             }
         }
         logger.info("Overnight First Layer DC loaded");
@@ -118,7 +114,7 @@ public class OvernightFirstLayerDestinationChoiceGermany implements DestinationC
         double b_ruralOrTown = coefficients.getStringIndexedValueAt("town_rural", column);
         double k_calibration = coefficients.getStringIndexedValueAt("k_calibration", column);
 
-        if (calibration) k_calibration = k_calibration + calibrationOvernightFirstLayerDcMatrix.get(trip.getTripPurpose()).get(trip.getDestZoneType());
+        if (calibrationOvernightFirstLayerDc) k_calibration = k_calibration + calibrationOvernightFirstLayerDcMatrix.get(trip.getTripPurpose()).get(z);
 
         utility = b_intercept +
                 b_mediumEconomicStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.MEDIUM), false) +

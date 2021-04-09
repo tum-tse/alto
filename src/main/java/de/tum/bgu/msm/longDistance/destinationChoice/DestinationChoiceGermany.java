@@ -150,9 +150,6 @@ public class DestinationChoiceGermany implements DestinationChoice {
                     ((LongDistanceTripGermany) t).setInternational(true);
                 }
 
-                if (Util.isPowerOfFour(counter.getAndIncrement())){
-                    logger.info("Daytrips: " + counter.get());
-                }
             }else if(t.getTripState().equals(TypeGermany.OVERNIGHT) || t.getTripState().equals(TypeGermany.AWAY)){
 
                 ZoneTypeGermany zoneType = overnightFirstLayerDcModel.selectFirstLayerDestination(t);
@@ -192,13 +189,14 @@ public class DestinationChoiceGermany implements DestinationChoice {
 
                 }
 
-                if (Util.isPowerOfFour(counter.getAndIncrement())){
-                    logger.info("Overnight trips: " + counter.get());
-                }
-
             }else{
                 //TODO. Add code for away trips; for now it is assume to be the same as overnight trips
             }
+
+            if (Util.isPowerOfFour(counter.getAndIncrement())){
+                logger.info("Trips destination assigned: " + counter.get());
+            }
+
         });
         logger.info("Finished Destination Choice Model");
     }

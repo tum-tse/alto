@@ -126,7 +126,7 @@ public class DomesticTripGenerationGermany {
                             pers.setInOutTrip(true);
                         }
 
-                        if (tripState != null) {
+                        if (tripState != null && hhold.getZoneId()!=6876) {
                             LongDistanceTripGermany trip = createLongDistanceTrip(pers, tripPurpose, tripState);
                             trips.add(trip);
                             //tripCount++;

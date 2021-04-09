@@ -18,6 +18,7 @@ import javax.xml.crypto.KeySelector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by carlloga on 12-07-17.
@@ -85,11 +86,11 @@ public class CalibrationGermany implements ModelComponent {
         this.inputFolder =  JsonUtilMto.getStringProp(prop, "work_folder");
         this.outputFolder = inputFolder + "output/" +  JsonUtilMto.getStringProp(prop, "scenario") + "/";
         calibrationTG = JsonUtilMto.getBooleanProp(prop, "trip_generation.calibration");
-        calibrationDaytripDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration_daytrip");
-        calibrationOvernightFirstLayerDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration_overnight_firstlayer");
-        calibrationOvernightDomesticDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration_overnight_domestic");
-        calibrationOvernightEuropeDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration_overnight_europe");
-        calibrationOvernightOverseasDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration_overnight_overseas");
+        calibrationDaytripDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration.daytrip");
+        calibrationOvernightFirstLayerDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration.overnightFirstLayer");
+        calibrationOvernightDomesticDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration.overnightDomestic");
+        calibrationOvernightEuropeDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration.overnightEurope");
+        calibrationOvernightOverseasDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration.overnightOverseas");
         calibrationMC = JsonUtilMto.getBooleanProp(prop, "mode_choice.calibration");
         holiday = JsonUtilMto.getBooleanProp(prop, "holiday");
         maxIter = 2000;
@@ -261,6 +262,19 @@ public class CalibrationGermany implements ModelComponent {
 
         dcOvernightFirstLayerModel = new OvernightFirstLayerDestinationChoiceGermany(prop, inputFolder);
         dcOvernightFirstLayerModel.load(dataSet);
+
+        dcDaytripModel = new DaytripDestinationChoiceGermany(prop, inputFolder);
+        dcDaytripModel.load(dataSet);
+
+        dcOvernightDomesticModel = new OvernightDomesticDestinationChoiceGermany(prop, inputFolder);
+        dcOvernightDomesticModel.load(dataSet);
+
+        dcOvernightEuropeModel = new OvernightEuropeDestinationChoiceGermany(prop, inputFolder);
+        dcOvernightEuropeModel.load(dataSet);
+
+        dcOvernightOverseasModel = new OvernightOverseasDestinationChoiceGermany(prop, inputFolder);
+        dcOvernightOverseasModel.load(dataSet);
+
         Map<Purpose, Map<ZoneType, Double>> calibrationMatrixDcByZoneType;
 
         for (int iteration = 0; iteration < maxIter; iteration++) {
@@ -307,7 +321,7 @@ public class CalibrationGermany implements ModelComponent {
 
         for (Purpose purpose : PurposeGermany.values()){
             for (ZoneType zoneType : ZoneTypeGermany.values()){
-                destinationDistribution.get(purpose).putIfAbsent(zoneType, destinationDistribution.get(purpose).get(zoneType)/overnightCount.get(purpose));
+                destinationDistribution.get(purpose).put(zoneType, destinationDistribution.get(purpose).get(zoneType)/overnightCount.get(purpose));
             }
         }
         return destinationDistribution;
@@ -318,7 +332,7 @@ public class CalibrationGermany implements ModelComponent {
         Map<Purpose, Map<ZoneType, Double>> calibrationMatrix = new HashMap<>();
         Map<Purpose, Map<ZoneType, Double>> observedOvernightDistribution = new HashMap<>();
 
-        double stepFactor = 10;
+        double stepFactor = 1;
 
         //hard coded for calibration
         for (Purpose purpose : PurposeGermany.values()){
@@ -330,17 +344,17 @@ public class CalibrationGermany implements ModelComponent {
             }
         }
 
-        observedOvernightDistribution.get(PurposeGermany.LEISURE).put(ZoneTypeGermany.GERMANY, .0);
-        observedOvernightDistribution.get(PurposeGermany.LEISURE).put(ZoneTypeGermany.EXTEU, .0);
-        observedOvernightDistribution.get(PurposeGermany.LEISURE).put(ZoneTypeGermany.EXTOVERSEAS, .0);
+        observedOvernightDistribution.get(PurposeGermany.LEISURE).put(ZoneTypeGermany.GERMANY, 0.5390);
+        observedOvernightDistribution.get(PurposeGermany.LEISURE).put(ZoneTypeGermany.EXTEU, 0.4055);
+        observedOvernightDistribution.get(PurposeGermany.LEISURE).put(ZoneTypeGermany.EXTOVERSEAS, 0.0555);
 
-        observedOvernightDistribution.get(PurposeGermany.BUSINESS).put(ZoneTypeGermany.GERMANY, .0);
-        observedOvernightDistribution.get(PurposeGermany.BUSINESS).put(ZoneTypeGermany.EXTEU, .0);
-        observedOvernightDistribution.get(PurposeGermany.BUSINESS).put(ZoneTypeGermany.EXTOVERSEAS, .0);
+        observedOvernightDistribution.get(PurposeGermany.BUSINESS).put(ZoneTypeGermany.GERMANY, 0.7918);
+        observedOvernightDistribution.get(PurposeGermany.BUSINESS).put(ZoneTypeGermany.EXTEU, 0.1693);
+        observedOvernightDistribution.get(PurposeGermany.BUSINESS).put(ZoneTypeGermany.EXTOVERSEAS, 0.0389);
 
-        observedOvernightDistribution.get(PurposeGermany.PRIVATE).put(ZoneTypeGermany.GERMANY, .0);
-        observedOvernightDistribution.get(PurposeGermany.PRIVATE).put(ZoneTypeGermany.EXTEU, .0);
-        observedOvernightDistribution.get(PurposeGermany.PRIVATE).put(ZoneTypeGermany.EXTOVERSEAS, .0);
+        observedOvernightDistribution.get(PurposeGermany.PRIVATE).put(ZoneTypeGermany.GERMANY, 0.8809);
+        observedOvernightDistribution.get(PurposeGermany.PRIVATE).put(ZoneTypeGermany.EXTEU, 0.1088);
+        observedOvernightDistribution.get(PurposeGermany.PRIVATE).put(ZoneTypeGermany.EXTOVERSEAS, 0.0103);
 
         logger.info("Overnight First Layer Destination Choice Calibration ");
         //logger.info("model" + "\t" + "purpose" + " \t" + "tripState" + "\t" + "factor");
@@ -350,7 +364,13 @@ public class CalibrationGermany implements ModelComponent {
                 double observedShare = observedOvernightDistribution.get(purpose).get(zoneType);
                 double simulatedShare = simulatedOvernightDistribution.get(purpose).get(zoneType);
                 double factor = stepFactor * (observedShare - simulatedShare); //obtain a negative value if simulation larger than observation
-                calibrationMatrix.get(purpose).put(zoneType, factor);
+
+                if (zoneType.equals(ZoneTypeGermany.GERMANY)){
+                    calibrationMatrix.get(purpose).put(zoneType, 0.0);
+                }else{
+                    calibrationMatrix.get(purpose).put(zoneType, factor);
+                }
+
                 logger.info(purpose + " \t" + zoneType + "\t" + "differences:" + "\t" + (simulatedShare-observedShare));
             }
         }
@@ -401,7 +421,7 @@ public class CalibrationGermany implements ModelComponent {
         for (Type tripState : TypeGermany.values()){
             averageDistances.putIfAbsent(tripState, new HashMap<>());
             counts.putIfAbsent(tripState, new HashMap<>());
-            if (tripState.equals(TypeGermany.DAYTRIP)||tripState.equals(TypeGermany.AWAY)){
+            if (tripState.equals(TypeGermany.DAYTRIP)){
                 averageDistances.get(tripState).putIfAbsent(ZoneTypeGermany.GERMANY, new HashMap<>());
                 counts.get(tripState).putIfAbsent(ZoneTypeGermany.GERMANY, new HashMap<>());
                 for (Purpose purpose : PurposeGermany.values()){
@@ -428,17 +448,20 @@ public class CalibrationGermany implements ModelComponent {
         logger.info("Destination choice average distances");
         logger.info("tripState" + "\t" + "zoneType" + "\t" + "purpose");
 
+        for (Purpose purpose : PurposeGermany.values()) {
+            double sum;
+            double count;
+            sum = averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(purpose);
+            count = counts.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(purpose);
+            averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(purpose, sum / count);
+        }
+
         for (Type tripState : TypeGermany.values()){
             for (ZoneType zoneType : ZoneTypeGermany.values()){
                 for (Purpose purpose : PurposeGermany.values()) {
                     double sum;
                     double count;
-
-                    if (tripState.equals(TypeGermany.DAYTRIP)||tripState.equals(TypeGermany.AWAY)){
-                        sum = averageDistances.get(tripState).get(ZoneTypeGermany.GERMANY).get(purpose);
-                        count = counts.get(tripState).get(ZoneTypeGermany.GERMANY).get(purpose);
-                        averageDistances.get(tripState).get(ZoneTypeGermany.GERMANY).put(purpose, sum / count);
-                    }else{
+                    if (!tripState.equals(TypeGermany.DAYTRIP)){
                         sum = averageDistances.get(tripState).get(zoneType).get(purpose);
                         count = counts.get(tripState).get(zoneType).get(purpose);
                         averageDistances.get(tripState).get(zoneType).put(purpose, sum / count);
@@ -456,17 +479,17 @@ public class CalibrationGermany implements ModelComponent {
         double previousDistance;
         double previousCount;
 
-        if (t.getTripState().equals(TypeGermany.DAYTRIP)||t.getTripState().equals(TypeGermany.AWAY)){
+        if (t.getTripState().equals(TypeGermany.DAYTRIP)){
             previousDistance = averageDistances.get(t.getTripState()).get(ZoneTypeGermany.GERMANY).get(t.getTripPurpose());
             previousCount = counts.get(t.getTripState()).get(ZoneTypeGermany.GERMANY).get(t.getTripPurpose());
             averageDistances.get(t.getTripState()).get(ZoneTypeGermany.GERMANY).put(t.getTripPurpose(), previousDistance + t.getAutoTravelDistance()/1000);
-            counts.get(t.getTripState()).get(ZoneTypeGermany.GERMANY).put(t.getTripPurpose(), previousDistance + previousCount + 1);
+            counts.get(t.getTripState()).get(ZoneTypeGermany.GERMANY).put(t.getTripPurpose(),  previousCount + 1);
 
         }else{
             previousDistance = averageDistances.get(t.getTripState()).get(t.getDestZoneType()).get(t.getTripPurpose());
             previousCount = counts.get(t.getTripState()).get(t.getDestZoneType()).get(t.getTripPurpose());
             averageDistances.get(t.getTripState()).get(t.getDestZoneType()).put(t.getTripPurpose(), previousDistance + t.getAutoTravelDistance()/1000);
-            counts.get(t.getTripState()).get(t.getDestZoneType()).put(t.getTripPurpose(), previousDistance + previousCount + 1);
+            counts.get(t.getTripState()).get(t.getDestZoneType()).put(t.getTripPurpose(),  previousCount + 1);
         }
     }
 
@@ -474,12 +497,12 @@ public class CalibrationGermany implements ModelComponent {
 
         Map<Type, Map<ZoneType, Map<Purpose, Double>>> calibrationMatrix = new HashMap<>();
 
-        double stepFactor = 1;
+        double stepFactor = 0.1;
 
         //hard coded for calibration
         for (Type tripState : TypeGermany.values()){
             calibrationMatrix.putIfAbsent(tripState, new HashMap<>());
-            if (tripState.equals(TypeGermany.DAYTRIP)||tripState.equals(TypeGermany.AWAY)){
+            if (tripState.equals(TypeGermany.DAYTRIP)){
                 calibrationMatrix.get(tripState).putIfAbsent(ZoneTypeGermany.GERMANY, new HashMap<>());
                 for (Purpose purpose : PurposeGermany.values()){
                     calibrationMatrix.get(tripState).get(ZoneTypeGermany.GERMANY).putIfAbsent(purpose, .0);
@@ -505,32 +528,43 @@ public class CalibrationGermany implements ModelComponent {
         calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.LEISURE) / 229.18 - 1) * stepFactor + 1);
 
         //Overnight: europe
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.PRIVATE) /  - 1) * stepFactor + 1); //ToDo add average distance from B1 reise
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.BUSINESS) /  - 1) * stepFactor + 1); //ToDo add average distance from B1 reise
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.LEISURE) /  - 1) * stepFactor + 1); //ToDo add average distance from B1 reiseb
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.PRIVATE) / 914.28 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.BUSINESS) / 987.64 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.LEISURE) / 1186.58 - 1) * stepFactor + 1);
 
 
         //Overnight: overseas
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).get(PurposeGermany.PRIVATE) /  - 1) * stepFactor + 1); //ToDo add average distance from B1 reise
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).get(PurposeGermany.BUSINESS) /  - 1) * stepFactor + 1); //ToDo add average distance from B1 reise
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).get(PurposeGermany.LEISURE) /  - 1) * stepFactor + 1); //ToDo add average distance from B1 reise
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).get(PurposeGermany.PRIVATE) / 7422.60 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).get(PurposeGermany.BUSINESS) / 7278.23 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTOVERSEAS).get(PurposeGermany.LEISURE) / 6891.04 - 1) * stepFactor + 1);
 
-        //Away: consider all
-        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.PRIVATE) / 204.94 - 1) * stepFactor + 1); //ToDo add average distance from B3 Wege
-        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.BUSINESS) / 179.78 - 1) * stepFactor + 1); //ToDo add average distance from B3 Wege
-        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.LEISURE) / 176.09 - 1) * stepFactor + 1); //ToDo add average distance from B3 Wege
+        // Overnight: domestic
+        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.PRIVATE) / 226.69 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.BUSINESS) / 258.21 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.LEISURE) / 229.18 - 1) * stepFactor + 1);
+
+        //Overnight: europe
+        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.PRIVATE) / 914.28 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.BUSINESS) / 987.64 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.LEISURE) / 1186.58 - 1) * stepFactor + 1);
+
+
+        //Overnight: overseas
+        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTOVERSEAS).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTOVERSEAS).get(PurposeGermany.PRIVATE) / 7422.60 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTOVERSEAS).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTOVERSEAS).get(PurposeGermany.BUSINESS) / 7278.23 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTOVERSEAS).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTOVERSEAS).get(PurposeGermany.LEISURE) / 6891.04 - 1) * stepFactor + 1);
 
         logger.info("Calibration coefficients of destination choice models by distance");
-        logger.info("tripType" + "\t" + "zoneType" + "\t" +"purpose" + "\t" + "coefficient");
+        logger.info("tripType" + "\t" + "zoneType" + "\t" +"purpose" + "\t" + "simulated average distance");
         for (Type tripState : TypeGermany.values()) {
             if (tripState.equals(TypeGermany.DAYTRIP)||tripState.equals(TypeGermany.AWAY)){
                 for (Purpose purpose : PurposeGermany.values()) {
-                    logger.info(tripState.toString() + "\t" + ZoneTypeGermany.GERMANY + "\t" +purpose + "\t" + calibrationMatrix.get(tripState).get(ZoneTypeGermany.GERMANY).get(purpose));
+                    logger.info(tripState.toString() + "\t" + ZoneTypeGermany.GERMANY + "\t" +purpose + "\t" + averageDistances.get(tripState).get(ZoneTypeGermany.GERMANY).get(purpose));
                 }
             }else{
                 for (ZoneType zoneType : ZoneTypeGermany.values()){
                     for (Purpose purpose : PurposeGermany.values()) {
-                        logger.info(tripState.toString() + "\t" + zoneType.toString() + "\t" +purpose + "\t" + calibrationMatrix.get(tripState).get(zoneType).get(purpose));
+                        logger.info(tripState.toString() + "\t" + zoneType.toString() + "\t" +purpose + "\t" + averageDistances.get(tripState).get(zoneType).get(purpose));
                     }
                 }
             }
@@ -540,6 +574,7 @@ public class CalibrationGermany implements ModelComponent {
 
     public void runDc() {
         logger.info("Running Destination Choice Model for " + allTrips.size() + " trips during model calibration");
+        AtomicInteger counter = new AtomicInteger(0);
 
         allTrips.parallelStream().forEach(t -> {
 
@@ -560,7 +595,11 @@ public class CalibrationGermany implements ModelComponent {
 
             }else if(t.getTripState().equals(TypeGermany.OVERNIGHT) || t.getTripState().equals(TypeGermany.AWAY)){
 
-                ZoneTypeGermany zoneType = dcOvernightFirstLayerModel.selectFirstLayerDestination(t);
+                ZoneTypeGermany zoneType = t.getDestZoneType();
+
+                if (calibrationOvernightFirstLayerDC){
+                    zoneType = dcOvernightFirstLayerModel.selectFirstLayerDestination(t);
+                }
 
                 if(zoneType.equals(ZoneTypeGermany.GERMANY)){
 
@@ -600,7 +639,13 @@ public class CalibrationGermany implements ModelComponent {
                 //TODO. Add code for away trips; for now it is assume to be the same as overnight trips
             }
 
+            if (Util.isPowerOfFour(counter.getAndIncrement())){
+                logger.info("Trips destination assigned: " + counter.get());
+            }
+
         });
+
+        logger.info("Finished Destination Choice Model");
     }
 
     public void calibrateMcModel(boolean mc, DataSet dataSet) {

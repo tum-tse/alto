@@ -24,19 +24,17 @@ public class OvernightEuropeDestinationChoiceGermany implements DestinationChoic
     public static int longDistanceThreshold;
     private TableDataSet coefficients;
     protected Matrix autoDist;
-    private boolean calibration;
     private Map<Type, Map<ZoneType, Map<Purpose, Double>>> calibrationOvernightEuropeDcMatrix;
-    private int[] destinations;
     private DataSet dataSet;
     private boolean calibrationOvernightEuropeDc;
 
     public OvernightEuropeDestinationChoiceGermany(JSONObject prop, String inputFolder) {
         coefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "destination_choice.overnightEurope.coef_file"));
         coefficients.buildStringIndex(1);
-
+        longDistanceThreshold = JsonUtilMto.getIntProp(prop, "threshold_long_distance");
         //calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration");
         this.calibrationOvernightEuropeDcMatrix = new HashMap<>();
-        calibrationOvernightEuropeDc = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration_overnightEurope");
+        calibrationOvernightEuropeDc = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration.overnightEurope");
         logger.info("Overnight Europe DC set up");
     }
 
@@ -44,11 +42,15 @@ public class OvernightEuropeDestinationChoiceGermany implements DestinationChoic
     public void load(DataSet dataSet) {
 
         this.dataSet = dataSet;
-
+        autoDist = dataSet.getDistanceMatrix().get(ModeGermany.AUTO);
         this.calibrationOvernightEuropeDcMatrix.put(TypeGermany.OVERNIGHT, new HashMap<>());
+        this.calibrationOvernightEuropeDcMatrix.put(TypeGermany.AWAY, new HashMap<>());
         this.calibrationOvernightEuropeDcMatrix.get(TypeGermany.OVERNIGHT).putIfAbsent(ZoneTypeGermany.EXTEU,new HashMap<>());
+        this.calibrationOvernightEuropeDcMatrix.get(TypeGermany.AWAY).putIfAbsent(ZoneTypeGermany.EXTEU,new HashMap<>());
         for (Purpose purpose : PurposeGermany.values()){
             this.calibrationOvernightEuropeDcMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).putIfAbsent(purpose,1.0);
+            this.calibrationOvernightEuropeDcMatrix.get(TypeGermany.AWAY).get(ZoneTypeGermany.EXTEU).putIfAbsent(purpose,1.0);
+
         }
 
         logger.info("Overnight Europe DC loaded");
@@ -90,7 +92,7 @@ public class OvernightEuropeDestinationChoiceGermany implements DestinationChoic
         boolean populatedZone = !destinationZone.getEmptyZone();
         boolean isEurope = destinationZone.getZoneType().equals(ZoneTypeGermany.EXTEU);
 
-        if (distance > longDistanceThreshold && populatedZone && isEurope) {
+        if (distance > longDistanceThreshold && isEurope) {
 
 
             double population = destinationZone.getPopulation();
@@ -124,10 +126,9 @@ public class OvernightEuropeDestinationChoiceGermany implements DestinationChoic
                 k_calibration = k_calibration * calibrationOvernightEuropeDcMatrix.get(tripState).get(ZoneTypeGermany.EXTEU).get(tripPurpose);
             }
 
-            double u =
-                    b_distance_log * k_calibration * log_distance +
-                            b_touristAtHotel * touristsAtHotel / 1000 +  //touristsAtHotel in thousands
-                            b_popEmployment * (population + employment) / 1000000;
+            double u = b_distance_log * k_calibration * log_distance +
+                    b_touristAtHotel * Math.pow(touristsAtHotel / 1000, 0.01) +  //touristsAtHotel in thousands
+                    b_popEmployment * Math.pow((population + employment) / 1000000, 0.01);
 
             return u;
         } else {

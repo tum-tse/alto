@@ -32,7 +32,6 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
     public static float scaleFactor;
     private TableDataSet coefficients;
     protected Matrix autoDist;
-    private boolean calibration;
     private Map<Type, Map<ZoneType, Map<Purpose, Double>>> calibrationDaytripDcMatrix;
     private int[] destinations;
     private DataSet dataSet;
@@ -45,11 +44,9 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
         choice_set_size = JsonUtilMto.getIntProp(prop, "destination_choice.choice_set_size");
         longDistanceThreshold = JsonUtilMto.getIntProp(prop, "threshold_long_distance");
         scaleFactor = JsonUtilMto.getFloatProp(prop, "synthetic_population.scale_factor");
-        //calibration = ResourceUtil.getBooleanProperty(rb,"dc.calibration",false);
-        //calibration = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration_daytrip");
         this.calibrationDaytripDcMatrix = new HashMap<>();
-        calibrationDaytripDC = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration_daytrip");
-        logger.info("Domestic DC set up");
+        calibrationDaytripDC = JsonUtilMto.getBooleanProp(prop,"destination_choice.calibration.daytrip");
+        logger.info("Daytrip DC set up");
 
     }
 
@@ -67,7 +64,7 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
         }
 
 
-        logger.info("Domestic DC loaded");
+        logger.info("Daytrip DC loaded");
 
     }
 
@@ -119,10 +116,12 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
         float distance = autoDist.getValueAt(origin, destination) / 1000; //to convert meters to km
         ZoneGermany destinationZone = (ZoneGermany) dataSet.getZones().get(destination);
         boolean populatedZone = !destinationZone.getEmptyZone();
-        boolean isOverseas = destinationZone.getZoneType().equals(ZoneTypeGermany.EXTEU);
+        boolean isOverseas = destinationZone.getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS);
 
-        if (distance > longDistanceThreshold && populatedZone && !isOverseas) {
-
+        if(isOverseas){
+            return Double.NEGATIVE_INFINITY;
+        }
+        else if (distance > longDistanceThreshold && populatedZone) {
 
             double population = destinationZone.getPopulation();
             if(population<=0){
@@ -145,7 +144,7 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
             String coefficientColumn = tripState + "." + tripPurpose;
             double b_distance_log = coefficients.getStringIndexedValueAt("log_distance", coefficientColumn);
             double b_popEmployment = coefficients.getStringIndexedValueAt("popEmployment", coefficientColumn);
-            double b_touristAtHotel = coefficients.getStringIndexedValueAt("hotel", coefficientColumn);
+            double b_touristAtHotel = coefficients.getStringIndexedValueAt("guest", coefficientColumn);
             double k_calibration = coefficients.getStringIndexedValueAt("k_calibration", coefficientColumn);
 
             //log conversions
@@ -155,10 +154,9 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
                 k_calibration = k_calibration * calibrationDaytripDcMatrix.get(tripState).get(ZoneTypeGermany.GERMANY).get(tripPurpose);
             }
 
-            double u =
-                    b_distance_log * k_calibration * log_distance +
-                            b_touristAtHotel * touristsAtHotel / 1000 +  //touristsAtHotel in thousands
-                            b_popEmployment * (population + employment) / 1000000;
+            double u = b_distance_log * k_calibration * log_distance +
+                       b_touristAtHotel * Math.pow(touristsAtHotel / 1000, 0.01) +  //touristsAtHotel in thousands
+                       b_popEmployment * Math.pow((population + employment) / 1000000, 0.01);
 
             return u;
         } else {
