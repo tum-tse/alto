@@ -39,10 +39,15 @@ public class DataSet {
     private Matrix autoTravelDistance;
 
     //SKIMS level-2 zones
+
     private Map<Mode, Matrix> travelTimeMatrix;
     private Map<Mode, Matrix> priceMatrix;
     private Map<Mode, Matrix> transferMatrix;
     private Map<Mode, Matrix> distanceMatrix;
+    private Map<Mode, Matrix> accessTimeMatrix;
+    private Map<Mode, Matrix> egressTimeMatrix;
+    // TODO: ADD getters, setters, etc.
+
 
     private Matrix airAccessAirportZone;
     private Matrix airEgressAirportZone;
@@ -90,6 +95,14 @@ public class DataSet {
     }
 
     private Map<Mode, Matrix> frequencyMatrix;
+
+    public Map<Mode, Matrix> getAccessTimeMatrix() { return accessTimeMatrix; }
+
+    public void setAccessTimeMatrix(Map<Mode, Matrix> accessTimeMatrix) { this.accessTimeMatrix = accessTimeMatrix; }
+
+    public Map<Mode, Matrix> getEgressTimeMatrix() { return egressTimeMatrix; }
+
+    public void setEgressTimeMatrix(Map<Mode, Matrix> egressTimeMatrix) { this.egressTimeMatrix = egressTimeMatrix; }
 
     //Grids
     private Map<Integer, Grid> grids = new HashMap<>();

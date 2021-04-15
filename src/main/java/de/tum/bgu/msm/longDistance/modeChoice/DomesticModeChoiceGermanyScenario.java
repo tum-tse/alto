@@ -158,8 +158,25 @@ public class DomesticModeChoiceGermanyScenario {
                 distance = distance / 1000;
             }
         } else {
-            time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
-            distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
+            //added from here
+            if (m.equals(ModeGermany.RAIL)){
+                double transferCount;
+                double travelTimeReductionFactor = 1;
+                double accessEgressTimeFactor = 0.9;
+                int savedTimeAtTransfers = 300;
+                transferCount = dataSet.getTransferMatrix().get(m).getValueAt(origin, destination);
+                time = ((travelTimeReductionFactor * dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination))
+                - accessEgressTimeFactor * dataSet.getAccessTimeMatrix().get(m).getValueAt(origin,destination)
+                - accessEgressTimeFactor * dataSet.getEgressTimeMatrix().get(m).getValueAt(origin,destination)) / 3600;
+                distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
+                if (transferCount < 20 && (time - savedTimeAtTransfers*transferCount/3600) > 0){
+                    time = time - savedTimeAtTransfers*transferCount/3600;
+                }
+            } //added to here
+            else {
+                time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
+                distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
+            }
         }
         if (time < 1000000000 / 3600){
             if (vot != 0) {

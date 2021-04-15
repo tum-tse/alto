@@ -221,10 +221,16 @@ public class SkimsReaderGermany implements SkimsReader {
         List<Matrix> matricesRail = new ArrayList<>();
         matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "travel_time_s", lookUps.get(m)));
         time = logReading(time, "rail time");
-        matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
+        Matrix accessTimeMatrix = omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m));
+        matricesRail.add(accessTimeMatrix);
         time = logReading(time, "rail access");
-        matricesRail.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
+        dataSet.setAccessTimeMatrix(new HashMap<>());
+        dataSet.getAccessTimeMatrix().put(m,accessTimeMatrix);
+        Matrix egressTimeMatrix = omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m));
+        matricesRail.add(egressTimeMatrix);
         time = logReading(time, "rail egress");
+        dataSet.setEgressTimeMatrix(new HashMap<>());
+        dataSet.getEgressTimeMatrix().put(m,egressTimeMatrix);
         Matrix totalTravelTimeRail = sumMatrices(matricesRail);
         modeTimeMatrixMap.put(m, totalTravelTimeRail);
         Matrix distanceRail = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
@@ -234,6 +240,11 @@ public class SkimsReaderGermany implements SkimsReader {
         readTimeToRail(dataSet, accessToTrainFileName, "mat1", "lookup1");
         time = logReading(time, "access to train");
 
+        Matrix transferMatrix = omxToMatrix(inPtTimeFileNames.get(m), "transfer_count", lookUps.get(m));
+        //line above: only works if all the skim matrices are stored in the same omx file
+        time = logReading(time, "rail transfer");
+        dataSet.setTransferMatrix(new HashMap<>());
+        dataSet.getTransferMatrix().put(m,transferMatrix);
 
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
         dataSet.setDistanceMatrix(modeDistanceMatrixMap);
