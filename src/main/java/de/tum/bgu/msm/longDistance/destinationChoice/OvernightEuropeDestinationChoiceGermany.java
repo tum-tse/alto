@@ -94,7 +94,6 @@ public class OvernightEuropeDestinationChoiceGermany implements DestinationChoic
 
         if (distance > longDistanceThreshold && isEurope) {
 
-
             double population = destinationZone.getPopulation();
             if(population<=0){
                 population=0;
@@ -126,9 +125,17 @@ public class OvernightEuropeDestinationChoiceGermany implements DestinationChoic
                 k_calibration = k_calibration * calibrationOvernightEuropeDcMatrix.get(tripState).get(ZoneTypeGermany.EXTEU).get(tripPurpose);
             }
 
-            double u = b_distance_log * k_calibration * log_distance +
-                    b_touristAtHotel * Math.pow(touristsAtHotel / 1000, 0.01) +  //touristsAtHotel in thousands
-                    b_popEmployment * Math.pow((population + employment) / 1000000, 0.01);
+            double u;
+
+            if (!tripPurpose.equals(PurposeGermany.LEISURE)){
+                u = b_distance_log * k_calibration * log_distance +
+                    b_touristAtHotel * Math.pow((touristsAtHotel / 1000), 0.01) +  //touristsAtHotel in thousands
+                    b_popEmployment * Math.pow(((population + employment) / 1000000), 0.01);
+            }else{
+                u = b_distance_log * k_calibration * log_distance +
+                    b_touristAtHotel * Math.pow((touristsAtHotel / 1000), 0.1) +  //touristsAtHotel in thousands
+                    b_popEmployment * Math.pow(((population + employment) / 1000000), 0.1);
+            }
 
             return u;
         } else {
