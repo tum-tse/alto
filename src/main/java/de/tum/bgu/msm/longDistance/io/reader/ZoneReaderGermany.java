@@ -1,7 +1,6 @@
 package de.tum.bgu.msm.longDistance.io.reader;
 
 import com.pb.common.datafile.TableDataSet;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;

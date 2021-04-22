@@ -14,9 +14,14 @@
         <developerConnection>scm:git:git@github.com:msmobility/mto_longDistanceModel.git</developerConnection>
     </scm>
     <properties>
-        <geotools.version>14.3</geotools.version>
+        <geotools.version>24.2</geotools.version>
     </properties>
     <repositories>
+        <repository>
+            <id>matsim</id>
+            <name>MATSim Maven repository</name>
+            <url>https://repo.matsim.org/repository/matsim/</url>
+        </repository>
         <repository>
             <id>bintray-msmobility-maven</id>
             <name>bintray</name>
@@ -27,26 +32,45 @@
             <name>Open Source Geospatial Foundation Repository</name>
             <url>http://download.osgeo.org/webdav/geotools/</url>
         </repository>
-        <repository>
-            <id>matsim</id>
-            <url>http://dl.bintray.com/matsim/matsim</url>
-        </repository>
+<!--        <repository>-->
+<!--            <id>matsim</id>-->
+<!--            <url>http://dl.bintray.com/matsim/matsim</url>-->
+<!--        </repository>-->
     </repositories>
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-        </resources>
-        <defaultGoal>compiler:compile</defaultGoal>
         <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>de.tum.bgu.msm.run.scenarios.drtNoise.RunDrtNoise</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
+                <version>3.8.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>11</source>
+                    <target>11</target>
                     <showWarnings>false</showWarnings>
                     <showDeprecation>false</showDeprecation>
                     <encoding>UTF-8</encoding>
@@ -60,58 +84,43 @@
                     </compilerArguments>
                 </configuration>
             </plugin>
-
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.1.1</version>
-                <executions>
-                    <execution>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>java</executable>
-                            <!--<mainClass>de.tum.bgu.msm.mto</mainClass>-->
-                            <arguments>
-                                <argument>-classpath</argument>
-                                <!-- automatically creates the classpath using all project dependencies,
-                                     also adding the project build directory -->
-                                <classpath/>
-                                <argument>de.tum.bgu.msm.RunModel</argument>
-                                <argument>javaFiles\mto.properties</argument>
-                                <argument>2015</argument>
-                            </arguments>
-                            <workingDirectory>C:/models/mto</workingDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.8</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*$*</exclude> <!-- exclude all inner classes -->
+                    </excludes>
+                    <includes>
+                        <include>**/Test*.java</include>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                        <include>**/*TestCase.java</include>
+                        <include>**/*IT.java</include>
 
+                    </includes>
+                    <!--execute each test in separate JVM (slow, but otherwise it does not-->
+                    <!--work, and no problem as long as there are only integration tests):-->
+                    <forkMode>always</forkMode>
+                    <!-- avoid out of memory errors: -->
+                    <argLine>-Xmx2000m -Djava.awt.headless=true
+                        -Dmatsim.preferLocalDtds=true -Dncsa.hdf.hdf5lib.H5.hdf5lib=${hdf5lib-absolute-path}
+                    </argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>common-base</groupId>
             <artifactId>common-base</artifactId>
             <version>0.0.3</version>
         </dependency>
-       <!-- <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-        </dependency>-->
         <dependency>
             <groupId>omx</groupId>
             <artifactId>omx</artifactId>
-            <version>1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-geometry</artifactId>
-            <version>${geotools.version}</version>
+            <version>2</version>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -123,13 +132,11 @@
             <artifactId>jts</artifactId>
             <version>1.12</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.6.1</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -140,7 +147,11 @@
             <artifactId>fastutil</artifactId>
             <version>7.0.13</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.matsim</groupId>
+            <artifactId>matsim</artifactId>
+            <version>13.0</version>
+        </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
@@ -151,22 +162,19 @@
             <artifactId>google-collections</artifactId>
             <version>1.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.matsim.contrib</groupId>
-            <artifactId>dvrp</artifactId>
-            <version>12.0</version>
-        </dependency>
+
         <dependency>
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
             <version>1.1.3</version>
         </dependency>
-        <dependency>
-            <groupId>org.matsim</groupId>
-            <artifactId>matsim</artifactId>
-            <version>12.0</version>
-        </dependency>
 
+
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.11.0</version>
+        </dependency>
         <!--<dependency>-->
         <!--<groupId>org.matsim</groupId>-->
         <!--<artifactId>matsim</artifactId>-->
