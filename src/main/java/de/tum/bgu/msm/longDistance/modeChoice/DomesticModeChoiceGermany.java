@@ -46,7 +46,7 @@ public class DomesticModeChoiceGermany {
         mcGermany.buildStringIndex(1);
         costsPerKm = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"mode_choice.costPerKm_file"));
         costsPerKm.buildStringIndex(2);
-        calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration");
+        calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
         logger.info("Domestic MC set up");
 
@@ -258,7 +258,7 @@ public class DomesticModeChoiceGermany {
         LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
         int origin = trip.getOrigZone().getId();
         int destination = trip.getDestZone().getId();
-        if (trip.getOrigZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) ){
+        if (!trip.getOrigZone().getZoneType().equals(ZoneTypeGermany.GERMANY) || trip.getDestZoneType().equals(ZoneTypeGermany.EXTEU) || trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) ){
             return -1.f;
         } else {
             Mode mode = trip.getMode();
@@ -279,7 +279,7 @@ public class DomesticModeChoiceGermany {
                 for (Mode mode : ModeGermany.values()){
                     double newValue = this.calibrationDomesticMcMatrix.get(purpose).get(tripState).get(mode) + updatedMatrix.get(purpose).get(tripState).get(mode);
                     this.calibrationDomesticMcMatrix.get(purpose).get(tripState).put(mode, newValue);
-                    System.out.println("k-factor: " + purpose + "\t" + tripState + "\t" + mode + "\t" + calibrationDomesticMcMatrix.get(purpose).get(tripState).get(mode));
+                    System.out.println("Domestic/k-factor: " + purpose + "\t" + tripState + "\t" + mode + "\t" + calibrationDomesticMcMatrix.get(purpose).get(tripState).get(mode));
 
                 }
             }
@@ -294,7 +294,7 @@ public class DomesticModeChoiceGermany {
         LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
         int origin = trip.getOrigZone().getId();
         int destination = trip.getDestZone().getId();
-        if (trip.getOrigZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) || trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) ){
+        if (!trip.getOrigZone().getZoneType().equals(ZoneTypeGermany.GERMANY) || trip.getDestZoneType().equals(ZoneTypeGermany.EXTEU) || trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) ){
             return -1.f;
         } else {
             Mode mode = trip.getMode();

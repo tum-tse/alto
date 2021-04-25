@@ -36,7 +36,7 @@ public class DomesticModeChoiceGermanyScenario {
     private TableDataSet mcGermany;
     private TableDataSet costsPerKm;
 
-    private boolean calibration;
+    private boolean calibrationDomesticMc;
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
 
 
@@ -47,7 +47,7 @@ public class DomesticModeChoiceGermanyScenario {
         mcGermany.buildStringIndex(1);
         costsPerKm = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"mode_choice.costPerKm_file"));
         costsPerKm.buildStringIndex(2);
-        calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration");
+        calibrationDomesticMc = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
 
         logger.info("Domestic MC set up");
@@ -210,7 +210,7 @@ public class DomesticModeChoiceGermanyScenario {
             double impedance_exp = Math.exp(alpha_impedance * impedance * 60);
             attr.put("impedance_" + m.toString(), (float) impedance_exp);
 
-            if (calibration) k_calibration = k_calibration + calibrationDomesticMcMatrix.get(trip.getTripPurpose()).get(trip.getTripState()).get(m);
+            if (calibrationDomesticMc) k_calibration = k_calibration + calibrationDomesticMcMatrix.get(trip.getTripPurpose()).get(trip.getTripState()).get(m);
 
             utility = b_intercept +
                     b_male * Boolean.compare(pers.isMale(), false) +
