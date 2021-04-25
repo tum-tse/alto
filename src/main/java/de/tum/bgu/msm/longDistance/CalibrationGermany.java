@@ -31,7 +31,8 @@ public class CalibrationGermany implements ModelComponent {
     private boolean calibrationOvernightDomesticDC;
     private boolean calibrationOvernightEuropeDC;
     private boolean calibrationOvernightOverseasDC;
-    private boolean calibrationMC;
+    private boolean calibrationDomesticMC;
+    private boolean calibrationEuropeMC;
     private boolean holiday;
 
     private JSONObject prop;
@@ -51,7 +52,8 @@ public class CalibrationGermany implements ModelComponent {
     private OvernightOverseasDestinationChoiceGermany dcOvernightOverseasModel;
 
     //private ModeChoiceGermany mcM;
-    private DomesticModeChoiceGermanyScenario mcDomesticModel;
+    private DomesticModeChoiceGermany mcDomesticModel;
+    private EuropeModeChoiceGermany mcEuropeModel;
 
     static Logger logger = Logger.getLogger(CalibrationGermany.class);
 
@@ -76,7 +78,7 @@ public class CalibrationGermany implements ModelComponent {
     }
 
     enum McModelName {
-        domesticMc
+        domesticMc, europeMc
     }
 
     @Override
@@ -91,9 +93,10 @@ public class CalibrationGermany implements ModelComponent {
         calibrationOvernightDomesticDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration.overnightDomestic");
         calibrationOvernightEuropeDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration.overnightEurope");
         calibrationOvernightOverseasDC = JsonUtilMto.getBooleanProp(prop, "destination_choice.calibration.overnightOverseas");
-        calibrationMC = JsonUtilMto.getBooleanProp(prop, "mode_choice.calibration");
+        calibrationDomesticMC = JsonUtilMto.getBooleanProp(prop, "mode_choice.calibration_domestic");
+        calibrationEuropeMC = JsonUtilMto.getBooleanProp(prop, "mode_choice.calibration_europe");
         holiday = JsonUtilMto.getBooleanProp(prop, "holiday");
-        maxIter = 2000;
+        maxIter = 200000;
 
     }
 
@@ -124,8 +127,8 @@ public class CalibrationGermany implements ModelComponent {
             calibrateDcModelByDistance(calibrationDaytripDC,calibrationOvernightDomesticDC,calibrationOvernightEuropeDC,calibrationOvernightOverseasDC, dataSet);
         }
 
-        if(calibrationMC){
-            calibrateMcModel(calibrationMC, dataSet);
+        if(calibrationDomesticMC||calibrationEuropeMC){
+            calibrateMcModel(calibrationDomesticMC, calibrationEuropeMC, dataSet);
         }
 
     }
@@ -518,9 +521,9 @@ public class CalibrationGermany implements ModelComponent {
         }
 
         // Daytrip: domestic + international
-        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.PRIVATE) / 204.94 - 1) * stepFactor + 1);
-        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.BUSINESS) / 179.78 - 1) * stepFactor + 1);
-        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.LEISURE) / 176.09 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.PRIVATE) / 209.24 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.BUSINESS) / 198.98 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.LEISURE) / 190.79 - 1) * stepFactor + 1);
 
         // Overnight: domestic
         calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.PRIVATE) / 226.69 - 1) * stepFactor + 1);
@@ -528,9 +531,9 @@ public class CalibrationGermany implements ModelComponent {
         calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.LEISURE) / 229.18 - 1) * stepFactor + 1);
 
         //Overnight: europe
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.PRIVATE) / 914.28 - 1) * stepFactor + 1);
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.BUSINESS) / 987.64 - 1) * stepFactor + 1);
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.LEISURE) / 1186.58 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.PRIVATE) / 887.36 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.BUSINESS) / 971.76 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.LEISURE) / 1228.34 - 1) * stepFactor + 1);
 
 
         //Overnight: overseas
@@ -648,18 +651,23 @@ public class CalibrationGermany implements ModelComponent {
         logger.info("Finished Destination Choice Model");
     }
 
-    public void calibrateMcModel(boolean mc, DataSet dataSet) {
+    public void calibrateMcModel(boolean mcDomestic, boolean mcEurope, DataSet dataSet) {
         Map<McModelName, Map<Purpose, Map<Type, Map<Mode, Double>>>> calibrationMatrixMc;
 
-        mcDomesticModel = new DomesticModeChoiceGermanyScenario(prop, inputFolder);
+        mcDomesticModel = new DomesticModeChoiceGermany(prop, inputFolder);
         mcDomesticModel.loadDomesticModeChoice(dataSet);
+        mcEuropeModel = new EuropeModeChoiceGermany(prop, inputFolder);
+        mcEuropeModel.loadEuropeModeChoice(dataSet);
+
 
         for (int iteration = 0; iteration < maxIter; iteration++) {
-            if (mc){
+            if (mcDomestic||mcEurope){
                 logger.info("Calibration of mode choice: Iteration = " + iteration);
                 calibrationMatrixMc = calculateMCCalibrationFactors(allTrips);
-                Map<Purpose, Map<Type, Map<Mode, Double>>> updatedMatrix = calibrationMatrixMc.get(McModelName.domesticMc);
-                mcDomesticModel.updateDomesticMcCalibration(updatedMatrix);
+                Map<Purpose, Map<Type, Map<Mode, Double>>> updatedDomesticMatrix = calibrationMatrixMc.get(McModelName.domesticMc);
+                Map<Purpose, Map<Type, Map<Mode, Double>>> updatedEuropeMatrix = calibrationMatrixMc.get(McModelName.europeMc);
+                mcDomesticModel.updateDomesticMcCalibration(updatedDomesticMatrix);
+                mcEuropeModel.updateEuropeMcCalibration(updatedEuropeMatrix);
                 runMc();
             }
         }
@@ -674,63 +682,123 @@ public class CalibrationGermany implements ModelComponent {
 
         Map<McModelName, Map<Purpose, Map<Type, Map<Mode, Double>>>> surveyShares = new HashMap<>();
 
-        double stepFactor = 1;
+        double stepFactor = 0.1;
 
         //hard coded for calibration
         //domestic
-        McModelName type = McModelName.domesticMc;
-        surveyShares.putIfAbsent(type, new HashMap<>());
+        surveyShares.putIfAbsent(McModelName.domesticMc, new HashMap<>());
 
-        surveyShares.get(type).putIfAbsent(PurposeGermany.BUSINESS, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.8735);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.0151);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.0994);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.0120);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.6901);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.1088);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.1738);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.0273);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
-        surveyShares.get(type).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
+        surveyShares.get(McModelName.domesticMc).putIfAbsent(PurposeGermany.BUSINESS, new HashMap<>());
+        surveyShares.get(McModelName.domesticMc).putIfAbsent(PurposeGermany.LEISURE, new HashMap<>());
+        surveyShares.get(McModelName.domesticMc).putIfAbsent(PurposeGermany.PRIVATE, new HashMap<>());
 
-        surveyShares.get(type).putIfAbsent(PurposeGermany.LEISURE, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.8413);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.0081);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.1022);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.0484);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.7475);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.0589);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.1252);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.0684);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
-        surveyShares.get(type).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
 
-        surveyShares.get(type).putIfAbsent(PurposeGermany.PRIVATE, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.9112);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.0008);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.0781);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.0099);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.8032);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.0036);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.1498);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.0434);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
-        surveyShares.get(type).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
+        //Check with B3 wege
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.872132);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.015121);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.100755);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.011961);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.829915);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.008449);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.110951);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.050685);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.902468);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.000831);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.086669);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.010031);
+
+        //B1_Reise was used
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.650794);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.095935);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.241776);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.011494);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.783559);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.011633);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.152456);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.052353);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.661455);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.020347);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.287439);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.030758);
+
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
+
+        //europe
+        surveyShares.putIfAbsent(McModelName.europeMc, new HashMap<>());
+
+        surveyShares.get(McModelName.europeMc).putIfAbsent(PurposeGermany.BUSINESS, new HashMap<>());
+        surveyShares.get(McModelName.europeMc).putIfAbsent(PurposeGermany.LEISURE, new HashMap<>());
+        surveyShares.get(McModelName.europeMc).putIfAbsent(PurposeGermany.PRIVATE, new HashMap<>());
+
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.DAYTRIP, new HashMap<>());
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.OVERNIGHT, new HashMap<>());
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).putIfAbsent(TypeGermany.AWAY, new HashMap<>());
+        //Check with B3_Wege
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.872132);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.015152);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.100755);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.011961);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.829915);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.008499);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.110951);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.050685);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AUTO, 0.902468);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.AIR, 0.000831);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.086669);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.010031);
+
+        //B1_Reise was used
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.262513);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.588278);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.095666);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.053544);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.495258);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.378352);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.060910);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.065480);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.353198);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.416289);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.145242);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.085271);
+
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
 
         logger.info("Mode choice calibration factors");
         logger.info("model" + "\t" + "purpose" + " \t" + "mode" + "\t" + "diff(obs-sim)");
@@ -787,6 +855,11 @@ public class CalibrationGermany implements ModelComponent {
                     McModelName name = McModelName.domesticMc;
                     addTripToModalShareCalculator(countsByMode, t, name);
                 }
+            }else if (t.getDestZoneType().equals(ZoneTypeGermany.EXTEU)){
+                McModelName name = McModelName.europeMc;
+                addTripToModalShareCalculator(countsByMode, t, name);
+            }else{
+
             }
         }
 
@@ -827,9 +900,44 @@ public class CalibrationGermany implements ModelComponent {
         allTrips.parallelStream().forEach(tripToCast -> {
             LongDistanceTripGermany t = (LongDistanceTripGermany) tripToCast;
             if (!t.isInternational()) {
-                Mode mode = mcDomesticModel.selectModeDomestic(t);
-                t.setMode(mode);
-                t.setTravelTimeByMode(mcDomesticModel.getDomesticModalTravelTime(t));
+                if (!((LongDistanceTripGermany)t).getTripState().equals(TypeGermany.AWAY)) {
+                    //domestic mode choice for synthetic persons in Germany
+                    Mode mode = mcDomesticModel.selectModeDomestic(t);
+                    ((LongDistanceTripGermany)t).setMode(mode);
+                    ((LongDistanceTripGermany)t).setTravelTimeByMode(mcDomesticModel.getDomesticModalTravelTime(t));
+                    ((LongDistanceTripGermany)t).setDistanceByMode(mcDomesticModel.getDomesticModalDistance(t));
+                } else {
+                    //for trips away we do not assign any mode because they are not travelling that they.
+                    //to avoid issues on the pie chart generation, we assign now auto mode to all
+                    Mode mode = ModeGermany.AUTO;
+                    ((LongDistanceTripGermany)t).setMode(mode);
+                    ((LongDistanceTripGermany)t).setTravelTimeByMode(mcDomesticModel.getDomesticModalTravelTime(t));
+                    ((LongDistanceTripGermany)t).setDistanceByMode(mcDomesticModel.getDomesticModalDistance(t));
+                }
+            }else{
+                if (((LongDistanceTripGermany)t).getDestZoneType().equals(ZoneTypeGermany.EXTEU)){
+                    if (!((LongDistanceTripGermany)t).getTripState().equals(TypeGermany.AWAY)) {
+                        //domestic mode choice for synthetic persons in Germany
+                        Mode mode = mcEuropeModel.selectModeEurope(t);
+                        ((LongDistanceTripGermany)t).setMode(mode);
+                        ((LongDistanceTripGermany)t).setTravelTimeByMode(mcEuropeModel.getEuropeModalTravelTime(t));
+                        ((LongDistanceTripGermany)t).setDistanceByMode(mcEuropeModel.getEuropeModalDistance(t));
+                    } else {
+                        //for trips away we do not assign any mode because they are not travelling that they.
+                        //to avoid issues on the pie chart generation, we assign now auto mode to all
+                        Mode mode = ModeGermany.AUTO;
+                        ((LongDistanceTripGermany)t).setMode(mode);
+                        ((LongDistanceTripGermany)t).setTravelTimeByMode(mcEuropeModel.getEuropeModalTravelTime(t));
+                        ((LongDistanceTripGermany)t).setDistanceByMode(mcEuropeModel.getEuropeModalDistance(t));
+                    }
+
+                }else{
+                    //for trips to overseas we do not assign air mode
+                    Mode mode = ModeGermany.AIR;
+                    ((LongDistanceTripGermany)t).setMode(mode);
+                    ((LongDistanceTripGermany)t).setTravelTimeByMode(mcDomesticModel.getDomesticModalTravelTime(t));
+                    ((LongDistanceTripGermany)t).setDistanceByMode(mcDomesticModel.getDomesticModalDistance(t));
+                }
             }
         });
     }
@@ -879,16 +987,27 @@ public class CalibrationGermany implements ModelComponent {
         }
     }
 
-    public void printOutCalibrationResults(DomesticModeChoiceGermanyScenario domMc) {
+    public void printOutCalibrationResults(DomesticModeChoiceGermany domMc) {
 
         logger.info("Mode choice calibration");
         logger.info("model" + "\t" + "purpose" + "\t" + "mode" + "\t" + "factor");
-        Map<Purpose, Map<Type, Map<Mode, Double>>> mapMC;
-        mapMC = domMc.getCalibrationMatrix();
-        for (Purpose purpose : PurposeGermany.values()) {
-            for (Type tripState : TypeGermany.values()){
-                for (Mode mode : ModeGermany.values()) {
-                    logger.info(McModelName.domesticMc + "\t" + purpose + "\t" + tripState + "\t" + mode + "\t" + mapMC.get(purpose).get(tripState).get(mode));
+        Map<Purpose, Map<Type, Map<Mode, Double>>> mapDomesticMC;
+        mapDomesticMC = domMc.getCalibrationMatrix();
+        Map<Purpose, Map<Type, Map<Mode, Double>>> mapEuropeMC;
+        mapEuropeMC = domMc.getCalibrationMatrix();
+
+        for (McModelName name : McModelName.values()) {
+            for (Purpose purpose : PurposeGermany.values()) {
+                for (Type tripState : TypeGermany.values()){
+                    for (Mode mode : ModeGermany.values()) {
+                        if (name.equals(McModelName.domesticMc)){
+                            logger.info(name + "\t" + purpose + "\t" + tripState + "\t" + mode + "\t" + mapDomesticMC.get(purpose).get(tripState).get(mode));
+                        }else if(name.equals(McModelName.europeMc)){
+                            logger.info(name + "\t" + purpose + "\t" + tripState + "\t" + mode + "\t" + mapEuropeMC.get(purpose).get(tripState).get(mode));
+                        }else{
+                            System.out.println();
+                        }
+                    }
                 }
             }
         }
