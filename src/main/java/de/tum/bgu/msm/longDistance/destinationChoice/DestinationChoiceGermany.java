@@ -7,6 +7,7 @@ import de.tum.bgu.msm.longDistance.data.grids.GridGermany;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 
 import org.apache.log4j.Logger;
@@ -69,7 +70,7 @@ public class DestinationChoiceGermany implements DestinationChoice {
     @Override
     public void run(DataSet dataSet, int nThreads) {
         runDestinationChoice(dataSet);
-        //sampleDestinationMicrolocation(dataSet.getAllTrips(), dataSet);
+        sampleDestinationMicrolocation(dataSet.getAllTrips(), dataSet);
     }
 
     public void sampleDestinationMicrolocation(ArrayList<LongDistanceTrip> trips, DataSet dataSet){
@@ -85,46 +86,55 @@ public class DestinationChoiceGermany implements DestinationChoice {
     public void selectFromGrids(DataSet dataSet, LongDistanceTripGermany t){
         Map<Integer, List> gridMap = dataSet.getGrids();
 
-        int destZoneId = t.getDestZone().getId();
+        ZoneGermany destZone = (ZoneGermany) t.getDestZone();
+
+        t.setDestX(destZone.getZoneX());
+        t.setDestY(destZone.getZoneY());
+
+        int destZoneId = destZone.getId();
         List subGrid = gridMap.get(destZoneId);
 
-        double selPosition = Math.random();
-        double prob = 0.0;
+        if (gridMap.get(destZoneId).size()>0){
+            double selPosition = Math.random();
+            double prob = 0.0;
 
-        for (int i=0; i<subGrid.size(); i++){
-            GridGermany gg = (GridGermany) subGrid.get(i);
+            for (int i=0; i<subGrid.size(); i++){
+                GridGermany gg = (GridGermany) subGrid.get(i);
 
-            if (t.getTripPurpose().toString().equals(PurposeGermany.PRIVATE.toString()) | t.getTripPurpose().toString().equals(PurposeGermany.LEISURE.toString())){
+                if (t.getTripPurpose().toString().equals(PurposeGermany.PRIVATE.toString()) | t.getTripPurpose().toString().equals(PurposeGermany.LEISURE.toString())){
 
-                prob += gg.getPopDensity();
-                double destX = gg.getCoordX();
-                double destY = gg.getCoordY();
+                    prob += gg.getPopDensity();
+                    double destX = gg.getCoordX();
+                    double destY = gg.getCoordY();
 
-                if (prob >= selPosition){
-                    t.setDestX(destX);
-                    t.setDestY(destY);
-                    break;
-                }else if(i==gridMap.size()){
-                    t.setDestX(destX);
-                    t.setDestY(destY);
-                }
+                    if (prob >= selPosition){
+                        t.setDestX(destX);
+                        t.setDestY(destY);
+                        break;
+                    }else if(i==gridMap.size()){
+                        t.setDestX(destX);
+                        t.setDestY(destY);
+                    }
 
-            }else{
+                }else{
 
-                prob += gg.getJobDensity();
-                double destX = gg.getCoordX();
-                double destY = gg.getCoordY();
+                    prob += gg.getJobDensity();
+                    double destX = gg.getCoordX();
+                    double destY = gg.getCoordY();
 
-                if (prob >= selPosition){
-                    t.setDestX(destX);
-                    t.setDestY(destY);
-                    break;
-                }else if(i==gridMap.size()){
-                    t.setDestX(destX);
-                    t.setDestY(destY);
+                    if (prob >= selPosition){
+                        t.setDestX(destX);
+                        t.setDestY(destY);
+                        break;
+                    }else if(i==gridMap.size()){
+                        t.setDestX(destX);
+                        t.setDestY(destY);
+                    }
                 }
             }
         }
+
+
     }
 
 

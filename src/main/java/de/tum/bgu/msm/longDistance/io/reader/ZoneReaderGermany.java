@@ -109,6 +109,9 @@ public class ZoneReaderGermany implements ZoneReader {
             int area = (int) zoneTable.getIndexedValueAt(zone, "Area");
             boolean emptyZone = zoneTable.getIndexedValueAt(zone, "emptyZone") == 1;
             double touristsAtHotel = zoneTable.getIndexedValueAt(zone, "touristsAtHotel");
+            double xcoord = zoneTable.getIndexedValueAt(zone, "xcoord");
+            double ycoord = zoneTable.getIndexedValueAt(zone, "ycoord");
+
             //zones are created as empty as they are filled out using sp
             ZoneGermany internalZone = new ZoneGermany(zone, 0, 0, zoneType, area, AreaTypeGermany.valueOf(areaType), emptyZone);
             internalZone.setHotels(hotels);
@@ -116,6 +119,8 @@ public class ZoneReaderGermany implements ZoneReader {
             internalZone.addHouseholds(households);
             internalZone.addEmployment(jobs);
             internalZone.setTouristsAtHotel(touristsAtHotel);
+            internalZone.setZoneX(xcoord);
+            internalZone.setZoneY(ycoord);
             internalZoneList.add(internalZone);
         }
 

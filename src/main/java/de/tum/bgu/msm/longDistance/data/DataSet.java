@@ -339,6 +339,10 @@ public class DataSet {
         return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY)).collect(Collectors.toList());
     }
 
+    public List<Airport> getEuropeAirports(){
+        return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY) && airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTEU)).collect(Collectors.toList());
+    }
+
     public List<Airport> getOverseasAirports(){
         return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)).collect(Collectors.toList());
     }

@@ -33,6 +33,9 @@ public class ZoneGermany implements Zone {
 
 
 
+    private double zoneX =0;
+    private double zoneY =0;
+
     private boolean emptyZone = false;
 
     public ZoneGermany(int id, int population, int employment, ZoneTypeGermany zoneType, int area,
@@ -162,6 +165,22 @@ public class ZoneGermany implements Zone {
 
     public void setEmptyZone(boolean emptyZone) {
         this.emptyZone = emptyZone;
+    }
+
+    public double getZoneX() {
+        return zoneX;
+    }
+
+    public void setZoneX(double zoneX) {
+        this.zoneX = zoneX;
+    }
+
+    public double getZoneY() {
+        return zoneY;
+    }
+
+    public void setZoneY(double zoneY) {
+        this.zoneY = zoneY;
     }
 }
 
