@@ -84,19 +84,19 @@ public final class AirportAnalysis implements ModelComponent {
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
-        airportsInput = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.airportList_file"));
-        flightsInput = Util.readCSVfile(JsonUtilMto.getStringProp(prop,"airport.flightList_file"));
-        airportDistance = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.distance_file"));
+        airportsInput = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "airport.airportList_file"));
+        flightsInput = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"airport.flightList_file"));
+        airportDistance = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "airport.distance_file"));
         airportDistance.buildStringIndex(airportDistance.getColumnPosition("ID"));
         detourFactorEU = JsonUtilMto.getFloatProp(prop, "airport.detour_factor_EU");
         detourFactorOVERSEAS = JsonUtilMto.getFloatProp(prop, "airport.detour_factor_OVERSEAS");
         cruiseSpeed = JsonUtilMto.getFloatProp(prop,"airport.cruise_speed");
-        ascendingTime = JsonUtilMto.getIntProp(prop, "airport.ascending_time");
-        descendingTime = JsonUtilMto.getIntProp(prop, "airport.descending_time");
+        ascendingTime = JsonUtilMto.getIntProp(prop, "airport.ascending_time_min");
+        descendingTime = JsonUtilMto.getIntProp(prop, "airport.descending_time_min");
         fileNameAirports = JsonUtilMto.getStringProp(prop, "airport.airportOutput_file");
         fileNameLegs = JsonUtilMto.getStringProp(prop, "airport.legOutput_file");
         fileNameFlights = JsonUtilMto.getStringProp(prop, "airport.flightsOutput_file");
-        transferTimes = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.transferTime_file"));
+        transferTimes = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "airport.transferTime_file"));
         transferTimes.buildIndex(transferTimes.getColumnPosition("id_hub"));
         fileNameOmxFirstLeg = JsonUtilMto.getStringProp(prop, "airport.omxOutputfirstLeg_file");
         fileNameOmxSecondLeg = JsonUtilMto.getStringProp(prop, "airport.omxOutputsecondLeg_file");
@@ -109,10 +109,10 @@ public final class AirportAnalysis implements ModelComponent {
         fileNameOmxSecondLegDistance = JsonUtilMto.getStringProp(prop, "airport.omxOutputsecondLegDistance_file");
         fileNameOmxTotal = JsonUtilMto.getStringProp(prop, "airport.omxOutputtotal_file");
         fileNameOmxDistance = JsonUtilMto.getStringProp(prop, "airport.omxOutputDistance_file");
-        midTrips = Util.readCSVfile(JsonUtilMto.getStringProp(prop, "airport.mid_trips_file"));
+        midTrips = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "airport.mid_trips_file"));
         fileNameTripsOutput = JsonUtilMto.getStringProp(prop, "airport.mid_trips_output_file");
-        boardingTime = JsonUtilMto.getIntProp(prop, "airport.boardingTime");
-        postprocessTime = JsonUtilMto.getIntProp(prop, "airport.postProcessTime");
+        boardingTime = JsonUtilMto.getIntProp(prop, "airport.boardingTime_min");
+        postprocessTime = JsonUtilMto.getIntProp(prop, "airport.postProcessTime_min");
         logger.info("Airport analysis set up");
     }
 
@@ -371,25 +371,25 @@ public final class AirportAnalysis implements ModelComponent {
         selectedTimes = new TableDataSet();
         int[] selectedOrigins = new int[]{7698, 6645, 6475, 6663, 8605}  ;//Nuremberg, Freising, Altsatdt Muc, Hallbergmoos, Berlin;
 
-        selectedTimes = addIntegerColumnToTableDataSet(selectedTimes,"TAZ_id", 11869);
-        selectedTimes = addIntegerColumnToTableDataSet(selectedTimes,"CarTravelTime", 11869);
+        selectedTimes = addIntegerColumnToTableDataSet(selectedTimes,"TAZ_id", 11875);
+        selectedTimes = addIntegerColumnToTableDataSet(selectedTimes,"CarTravelTime", 11875);
         for (int zonr : dataSet.getZones().keySet()){
 
             selectedTimes.setValueAt(zonr, "TAZ_id", zonr);
-            if (zonr < 11865) {
+            if (zonr < 11876) {
                 float carTime = dataSet.getAutoTravelTime(6645, zonr);;
                 selectedTimes.setValueAt(zonr, "CarTravelTime", carTime);
             }
         }
         selectedTimes.buildIndex(selectedTimes.getColumnPosition("TAZ_id"));
         for (int origin : selectedOrigins){
-            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, Integer.toString(origin), 11869);
-            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "accessTime" + Integer.toString(origin), 11869);
-            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "firstFlightTime" + Integer.toString(origin), 11869);
-            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "secondFlightTime" + Integer.toString(origin), 11869);
-            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "transferTime" + Integer.toString(origin), 11869);
-            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "egressTime" + Integer.toString(origin), 11869);
-            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "totalTime" + Integer.toString(origin), 11869);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, Integer.toString(origin), 11875);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "accessTime" + Integer.toString(origin), 11875);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "firstFlightTime" + Integer.toString(origin), 11875);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "secondFlightTime" + Integer.toString(origin), 11875);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "transferTime" + Integer.toString(origin), 11875);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "egressTime" + Integer.toString(origin), 11875);
+            selectedTimes = addIntegerColumnToTableDataSet(selectedTimes, "totalTime" + Integer.toString(origin), 11875);
             for (int zonr : dataSet.getZones().keySet()){
                 selectedTimes.setValueAt(zonr, "accessTime" + Integer.toString(origin), accessTime.getValueAt(origin, zonr));
                 selectedTimes.setValueAt(zonr, "firstFlightTime" + Integer.toString(origin), firstLegTime.getValueAt(origin, zonr));
@@ -434,11 +434,11 @@ public final class AirportAnalysis implements ModelComponent {
 
     private float getTotalTravelTime(DataSet dataSet, int originZoneId, int destinationZoneId, Airport originAirport, Airport destinationAirport) {
         float travelTimeBetweenAirports = dataSet.getFligthFromId(connectedAirports.get(originAirport).get(destinationAirport).get("flightId")).getTime() ;
-        if (originZoneId < 11868) {
+        if (originZoneId < 11876) {
             travelTimeBetweenAirports = travelTimeBetweenAirports +
                     dataSet.getAutoTravelTime(originZoneId, originAirport.getZone().getId());
         }
-        if (destinationZoneId < 11868) {
+        if (destinationZoneId < 11876) {
             travelTimeBetweenAirports = travelTimeBetweenAirports +
                     dataSet.getAutoTravelTime(destinationAirport.getZone().getId(), destinationZoneId);
         }
@@ -460,12 +460,12 @@ public final class AirportAnalysis implements ModelComponent {
                 times[8] = times[8] + legs.get(1).getDistance();
                 times[10] = legs.get(1).getDistance();
             }
-            if (originZoneId < 11868) {
+            if (originZoneId < 11876) {
                 times[3] = dataSet.getAutoTravelTime(originZoneId, originAirport.getZone().getId());
             } else {
                 times[3] = 0;
             }
-            if (destinationZoneId < 11868) {
+            if (destinationZoneId < 11876) {
                 times[4] = dataSet.getAutoTravelTime(destinationAirport.getZone().getId(), destinationZoneId);
             } else {
                 times[4] = 0;

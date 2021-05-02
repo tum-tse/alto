@@ -92,7 +92,7 @@ public final class AirTripsGeneration implements ModelComponent {
         logger.info("Running Air Trip Generation Model for " + trips.size() + " trips");
         AtomicInteger counter = new AtomicInteger(0);
         trips.parallelStream().forEach(t -> {
-            if (! ((LongDistanceTripGermany)t).isInternational()) {
+            if (! ((LongDistanceTripGermany)t).getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
                 obtainAirRoute(dataSet, t);
             }
         });
@@ -118,6 +118,7 @@ public final class AirTripsGeneration implements ModelComponent {
                 airRoute = assignIntrazonalTrip();
 
             } else {
+
                 //not in the catchment area of the same airport
                 Airport originAirport = dataSet.getAirportFromId(originZone.getClosestAirportId());
                 Airport destinationAirport = dataSet.getAirportFromId(destinationZone.getClosestAirportId());
@@ -201,18 +202,26 @@ public final class AirTripsGeneration implements ModelComponent {
                     float minTravelTime = Math.min(Math.min(Math.min(Math.min(Math.min(travelTimeBetweenMainAndAirport, travelTimeFromHubOrigin), travelTimeFromHubDestination),
                             travelTimeBetweenHubs), travelTimeBetweenMainAirports), travelTimeBetweenAirportAndMain);
 
+
+
                     if (minTravelTime < Float.MAX_VALUE) {
                         if (minTravelTime == travelTimeBetweenMainAndAirport) {
+                            System.out.println("209: "+originMain.getId()+" / "+destinationMain.getId());
                             airRoute = assignRoute(dataSet, originMain, destinationMain, originZoneId, destinationZoneId);
                         } else if (minTravelTime == travelTimeFromHubOrigin) {
+                            System.out.println("212: "+originHub.getId()+" / "+destinationAirport.getId());
                             airRoute = assignRoute(dataSet, originHub, destinationAirport, originZoneId, destinationZoneId);
                         } else if (minTravelTime == travelTimeFromHubDestination) {
+                            System.out.println("215: "+originAirport.getId()+" / "+destinationHub.getId());
                             airRoute = assignRoute(dataSet, originAirport, destinationHub, originZoneId, destinationZoneId);
                         } else if (minTravelTime == travelTimeBetweenHubs) {
+                            System.out.println("218: "+originHub.getId()+" / "+destinationHub.getId());
                             airRoute = assignRoute(dataSet, originHub, destinationHub, originZoneId, destinationZoneId);
                         } else if (minTravelTime == travelTimeBetweenAirportAndMain) {
+                            System.out.println("221: "+originAirport.getId()+" / "+destinationMain.getId());
                             airRoute = assignRoute(dataSet, originAirport, destinationMain, originZoneId, destinationZoneId);
                         } else {
+                            System.out.println("224: "+originMain.getId()+" / "+destinationMain.getId());
                             airRoute = assignRoute(dataSet, originMain, destinationMain, originZoneId, destinationZoneId);
                         }
                     } else {
@@ -236,11 +245,11 @@ public final class AirTripsGeneration implements ModelComponent {
 
     private float getTotalTravelTime(DataSet dataSet, int originZoneId, int destinationZoneId, Airport originAirport, Airport destinationAirport) {
         float travelTimeBetweenAirports = dataSet.getFligthFromId(connectedAirports.get(originAirport).get(destinationAirport).get("flightId")).getTime() ;
-        if (originZoneId < 11868) {
+        if (originZoneId < 11876) {
             travelTimeBetweenAirports = travelTimeBetweenAirports +
                     dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(originZoneId, originAirport.getZone().getId());
         }
-        if (destinationZoneId < 11868) {
+        if (destinationZoneId < 11876) {
             travelTimeBetweenAirports = travelTimeBetweenAirports +
                     dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destinationZoneId);
         }
@@ -252,6 +261,15 @@ public final class AirTripsGeneration implements ModelComponent {
 
         Map<String, Float> airRoute = new HashMap<>();
         if (originAirport.getId() != destinationAirport.getId()) {
+
+//            if (dataSet.getFligthFromId(connectedAirports.get(originAirport).get(destinationAirport).get("flightId")).getLegs()==null){
+//                System.out.println("no connection found: from "+ originAirport+ " to "+destinationAirport);
+//                System.out.println("From zone: " + originZoneId + " to " + destinationZoneId);
+//                airRoute = assignIntrazonalTrip();
+//            }
+
+
+
             List<AirLeg> legs = dataSet.getFligthFromId(connectedAirports.get(originAirport).get(destinationAirport).get("flightId")).getLegs();
             airRoute.put("originAirport", (float) originAirport.getId());
             airRoute.put("destinationAirport", (float) destinationAirport.getId());
@@ -267,12 +285,19 @@ public final class AirTripsGeneration implements ModelComponent {
                 distance_m = distance_m + leg.getDistance();
             }
             time_sec = time_sec + boardingTime_sec + postprocessTime_sec;
+            airRoute.put("flightTime", (float) time_sec);
+            airRoute.put("flightDistance", (float) distance_m);
             time_sec = time_sec + dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(originZoneId, originAirport.getId());
             time_sec = time_sec + dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), destinationZoneId);
             distance_m = distance_m + dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(originZoneId, originAirport.getId());
             distance_m = distance_m + dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), destinationZoneId);
+            airRoute.put("accessTime2Airport", dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(originZoneId, originAirport.getId()));
+            airRoute.put("egressTimeFromAirport", dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), destinationZoneId));
+            airRoute.put("accessDistance2Airport", dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(originZoneId, originAirport.getId()));
+            airRoute.put("egressDistanceFromAirport", dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), destinationZoneId));
             airRoute.put("totalTime_sec", (float) time_sec);
-            airRoute.put("totalDistance_sec", (float) distance_m);
+            airRoute.put("totalDistance_m", (float) distance_m);
+
         } else {
             airRoute = assignIntrazonalTrip();
         }
@@ -545,6 +570,7 @@ public final class AirTripsGeneration implements ModelComponent {
 
         List<Airport> mainAirports = dataSet.getMainAirports();
         List<Airport> germanAirports = dataSet.getGermanAirports();
+        List<Airport> europeAirports = dataSet.getEuropeAirports();
         List<Airport> overseasAirports = dataSet.getOverseasAirports();
 
         for (Airport airport : mainAirports){
@@ -590,13 +616,13 @@ public final class AirTripsGeneration implements ModelComponent {
                         if (airport.getAirportDestinationType().equals(AirportDestinationType.DOMESTIC_AND_INTERNATIONAL)) {
                             if (dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId()) < distMainAirport) {
                                 distMainAirport = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId());
-                                idClosestMainAirport = airport.getId();
+                                idClosestMainAirport = airport.getMainAirportId();
                             }
                         }
                         if (airport.getAirportType().equals(AirportType.HUB)) {
                             if (dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId()) < distHub) {
                                 distHub = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId());
-                                idClosestHub = airport.getId();
+                                idClosestHub = airport.getHubAirportId();
                             }
                         }
                     }
@@ -604,24 +630,30 @@ public final class AirTripsGeneration implements ModelComponent {
 
             } else if (zone.getZoneType().equals(ZoneTypeGermany.EXTEU)) {
 
-                for (Airport airport : mainAirports) {
+                for (Airport airport : europeAirports) {
                     if (!airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
+
                         if (dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId()) < distMin) {
                             distMin = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), airport.getZone().getId());
                             idClosestAirport = airport.getId();
-                            idClosestMainAirport = airport.getId();
-                            idClosestHub = airport.getId();
+                        }
+                        if (dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), europeAirports.get(airport.getZone().getClosestMainAirportId()).getId()) < distMainAirport) {
+                                distMainAirport = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), europeAirports.get(airport.getZone().getClosestMainAirportId()).getId());
+                                idClosestMainAirport = airport.getMainAirportId();
+                        }
+                        if (dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), europeAirports.get(airport.getZone().getClosestHubId()).getId()) < distHub) {
+                                distHub = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(zone.getId(), europeAirports.get(airport.getZone().getClosestHubId()).getId());
+                                idClosestHub = airport.getHubAirportId();
                         }
                     }
                 }
-
             } else {
                 //overseas
                 for (Airport airport : overseasAirports) {
                     if (airport.getZone().getId() == zone.getId()) {
                         idClosestAirport = airport.getId();
-                        idClosestMainAirport = airport.getId();
-                        idClosestHub = airport.getId();
+                        idClosestMainAirport = airport.getMainAirportId();
+                        idClosestHub = airport.getHubAirportId();
                     }
                 }
             }
@@ -642,6 +674,7 @@ public final class AirTripsGeneration implements ModelComponent {
             zone.setClosestAirportId(idClosestAirport);
             zone.setClosestMainAirportId(idClosestMainAirport);
             zone.setClosestHubId(idClosestHub);
+
         }
 
     }
