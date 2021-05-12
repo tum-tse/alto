@@ -500,7 +500,7 @@ public class CalibrationGermany implements ModelComponent {
 
         Map<Type, Map<ZoneType, Map<Purpose, Double>>> calibrationMatrix = new HashMap<>();
 
-        double stepFactor = 0.1;
+        double stepFactor = 1;
 
         //hard coded for calibration
         for (Type tripState : TypeGermany.values()){
@@ -521,19 +521,19 @@ public class CalibrationGermany implements ModelComponent {
         }
 
         // Daytrip: domestic + international
-        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.PRIVATE) / 209.24 - 1) * stepFactor + 1);
-        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.BUSINESS) / 198.98 - 1) * stepFactor + 1);
-        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.LEISURE) / 190.79 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.PRIVATE) / 204.9432 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.BUSINESS) / 179.8118 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.DAYTRIP).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.LEISURE) / 177.0700 - 1) * stepFactor + 1);
 
         // Overnight: domestic
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.PRIVATE) / 226.69 - 1) * stepFactor + 1);
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.BUSINESS) / 258.21 - 1) * stepFactor + 1);
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.LEISURE) / 229.18 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.PRIVATE) / 226.6907 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.BUSINESS) / 258.2142 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.GERMANY).get(PurposeGermany.LEISURE) / 229.1746 - 1) * stepFactor + 1);
 
         //Overnight: europe
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.PRIVATE) / 887.36 - 1) * stepFactor + 1);
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.BUSINESS) / 971.76 - 1) * stepFactor + 1);
-        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.LEISURE) / 1228.34 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.PRIVATE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.PRIVATE) / 887.3590 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.BUSINESS, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.BUSINESS) / 971.7639 - 1) * stepFactor + 1);
+        calibrationMatrix.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).put(PurposeGermany.LEISURE, (averageDistances.get(TypeGermany.OVERNIGHT).get(ZoneTypeGermany.EXTEU).get(PurposeGermany.LEISURE) / 1228.3408 - 1) * stepFactor + 1);
 
 
         //Overnight: overseas
@@ -716,19 +716,19 @@ public class CalibrationGermany implements ModelComponent {
         surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.RAIL, 0.086669);
         surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.DAYTRIP).putIfAbsent(ModeGermany.BUS, 0.010031);
 
-        //B1_Reise was used
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.650794);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.095935);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.241776);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.011494);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.783559);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.011633);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.152456);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.052353);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.661455);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.020347);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.287439);
-        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.030758);
+        //B3_Wege was used	                                                                          /
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.700504);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.104353);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.169873);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.025270);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.738275);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.059646);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.135445);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.066634);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.794953);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.003254);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.157058);
+        surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.044735);
 
         surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AUTO, 1.);
         surveyShares.get(McModelName.domesticMc).get(PurposeGermany.BUSINESS).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.AIR, 0.);
@@ -743,7 +743,7 @@ public class CalibrationGermany implements ModelComponent {
         surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.RAIL, 0.);
         surveyShares.get(McModelName.domesticMc).get(PurposeGermany.PRIVATE).get(TypeGermany.AWAY).putIfAbsent(ModeGermany.BUS, 0.);
 
-        //europe
+        ////B1_Reise was used
         surveyShares.putIfAbsent(McModelName.europeMc, new HashMap<>());
 
         surveyShares.get(McModelName.europeMc).putIfAbsent(PurposeGermany.BUSINESS, new HashMap<>());
@@ -782,8 +782,8 @@ public class CalibrationGermany implements ModelComponent {
         surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.378352);
         surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.060910);
         surveyShares.get(McModelName.europeMc).get(PurposeGermany.LEISURE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.065480);
-        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.353198);
-        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.416289);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AUTO, 0.416289);
+        surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.AIR, 0.353198);
         surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.RAIL, 0.145242);
         surveyShares.get(McModelName.europeMc).get(PurposeGermany.PRIVATE).get(TypeGermany.OVERNIGHT).putIfAbsent(ModeGermany.BUS, 0.085271);
 
