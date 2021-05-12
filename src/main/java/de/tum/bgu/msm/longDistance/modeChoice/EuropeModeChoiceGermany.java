@@ -139,10 +139,10 @@ public class EuropeModeChoiceGermany {
                     time = time + dataSet.getTransferTimeAirport().get(legs.get(0).getDestination());
                 }
                 time = time + dataSet.getBoardingTime_sec() + dataSet.getPostprocessTime_sec();
-                time = time + dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getId());
-                time = time + dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), destination);
-                distanceAccessEgress = distanceAccessEgress + dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getId());
-                distanceAccessEgress = distanceAccessEgress + dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), destination);
+                //time = time + dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getId());
+                //time = time + dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), destination);
+                //distanceAccessEgress = distanceAccessEgress + dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getId());
+                //distanceAccessEgress = distanceAccessEgress + dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), destination);
                 dataSet.getTravelTimeMatrix().get(m).setValueAt(origin, destination, (float) time);
                 time = time / 3600;
                 distance = distance / 1000;
@@ -156,12 +156,12 @@ public class EuropeModeChoiceGermany {
                 double cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
                         Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()) )
                         * distance;
-                if (m.equals(ModeGermany.AIR)) {
-                    float increaseAirCost = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"cost");
-                    cost = cost * increaseAirCost;
-                    cost = cost + distanceAccessEgress / 1000 * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
-                            Math.pow(distanceAccessEgress / 1000 , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
-                }
+                //if (m.equals(ModeGermany.AIR)) {
+                //    float increaseAirCost = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"cost");
+                //    cost = cost * increaseAirCost;
+                //    cost = cost + distanceAccessEgress / 1000 * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
+                //            Math.pow(distanceAccessEgress / 1000 , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
+                //}
                 impedance = cost / (vot) + time;
                 attr.put("cost_"+ m.toString(), (float) cost);
                 attr.put("time_" + m.toString(), (float) time);
@@ -221,25 +221,6 @@ public class EuropeModeChoiceGermany {
                     b_impedance * Math.exp(alpha_impedance * impedance * 60) +
                     k_calibration
             ;
-            if (m.equals(ModeGermany.AIR)) {
-                float airDistanceThreshold = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"distance");
-                if (distance < airDistanceThreshold) {
-                    utility = Double.NEGATIVE_INFINITY;
-                }
-                float limitNoFastestAir = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"limSpeed");
-                if (limitNoFastestAir == 1){
-                    if (time > dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(origin, destination) ||
-                            time > dataSet.getTravelTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) ||
-                            time > dataSet.getTravelTimeMatrix().get(ModeGermany.BUS).getValueAt(origin, destination)){
-                        utility = Double.NEGATIVE_INFINITY;
-                    }
-                }
-
-                if (time == 1000){
-                    utility = Double.NEGATIVE_INFINITY;
-                }
-                //}
-            }
 
         } else {
             utility = Double.NEGATIVE_INFINITY;
