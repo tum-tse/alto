@@ -44,8 +44,13 @@ public class DomesticTripGenerationGermany {
     public DomesticTripGenerationGermany(JSONObject prop, String inputFolder, String outputFolder) {
         this.rb = rb;
         this.prop = prop;
+        int holiday = JsonUtilMto.getBooleanProp(prop, "holiday" )? 1:0;
+        if(holiday==1){
+            tripGenerationCoefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"trip_generation.domestic.coef_file_holiday"));
+        }else{
+            tripGenerationCoefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"trip_generation.domestic.coef_file_weekday"));
+        }
 
-        tripGenerationCoefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"trip_generation.domestic.coef_file"));
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
         tripGenerationCoefficients.buildStringIndex(tripGenerationCoefficients.getColumnPosition("factorName"));
 
