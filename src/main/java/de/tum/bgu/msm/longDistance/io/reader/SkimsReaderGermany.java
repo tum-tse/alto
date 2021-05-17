@@ -60,25 +60,25 @@ public class SkimsReaderGermany implements SkimsReader {
         this.prop = prop;
 
         //AUTO:
-        travelTimeFileNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.time_file_auto"));
-        travelTimeMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_auto"));
-        distanceFileNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.distance_file_auto"));
-        distanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_auto"));
+        travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
+        distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
+        travelTimeMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixTime_auto"));
+        distanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixDistance_auto"));
         lookUps.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup"));
 
         //RAIL:
-        inPtTimeFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
-        accessTimeFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
-        egressTimeFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
-        distanceFileNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        inPtTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        accessTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        egressTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        distanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
         distanceMatrixNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
         lookUps.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
-        accessToTrainFileName = JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
+        accessToTrainFileName = inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
         //BUS:
-        inPtTimeFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
-        accessTimeFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
-        egressTimeFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
-        distanceFileNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        inPtTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        accessTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        egressTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
+        distanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
         distanceMatrixNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
         lookUps.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
         //AIR:
@@ -168,6 +168,7 @@ public class SkimsReaderGermany implements SkimsReader {
 
     private void readSkimByMode(DataSet dataSet) {
 
+        Map<String, Matrix> modeMatrixMap = new HashMap<>();
         Map<Mode, Matrix> modeTimeMatrixMap = new HashMap<>();
         Map<Mode, Matrix> modeDistanceMatrixMap = new HashMap<>();
 
@@ -178,13 +179,20 @@ public class SkimsReaderGermany implements SkimsReader {
 
         m = ModeGermany.AUTO;
         Matrix autoTravelTime = omxToMatrix(travelTimeFileNames.get(m), travelTimeMatrixNames.get(m), lookUps.get(m));
-        modeTimeMatrixMap.put(m, autoTravelTime);
-        dataSet.setAutoTravelTime(autoTravelTime);
+
         time = logReading(time, "car time");
         Matrix autoDistance = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-        modeDistanceMatrixMap.put(m, autoDistance);
-        dataSet.setAutoTravelDistance(autoDistance); //for safety and compatibility
         time = logReading(time, "car distance");
+
+        modeMatrixMap = assignIntrazonalTravelTimes(autoTravelTime, autoDistance, m,5,10*60,0.33F);
+        time = logReading(time, "car intrazonals");
+
+        modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
+        modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
+
+        dataSet.setAutoTravelTime(modeMatrixMap.get("travelTime"));
+        dataSet.setAutoTravelDistance(modeMatrixMap.get("distance")); //for safety and compatibility
+
 
         m = ModeGermany.AIR;
         //initialize empty matrices
@@ -212,10 +220,14 @@ public class SkimsReaderGermany implements SkimsReader {
         matricesBus.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
         time = logReading(time, "bus egress");
         Matrix totalTravelTimeBus = sumMatrices(matricesBus);
-        modeTimeMatrixMap.put(m, totalTravelTimeBus);
         Matrix distanceBus = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-        modeDistanceMatrixMap.put(m, distanceBus);
         time = logReading(time, "bus distance");
+
+        modeMatrixMap = assignIntrazonalTravelTimes(totalTravelTimeBus, distanceBus, m,5,10*60,0.33F);
+        time = logReading(time, "bus intrazonals");
+
+        modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
+        modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
 
         m = ModeGermany.RAIL;
         List<Matrix> matricesRail = new ArrayList<>();
@@ -226,14 +238,18 @@ public class SkimsReaderGermany implements SkimsReader {
         matricesRail.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
         time = logReading(time, "rail egress");
         Matrix totalTravelTimeRail = sumMatrices(matricesRail);
-        modeTimeMatrixMap.put(m, totalTravelTimeRail);
         Matrix distanceRail = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-        modeDistanceMatrixMap.put(m, distanceRail);
         time = logReading(time, "rail distance");
-        //todo is this not the same as the one above called access_time_s?
-        readTimeToRail(dataSet, accessToTrainFileName, "mat1", "lookup1");
-        time = logReading(time, "access to train");
 
+        modeMatrixMap = assignIntrazonalTravelTimes(totalTravelTimeRail, distanceRail, m,5,10*60,0.33F);
+        time = logReading(time, "rail intrazonals");
+
+        modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
+        modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
+
+        // added the access time of each zone to ld rail station
+        readTimeToRail(matricesRail.get(1), dataSet, 5, 10*60, 1);
+        time = logReading(time, "access to train");
 
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
         dataSet.setDistanceMatrix(modeDistanceMatrixMap);
@@ -332,10 +348,10 @@ public class SkimsReaderGermany implements SkimsReader {
 //        return travelTime;
 //    }
 
-    private Matrix assignIntrazonalTravelTimes(Matrix matrix, Mode mode) {
+    private Map<String, Matrix> assignIntrazonalTravelTimes(Matrix travelTimeMatrix, Matrix distanceMatrix, Mode mode, int numberOfNeighbours, float maximumSeconds, float proportionOfTime) {
 
+        float speed = 30; //km/h
         if (!ModeGermany.AIR.equals(mode)) {
-            float speed = 30; //km/h
             if (ModeGermany.AUTO.equals(mode)) {
                 speed = 30;
             } else if (ModeGermany.RAIL.equals(mode)) {
@@ -343,13 +359,66 @@ public class SkimsReaderGermany implements SkimsReader {
             } else if (ModeGermany.BUS.equals(mode)) {
                 speed = 15;
             }
-            for (int zoneId : dataSet.getZones().keySet()) {
-                int minDistance = ((ZoneGermany) dataSet.getZones().get(zoneId)).getArea();
-                matrix.setValueAt(zoneId, zoneId, (float) Math.sqrt(minDistance / 3.14) / speed);
+        }
+
+        int nonIntrazonalCounter = 0;
+        for (int i = 0; i < travelTimeMatrix.getColumnCount(); i++) {
+            int i_id = travelTimeMatrix.getInternalColumnNumber(i);
+            double[] minTimeValues = new double[numberOfNeighbours];
+            double[] minDistValues = new double[numberOfNeighbours];
+            for (int k = 0; k < numberOfNeighbours; k++) {
+                minTimeValues[k] = maximumSeconds;
+                minDistValues[k] = maximumSeconds / 60 * speed; //maximum distance results from maximum time at 50 km/h
+            }
+            //find the  n closest neighbors - the lower travel time values in the matrix column
+            for (int j = 0; j < travelTimeMatrix.getRowCount(); j++) {
+                int j_id = travelTimeMatrix.getInternalRowNumber(j);
+                int minimumPosition = 0;
+                while (minimumPosition < numberOfNeighbours) {
+                    if (minTimeValues[minimumPosition] > travelTimeMatrix.getValueAt(i_id, j_id) && travelTimeMatrix.getValueAt(i_id, j_id) != 0) {
+                        for (int k = numberOfNeighbours - 1; k > minimumPosition; k--) {
+                            minTimeValues[k] = minTimeValues[k - 1];
+                            minDistValues[k] = minDistValues[k - 1];
+
+                        }
+                        minTimeValues[minimumPosition] = travelTimeMatrix.getValueAt(i_id, j_id);
+                        minDistValues[minimumPosition] = distanceMatrix.getValueAt(i_id, j_id);
+
+                        break;
+                    }
+                    minimumPosition++;
+                }
+            }
+            float globalMinTime = 0;
+            float globalMinDist = 0;
+            for (int k = 0; k < numberOfNeighbours; k++) {
+                globalMinTime += minTimeValues[k];
+                globalMinDist += minDistValues[k];
+            }
+            globalMinTime = globalMinTime / numberOfNeighbours * proportionOfTime;
+            globalMinDist = globalMinDist / numberOfNeighbours * proportionOfTime;
+
+            //fill with the calculated value the cells with zero
+            for (int j = 0; j < travelTimeMatrix.getRowCount(); j++) {
+                int j_id = travelTimeMatrix.getInternalColumnNumber(j);
+                if (travelTimeMatrix.getValueAt(i_id, j_id) == 0) {
+                    travelTimeMatrix.setValueAt(i_id, j_id, globalMinTime);
+                    distanceMatrix.setValueAt(i, j, globalMinDist);
+                    if (i != j) {
+                        nonIntrazonalCounter++;
+                    }
+                }
             }
         }
-        logger.info("Calculated intrazonal values - nearest neighbour");
-        return matrix;
+        logger.info("Calculated intrazonal times and distances using the " + numberOfNeighbours + " nearest neighbours and maximum minutes of " + maximumSeconds/60 +".");
+        logger.info("The calculation of intrazonals has also assigned values for cells with travel time equal to 0, that are not intrazonal: (" +
+                nonIntrazonalCounter + " cases).");
+
+        Map<String, Matrix> modeMatrixMap = new HashMap<>();
+        modeMatrixMap.put("travelTime", travelTimeMatrix);
+        modeMatrixMap.put("distance", distanceMatrix);
+
+        return modeMatrixMap;
     }
 
 
@@ -370,41 +439,43 @@ public class SkimsReaderGermany implements SkimsReader {
     }
 
 
-    private static void readTimeToRail(DataSet dataSet, String fileName, String matrixName, String lookUpName) {
+    private static void readTimeToRail(Matrix accessTimeMatrix, DataSet dataSet, int numberOfNeighbours, float maximumSeconds, float proportionOfTime) {
 
-        OmxFile skim = new OmxFile(fileName);
-        skim.openReadOnly();
-        OmxMatrix omxMatrix = skim.getMatrix(matrixName);
-        OmxLookup omxLookUp = skim.getLookup(lookUpName);
-        int[] externalNumbers = (int[]) omxLookUp.getLookup();
 
-        OmxHdf5Datatype.OmxJavaType type = omxMatrix.getOmxJavaType();
-        int[] dimensions = omxMatrix.getShape();
-        if (type.equals(OmxHdf5Datatype.OmxJavaType.FLOAT)) {
-            float[][] fArray = (float[][]) omxMatrix.getData();
-            float minDistance;
-            for (int i = 0; i < dimensions[0]; i++) {
-                minDistance = 100000f;
-                for (int j = 0; j < dimensions[1]; j++) {
-                    if (fArray[i][j] > 0 && fArray[i][j] < minDistance) {
-                        minDistance = fArray[i][j];
-                    }
-                }
-                ((ZoneGermany) dataSet.getZones().get(externalNumbers[i])).setTimeToLongDistanceRail(minDistance);
+        int nonIntrazonalCounter = 0;
+        for (int i = 0; i < accessTimeMatrix.getColumnCount(); i++) {
+            int i_id = accessTimeMatrix.getExternalColumnNumber(i); //deleted
+
+            double[] minTimeValues = new double[numberOfNeighbours];
+            for (int k = 0; k < numberOfNeighbours; k++) {
+                minTimeValues[k] = maximumSeconds;
             }
-        } else if (type.equals(OmxHdf5Datatype.OmxJavaType.DOUBLE)) {
-            double[][] dArray = (double[][]) omxMatrix.getData();
-            double minDistance;
-            for (int i = 0; i < dataSet.getZones().keySet().size() - 1; i++) {
-                minDistance = 100000f;
-                for (int j = 0; j < dimensions[1]; j++) {
-                    if (dArray[i][j] > 0 && dArray[i][j] < minDistance) {
-                        minDistance = dArray[i][j];
+            //find the  n closest neighbors - the lower travel time values in the matrix column
+            for (int j = 0; j< accessTimeMatrix.getRowCount(); j++) {
+                int j_id = accessTimeMatrix.getExternalRowNumber(j);
+
+                int minimumPosition = 0;
+                while (minimumPosition < numberOfNeighbours) {
+                    if (minTimeValues[minimumPosition] > accessTimeMatrix.getValueAt(i_id, j_id) && accessTimeMatrix.getValueAt(i_id, j_id) != 0) {
+                        for (int k = numberOfNeighbours - 1; k > minimumPosition; k--) {
+                            minTimeValues[k] = minTimeValues[k - 1];
+                        }
+                        minTimeValues[minimumPosition] = accessTimeMatrix.getValueAt(i_id, j_id);
+                        break;
                     }
+                    minimumPosition++;
                 }
-                ((ZoneGermany) dataSet.getZones().get(externalNumbers[i])).setTimeToLongDistanceRail((float) minDistance);
             }
+            float globalMinTime = 0;
+            for (int k = 0; k < numberOfNeighbours; k++) {
+                globalMinTime += minTimeValues[k];
+            }
+            globalMinTime = globalMinTime / numberOfNeighbours * proportionOfTime;
+
+            //fill with the calculated value the cells with zero
+            ((ZoneGermany) dataSet.getZones().get(i_id)).setTimeToLongDistanceRail(globalMinTime);
         }
+        logger.info("Added rail access time using the " + numberOfNeighbours + " nearest neighbours and maximum minutes of " + maximumSeconds/60 +".");
 
     }
 

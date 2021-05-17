@@ -5,7 +5,8 @@ public enum AreaTypeGermany {
     CITY (20),
     MEDIUM_SIZED_CITY(30),
     TOWN(40),
-    RURAL(50);
+    RURAL(50),
+    NOT_AVAILABLE(-999);
 
     private final int code;
 
@@ -25,6 +26,8 @@ public enum AreaTypeGermany {
                 return TOWN;
             case 50:
                 return RURAL;
+            case -999:
+                return NOT_AVAILABLE;
             default:
                 throw new RuntimeException("Area Type for code " + code + " not specified in SGtyp classification.");
         }

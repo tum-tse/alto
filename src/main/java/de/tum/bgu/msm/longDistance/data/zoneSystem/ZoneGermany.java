@@ -28,9 +28,13 @@ public class ZoneGermany implements Zone {
     private int area;
     private AreaTypeGermany areatype;
     private int hotels = 0;
+    private double touristsAtHotel = 0;
     private float timeToLongDistanceRail = 0;
 
 
+
+    private double zoneX =0;
+    private double zoneY =0;
 
     private boolean emptyZone = false;
 
@@ -139,6 +143,14 @@ public class ZoneGermany implements Zone {
         this.hotels = hotels;
     }
 
+    public double getTouristsAtHotel() {
+        return touristsAtHotel;
+    }
+
+    public void setTouristsAtHotel(double touristsAtHotel) {
+        this.touristsAtHotel = touristsAtHotel;
+    }
+
     public float getTimeToLongDistanceRail() {
         return timeToLongDistanceRail;
     }
@@ -153,6 +165,22 @@ public class ZoneGermany implements Zone {
 
     public void setEmptyZone(boolean emptyZone) {
         this.emptyZone = emptyZone;
+    }
+
+    public double getZoneX() {
+        return zoneX;
+    }
+
+    public void setZoneX(double zoneX) {
+        this.zoneX = zoneX;
+    }
+
+    public double getZoneY() {
+        return zoneY;
+    }
+
+    public void setZoneY(double zoneY) {
+        this.zoneY = zoneY;
     }
 }
 

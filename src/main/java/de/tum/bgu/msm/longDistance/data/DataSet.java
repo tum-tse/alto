@@ -92,13 +92,13 @@ public class DataSet {
     private Map<Mode, Matrix> frequencyMatrix;
 
     //Grids
-    private Map<Integer, Grid> grids = new HashMap<>();
+    private Map<Integer, List> grids = new HashMap<>();
 
-    public Map<Integer, Grid> getGrids() {
+    public Map<Integer, List> getGrids() {
         return grids;
     }
 
-    public void setGrids(Map<Integer, Grid> grids) {
+    public void setGrids(Map<Integer, List> grids) {
         this.grids = grids;
     }
 
@@ -337,6 +337,10 @@ public class DataSet {
 
     public List<Airport> getGermanAirports(){
         return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY)).collect(Collectors.toList());
+    }
+
+    public List<Airport> getEuropeAirports(){
+        return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY) && airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTEU)).collect(Collectors.toList());
     }
 
     public List<Airport> getOverseasAirports(){

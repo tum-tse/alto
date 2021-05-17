@@ -51,7 +51,7 @@ public class ModeChoiceGermanyScenario implements ModeChoice {
                 //domestic mode choice for synthetic persons in Germany
                     Mode mode = mcDomesticModel.selectModeDomestic(t);
                     ((LongDistanceTripGermany)t).setMode(mode);
-                    ((LongDistanceTripGermany)t).setTravelTime(mcDomesticModel.getDomesticModalTravelTime(t));
+                    ((LongDistanceTripGermany)t).setTravelTimeByMode(mcDomesticModel.getDomesticModalTravelTime(t));
                     ((LongDistanceTripGermany)t).setDistanceByMode(mcDomesticModel.getDomesticModalDistance(t));
                     if (mode != null) {
                         updateTripsByDistance(dataSet, t);
@@ -61,7 +61,7 @@ public class ModeChoiceGermanyScenario implements ModeChoice {
                     //to avoid issues on the pie chart generation, we assign now auto mode to all
                     Mode mode = ModeGermany.AUTO;
                     ((LongDistanceTripGermany)t).setMode(mode);
-                    ((LongDistanceTripGermany)t).setTravelTime(mcDomesticModel.getDomesticModalTravelTime(t));
+                    ((LongDistanceTripGermany)t).setTravelTimeByMode(mcDomesticModel.getDomesticModalTravelTime(t));
                     ((LongDistanceTripGermany)t).setDistanceByMode(mcDomesticModel.getDomesticModalDistance(t));
                 }
                 // international mode choice
