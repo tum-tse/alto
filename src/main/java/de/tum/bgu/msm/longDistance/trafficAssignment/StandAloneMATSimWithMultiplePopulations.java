@@ -32,18 +32,19 @@ public class StandAloneMATSimWithMultiplePopulations {
         ///String[] planFiles = JsonUtilMto.getStringArrayProp(prop, "assignment.population_files");
         //String[] planSuffixes = JsonUtilMto.getStringArrayProp(prop, "assignment.population_suffixes");
 
-        String[] planFiles = new String[]{"externalDemand/ld_trucks.xml.gz", "externalDemand/sd_trips.xml.gz"};
-        String[] planSuffixes = new String[]{"",""};
+        String[] planFiles = new String[]{/*"externalDemand/trucks_1_percent/ld_trucks.xml.gz",*/
+                "externalDemand/sd_1_percent_20210504/sd_trips.xml.gz",
+                "externalDemand/ld_wei_1_percent/ld_trips.xml.gz"};
+        String[] planSuffixes = new String[]{/*"",*/ "sd_", "ld_"};
 
         Population population = combinePopulations(PopulationUtils.createPopulation(config), planFiles, planSuffixes);
         MutableScenario scenario = ScenarioUtils.createMutableScenario(config);
         scenario.setPopulation(population);
+        PopulationUtils.writePopulation(population, "externalDemand/combinedPopulation_1_percent.xml.gz");
         ScenarioUtils.loadScenario(scenario);
 
-        PopulationUtils.writePopulation(population, "externalDemand/combinedPopulation.xml.gz");
-
-//        Controler controler = new Controler(scenario);
-//        controler.run();
+        Controler controler = new Controler(scenario);
+        controler.run();
 
     }
 
@@ -59,6 +60,7 @@ public class StandAloneMATSimWithMultiplePopulations {
 
             for (Person person : thisPopulation.getPersons().values()){
                 Person newPerson = population.getFactory().createPerson(Id.createPersonId(person.getId().toString() + "_" + thisSuffix));
+                population.addPerson(newPerson);
                 for (Plan plan : person.getPlans()){
                     newPerson.addPlan(plan);
                 }
