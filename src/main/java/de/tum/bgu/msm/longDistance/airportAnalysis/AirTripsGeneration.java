@@ -14,6 +14,7 @@ import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
+import org.matsim.api.core.v01.Coord;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -449,6 +450,9 @@ public final class AirTripsGeneration implements ModelComponent {
             int zoneId = (int) airportsInput.getValueAt(row, "TAZ_id_world");
             int idMain = (int) airportsInput.getValueAt(row, "id_main");
             int idHub = (int) airportsInput.getValueAt(row, "id_hub");
+            double airportX = airportsInput.getValueAt(row, "x_31468");
+            double airportY = airportsInput.getValueAt(row, "y_31468");
+            Coord coordAirport = new Coord(airportX, airportY);
 
             AirportType airportType = AirportType.HUB;
             if (id == idHub){
@@ -465,7 +469,9 @@ public final class AirTripsGeneration implements ModelComponent {
             airport.setMainAirportId(idMain);
             airport.setHubAirportId(idHub);
             airport.setIdOpenFlight(idFlights);
+            airport.setAirportCoord(coordAirport);
             airportMap.put(id, airport);
+
         }
         dataSet.setAirports(airportMap);
     }
