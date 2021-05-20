@@ -125,8 +125,11 @@ public class DomesticModeChoiceGermany {
         double impedance = 0;
         double vot = mcGermany.getStringIndexedValueAt("vot", column);
         double time = 1000000000 / 3600;
+        double timeAccess = 0;
+        double timeEgress = 0;
         double distance = 1000000000 / 1000; //convert to km
-        double distanceAccessEgress = 0;
+        double distanceAccess = 0;
+        double distanceEgress = 0;
         if (m.equals(ModeGermany.AIR)){
             if (trip.getAdditionalAttributes().get("originAirport") != null) {
                 Airport originAirport = dataSet.getAirportFromId(Math.round(trip.getAdditionalAttributes().get("originAirport")));
@@ -145,7 +148,11 @@ public class DomesticModeChoiceGermany {
                 time = time + dataSet.getBoardingTime_sec() + dataSet.getPostprocessTime_sec();
                 dataSet.getTravelTimeMatrix().get(m).setValueAt(origin, destination, (float) time);
                 time = time / 3600;
+                timeAccess = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getZone().getId()) / 3600;
+                timeEgress = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destination) / 3600;
                 distance = distance / 1000;
+                distanceAccess = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getZone().getId())/1000;
+                distanceEgress = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destination)/1000;
             }
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
@@ -153,7 +160,10 @@ public class DomesticModeChoiceGermany {
         }
         if (time < 1000000000 / 3600){
             if (vot != 0) {
-                double cost;
+                double cost =0 ;
+                double costAccess =0 ;
+                double costEgress =0 ;
+                double costTotal =0 ;
                 if(distance != 0){
                     cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
                             Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()))
@@ -163,16 +173,24 @@ public class DomesticModeChoiceGermany {
                     cost = 0;
                 }
 
-                //if (m.equals(ModeGermany.AIR)) {
-                //    float increaseAirCost = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"cost");
-                //    cost = cost * increaseAirCost;
-                //    cost = cost + distanceAccessEgress / 1000 * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
-                //            Math.pow(distanceAccessEgress / 1000 , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
-                //}
+                if (m.equals(ModeGermany.AIR)) {
+                    costAccess = distanceAccess * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
+                            Math.pow(distanceAccess , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
+                    costEgress = distanceEgress * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
+                            Math.pow(distanceEgress , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
+                    costTotal = cost + costAccess + costEgress;
+                }
                 impedance = cost / (vot) + time;
                 attr.put("cost_"+ m.toString(), (float) cost);
+                attr.put("costAccess_"+ m.toString(), (float) costAccess);
+                attr.put("costEgress_"+ m.toString(), (float) costEgress);
+                attr.put("costTotal_"+ m.toString(), (float) costTotal);
                 attr.put("time_" + m.toString(), (float) time);
+                attr.put("timeAccess_" + m.toString(), (float) timeAccess);
+                attr.put("timeEgress_" + m.toString(), (float) timeEgress);
                 attr.put("distance_" + m.toString(), (float) distance);
+                attr.put("distanceAccess_" + m.toString(), (float) distanceAccess);
+                attr.put("distanceEgress_" + m.toString(), (float) distanceEgress);
 
             }
             trip.setAdditionalAttributes(attr);
