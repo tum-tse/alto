@@ -83,19 +83,19 @@ public class DomesticModeChoiceGermany {
 
             //calculate exp(Ui) for each destination
             expUtilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> Math.exp(calculateUtilityFromGermany(trip, m))).toArray();
-
             double probability_denominator = Arrays.stream(expUtilities).sum();
 
             attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
-
             //if there is no access by any mode for the selected OD pair, just go by car
-            if (probability_denominator != 0) {
-
+            if (probability_denominator != 0 && !Double.isNaN(probability_denominator)) {
                 for (int mode = 0; mode < expUtilities.length; mode++) {
                     attributes.put("utility_" + ModeGermany.getMode(mode), (float) (expUtilities[mode] / probability_denominator));
                 }
-            }else{
+            } else {
                 expUtilities[0] = 1;
+                expUtilities[1] = 0;
+                expUtilities[2] = 0;
+                expUtilities[3] = 0;
                 for (int mode = 0; mode < expUtilities.length; mode++) {
                     attributes.put("utility_" + ModeGermany.getMode(mode), (float) expUtilities[mode]);
                 }
@@ -157,9 +157,16 @@ public class DomesticModeChoiceGermany {
         }
         if (time < 1000000000 / 3600){
             if (vot != 0) {
-                double cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
-                        Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()) )
-                        * distance;
+                double cost;
+                if(distance != 0){
+                    cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
+                            Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()))
+                            * distance;
+                } else {
+                    //todo technically the distance and cost cannot be zero. However, this happens when there is no segment by main mode (only access + egress)
+                    cost = 0;
+                }
+
                 //if (m.equals(ModeGermany.AIR)) {
                 //    float increaseAirCost = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(),"cost");
                 //    cost = cost * increaseAirCost;
