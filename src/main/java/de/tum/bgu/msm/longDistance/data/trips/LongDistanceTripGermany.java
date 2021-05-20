@@ -28,6 +28,8 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     private ZoneTypeGermany destZoneType;
     private Zone destZone;
     private Mode travelMode;
+    private AccessEgressMode accessMode;
+    private Mode egressMode;
     private float autoTravelDistance = -1;
     private float autoTravelTime = -1;
     private float distanceByMode = -1;
@@ -193,6 +195,22 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
 
     public void setDestY(double destY) {
         this.destY = destY;
+    }
+
+    public AccessEgressMode getAccessMode() {
+        return accessMode;
+    }
+
+    public void setAccessMode(AccessEgressMode accessMode) {
+        this.accessMode = accessMode;
+    }
+
+    public Mode getEgressMode() {
+        return egressMode;
+    }
+
+    public void setEgressMode(Mode egressMode) {
+        this.egressMode = egressMode;
     }
 
     public static String getHeader() {
