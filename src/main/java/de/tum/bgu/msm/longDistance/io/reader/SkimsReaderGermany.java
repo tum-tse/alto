@@ -231,10 +231,9 @@ public class SkimsReaderGermany implements SkimsReader {
 
         m = ModeGermany.RAIL;
         List<Matrix> matricesRail = new ArrayList<>();
-        matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "travel_time_s", lookUps.get(m)));
+        matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "travel_time_s", lookUps.get(m))); // "travel_time_s"
         time = logReading(time, "rail time");
-        Matrix accessTimeRailMatrix = omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m));
-        //matricesRail.add(accessTimeRailMatrix);
+        //matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
         time = logReading(time, "rail access");
         //matricesRail.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
         time = logReading(time, "rail egress");
@@ -249,7 +248,7 @@ public class SkimsReaderGermany implements SkimsReader {
         modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
 
         // added the access time of each zone to ld rail station
-        readTimeToRail(accessTimeRailMatrix, dataSet, 5, 10*60, 1);
+        readTimeToRail(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)), dataSet, 5, 10*60, 1);
         time = logReading(time, "access to train");
 
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
@@ -369,7 +368,7 @@ public class SkimsReaderGermany implements SkimsReader {
             double[] minDistValues = new double[numberOfNeighbours];
             for (int k = 0; k < numberOfNeighbours; k++) {
                 minTimeValues[k] = maximumSeconds;
-                minDistValues[k] = maximumSeconds * speed / 3.6; //maximum distance (in m)results from maximum time at speed in km/h
+                minDistValues[k] = maximumSeconds * speed / 3.6; //maximum distance results from maximum time at 50 km/h
             }
             //find the  n closest neighbors - the lower travel time values in the matrix column
             for (int j = 0; j < travelTimeMatrix.getRowCount(); j++) {
