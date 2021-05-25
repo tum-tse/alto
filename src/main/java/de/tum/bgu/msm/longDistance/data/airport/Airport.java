@@ -3,7 +3,7 @@ package de.tum.bgu.msm.longDistance.data.airport;
 import de.tum.bgu.msm.longDistance.data.Id;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import org.apache.log4j.Logger;
-import org.matsim.api.core.v01.Coord;
+
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -24,7 +24,9 @@ public class Airport implements Id {
     private int idOpenFlight;
     private int transferTime;
     private AirportDestinationType airportDestinationType;
-    private Coord airportCoord;
+    private double airportCoordX;
+    private double airportCoordY;
+    //private Coord airportCoord;
 
 
     public Airport(int id, String name, ZoneGermany zone, AirportType airportType) {
@@ -107,11 +109,27 @@ public class Airport implements Id {
         this.airportDestinationType = airportDestinationType;
     }
 
-    public Coord getAirportCoord() {
-        return airportCoord;
+    public double getAirportCoordX() {
+        return airportCoordX;
     }
 
-    public void setAirportCoord(Coord airportCoord) {
-        this.airportCoord = airportCoord;
+    public void setAirportCoordX(double airportCoordX) {
+        this.airportCoordX = airportCoordX;
     }
+
+    public double getAirportCoordY() {
+        return airportCoordY;
+    }
+
+    public void setAirportCoordY(double airportCoordY) {
+        this.airportCoordY = airportCoordY;
+    }
+
+    //public Coord getAirportCoord() {
+    //    return airportCoord;
+    //}
+
+    //public void setAirportCoord(Coord airportCoordY) {
+    //    this.airportCoord = airportCoord;
+    //}
 }

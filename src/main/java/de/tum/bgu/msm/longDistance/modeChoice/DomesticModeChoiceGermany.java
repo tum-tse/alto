@@ -153,8 +153,10 @@ public class DomesticModeChoiceGermany {
                 distance = distance / 1000;
                 distanceAccess = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getZone().getId())/1000;
                 distanceEgress = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destination)/1000;
-                attr.put("airportX", (float) originAirport.getAirportCoord().getX());
-                attr.put("airportY", (float) originAirport.getAirportCoord().getY());
+                attr.put("originAirportX", (float) originAirport.getAirportCoordX());
+                attr.put("originAirportY", (float) originAirport.getAirportCoordY());
+                attr.put("destinationAirportX", (float) destinationAirport.getAirportCoordX());
+                attr.put("destinationAirportY", (float) destinationAirport.getAirportCoordY());
             }
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
