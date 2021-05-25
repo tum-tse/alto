@@ -14,7 +14,8 @@ import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
-import org.matsim.api.core.v01.Coord;
+
+
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -210,22 +211,16 @@ public final class AirTripsGeneration implements ModelComponent {
 
                     if (minTravelTime < Float.MAX_VALUE) {
                         if (minTravelTime == travelTimeBetweenMainAndAirport) {
-                            System.out.println("209: "+originMain.getId()+" / "+destinationMain.getId());
                             airRoute = assignRoute(dataSet, originMain, destinationMain, originZoneId, destinationZoneId);
                         } else if (minTravelTime == travelTimeFromHubOrigin) {
-                            System.out.println("212: "+originHub.getId()+" / "+destinationAirport.getId());
                             airRoute = assignRoute(dataSet, originHub, destinationAirport, originZoneId, destinationZoneId);
                         } else if (minTravelTime == travelTimeFromHubDestination) {
-                            System.out.println("215: "+originAirport.getId()+" / "+destinationHub.getId());
                             airRoute = assignRoute(dataSet, originAirport, destinationHub, originZoneId, destinationZoneId);
                         } else if (minTravelTime == travelTimeBetweenHubs) {
-                            System.out.println("218: "+originHub.getId()+" / "+destinationHub.getId());
                             airRoute = assignRoute(dataSet, originHub, destinationHub, originZoneId, destinationZoneId);
                         } else if (minTravelTime == travelTimeBetweenAirportAndMain) {
-                            System.out.println("221: "+originAirport.getId()+" / "+destinationMain.getId());
                             airRoute = assignRoute(dataSet, originAirport, destinationMain, originZoneId, destinationZoneId);
                         } else {
-                            System.out.println("224: "+originMain.getId()+" / "+destinationMain.getId());
                             airRoute = assignRoute(dataSet, originMain, destinationMain, originZoneId, destinationZoneId);
                         }
                     } else {
@@ -295,10 +290,6 @@ public final class AirTripsGeneration implements ModelComponent {
             time_sec = time_sec + dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destinationZoneId);
             distance_m = distance_m + dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(originZoneId, originAirport.getZone().getId());
             distance_m = distance_m + dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destinationZoneId);
-            airRoute.put("accessTime2Airport", dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(originZoneId, originAirport.getZone().getId()));
-            airRoute.put("egressTimeFromAirport", dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destinationZoneId));
-            airRoute.put("accessDistance2Airport", dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(originZoneId, originAirport.getZone().getId()));
-            airRoute.put("egressDistanceFromAirport", dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destinationZoneId));
             airRoute.put("totalTime_sec", (float) time_sec);
             airRoute.put("totalDistance_m", (float) distance_m);
 
@@ -452,7 +443,7 @@ public final class AirTripsGeneration implements ModelComponent {
             int idHub = (int) airportsInput.getValueAt(row, "id_hub");
             double airportX = airportsInput.getValueAt(row, "x_31468");
             double airportY = airportsInput.getValueAt(row, "y_31468");
-            Coord coordAirport = new Coord(airportX, airportY);
+            //Coord airportCoord = new Coord(airportX, airportY);
 
             AirportType airportType = AirportType.HUB;
             if (id == idHub){
@@ -469,7 +460,9 @@ public final class AirTripsGeneration implements ModelComponent {
             airport.setMainAirportId(idMain);
             airport.setHubAirportId(idHub);
             airport.setIdOpenFlight(idFlights);
-            airport.setAirportCoord(coordAirport);
+            airport.setAirportCoordX(airportX);
+            airport.setAirportCoordY(airportY);
+            //airport.setAirportCoord(airportCoord);
             airportMap.put(id, airport);
 
         }
