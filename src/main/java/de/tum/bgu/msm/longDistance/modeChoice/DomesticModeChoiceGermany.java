@@ -35,6 +35,7 @@ public class DomesticModeChoiceGermany {
 
     private TableDataSet mcGermany;
     private TableDataSet costsPerKm;
+    private float toll;
 
     private boolean calibration;
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
@@ -48,6 +49,7 @@ public class DomesticModeChoiceGermany {
         costsPerKm.buildStringIndex(2);
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
+        toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.toll_km");
         logger.info("Domestic MC set up");
 
     }
@@ -128,8 +130,10 @@ public class DomesticModeChoiceGermany {
         double timeAccess = 0;
         double timeEgress = 0;
         double distance = 1000000000 / 1000; //convert to km
+        double tollDistance = 0;
         double distanceAccess = 0;
         double distanceEgress = 0;
+
         if (m.equals(ModeGermany.AIR)){
             if (trip.getAdditionalAttributes().get("originAirport") != null) {
                 Airport originAirport = dataSet.getAirportFromId(Math.round(trip.getAdditionalAttributes().get("originAirport")));
@@ -161,6 +165,9 @@ public class DomesticModeChoiceGermany {
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
             distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
+            if(m.equals(ModeGermany.AUTO) || m.equals(ModeGermany.AUTO_consideringToll)){
+                tollDistance = dataSet.getTollDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
+            }
         }
         if (time < 1000000000 / 3600){
             if (vot != 0) {
@@ -171,7 +178,7 @@ public class DomesticModeChoiceGermany {
                 if(distance != 0){
                     cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
                             Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()))
-                            * distance;
+                            * distance + tollDistance * toll;
                 } else {
                     //todo technically the distance and cost cannot be zero. However, this happens when there is no segment by main mode (only access + egress)
                     cost = 0;
@@ -195,6 +202,7 @@ public class DomesticModeChoiceGermany {
                 attr.put("distance_" + m.toString(), (float) distance);
                 attr.put("distanceAccess_" + m.toString(), (float) distanceAccess);
                 attr.put("distanceEgress_" + m.toString(), (float) distanceEgress);
+                attr.put("tollDistance_" + m.toString(), (float) tollDistance);
 
             }
             trip.setAdditionalAttributes(attr);

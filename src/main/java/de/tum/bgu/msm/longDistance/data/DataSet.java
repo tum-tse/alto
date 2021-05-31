@@ -43,6 +43,7 @@ public class DataSet {
     private Map<Mode, Matrix> priceMatrix;
     private Map<Mode, Matrix> transferMatrix;
     private Map<Mode, Matrix> distanceMatrix;
+    private Map<Mode, Matrix> tollDistanceMatrix;
 
     private Matrix airAccessAirportZone;
     private Matrix airEgressAirportZone;
@@ -213,6 +214,15 @@ public class DataSet {
     public void setDistanceMatrix(Map<Mode, Matrix> distanceMatrix) {
         this.distanceMatrix = distanceMatrix;
     }
+
+    public Map<Mode, Matrix> getTollDistanceMatrix() {
+        return tollDistanceMatrix;
+    }
+
+    public void setTollDistanceMatrix(Map<Mode, Matrix> tollDistanceMatrix) {
+        this.tollDistanceMatrix = tollDistanceMatrix;
+    }
+
 
     public Map<Integer, Map<Type, Map<Purpose, Map<Mode, Integer>>>> getModalCountByModeByScenario() {
         return modalCountByModeByScenario;

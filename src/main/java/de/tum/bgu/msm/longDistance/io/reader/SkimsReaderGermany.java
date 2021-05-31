@@ -41,6 +41,7 @@ public class SkimsReaderGermany implements SkimsReader {
     private Map<ModeGermany, String> travelTimeMatrixNames = new HashMap<>();
     private Map<ModeGermany, String> distanceFileNames = new HashMap<>();
     private Map<ModeGermany, String> distanceMatrixNames = new HashMap<>();
+    private Map<ModeGermany, String> tollDistanceMatrixNames = new HashMap<>();
 
     private Map<ModeGermany, String> inPtTimeFileNames = new HashMap<>();
     private Map<ModeGermany, String> accessTimeFileNames = new HashMap<>();
@@ -53,18 +54,35 @@ public class SkimsReaderGermany implements SkimsReader {
     private String airAccessAirportFileName;
     private String airEgressAirportFileName;
 
+    private boolean runScenario4;
+
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
         this.inputFolder = inputFolder;
         this.outputFolder = outputFolder;
         this.prop = prop;
 
+        //Scenario
+        runScenario4 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.scenario4");
+
         //AUTO:
+        //No Toll->
         travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
         distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
         travelTimeMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixTime_auto"));
         distanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixDistance_auto"));
+        tollDistanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.tolledDistance_auto"));
         lookUps.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup"));
+        // With Toll->
+        if (runScenario4){
+            travelTimeFileNames.put(ModeGermany.AUTO_consideringToll, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_consideringToll"));
+            distanceFileNames.put(ModeGermany.AUTO_consideringToll, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_consideringToll"));
+            travelTimeMatrixNames.put(ModeGermany.AUTO_consideringToll, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixTime_auto_consideringToll"));
+            distanceMatrixNames.put(ModeGermany.AUTO_consideringToll, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixDistance_auto_consideringToll"));
+            tollDistanceMatrixNames.put(ModeGermany.AUTO_consideringToll, JsonUtilMto.getStringProp(prop, "mode_choice.skim.tolledDistance_auto_consideringToll"));
+            lookUps.put(ModeGermany.AUTO_consideringToll, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup_consideringToll"));
+        }
+
 
         //RAIL:
         inPtTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
@@ -171,6 +189,7 @@ public class SkimsReaderGermany implements SkimsReader {
         Map<String, Matrix> modeMatrixMap = new HashMap<>();
         Map<Mode, Matrix> modeTimeMatrixMap = new HashMap<>();
         Map<Mode, Matrix> modeDistanceMatrixMap = new HashMap<>();
+        Map<Mode, Matrix> modeTollDistanceMatrixMap = new HashMap<>();
 
         // read skim file
         ModeGermany m;
@@ -179,20 +198,42 @@ public class SkimsReaderGermany implements SkimsReader {
 
         m = ModeGermany.AUTO;
         Matrix autoTravelTime = omxToMatrix(travelTimeFileNames.get(m), travelTimeMatrixNames.get(m), lookUps.get(m));
-
         time = logReading(time, "car time");
+
         Matrix autoDistance = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
         time = logReading(time, "car distance");
+
+        Matrix autoTollDistance = omxToMatrix(distanceFileNames.get(m), tollDistanceMatrixNames.get(m), lookUps.get(m));
 
         modeMatrixMap = assignIntrazonalTravelTimes(autoTravelTime, autoDistance, m,5,10*60,0.33F);
         time = logReading(time, "car intrazonals");
 
         modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
         modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
+        modeTollDistanceMatrixMap.put(m, autoTollDistance);
 
         dataSet.setAutoTravelTime(modeMatrixMap.get("travelTime"));
         dataSet.setAutoTravelDistance(modeMatrixMap.get("distance")); //for safety and compatibility
 
+        if (runScenario4){
+
+            m = ModeGermany.AUTO_consideringToll;
+            Matrix autoTravelTimeToll = omxToMatrix(travelTimeFileNames.get(m), travelTimeMatrixNames.get(m), lookUps.get(m));
+            time = logReading(time, "car toll time");
+
+            Matrix autoDistanceToll = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
+            time = logReading(time, "car toll distance");
+
+            Matrix autoTollDistanceToll = omxToMatrix(distanceFileNames.get(m), tollDistanceMatrixNames.get(m), lookUps.get(m));
+
+            Map<String, Matrix> modeMatrixMapToll = assignIntrazonalTravelTimes(autoTravelTimeToll, autoDistanceToll, m,5,10*60,0.33F);
+            time = logReading(time, "car toll intrazonals");
+
+            modeTimeMatrixMap.put(m, modeMatrixMapToll.get("travelTime"));
+            modeDistanceMatrixMap.put(m, modeMatrixMapToll.get("distance"));
+            modeTollDistanceMatrixMap.put(m, autoTollDistanceToll);
+
+        }
 
         m = ModeGermany.AIR;
         //initialize empty matrices
@@ -254,6 +295,7 @@ public class SkimsReaderGermany implements SkimsReader {
 
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
         dataSet.setDistanceMatrix(modeDistanceMatrixMap);
+        dataSet.setTollDistanceMatrix(modeTollDistanceMatrixMap);
 
     }
 
