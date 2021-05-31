@@ -220,7 +220,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",tripMode,travelTimeByMode_h"+
                 ",departureTimeMin,departureTimeReturnDaytrip,ReturnOvernightTrip"+
                 ",CO2emissions_kg" +
-                ",origX ,origY, destX, destY" +
+                ",origX,origY,destX,destY" +
                  ",utility_" + ModeGermany.getMode(0)+
                 ",utility_" + ModeGermany.getMode(1)+
                 ",utility_" + ModeGermany.getMode(2)+
@@ -237,6 +237,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",time_" + ModeGermany.getMode(1)+
                 ",time_" + ModeGermany.getMode(2)+
                 ",time_" + ModeGermany.getMode(3)+
+                ",timeAccess_" + ModeGermany.getMode(0)+
+                ",timeAccess_" + ModeGermany.getMode(1)+
+                ",timeAccess_" + ModeGermany.getMode(2)+
+                ",timeAccess_" + ModeGermany.getMode(3)+
+                ",timeEgress_" + ModeGermany.getMode(0)+
+                ",timeEgress_" + ModeGermany.getMode(1)+
+                ",timeEgress_" + ModeGermany.getMode(2)+
+                ",timeEgress_" + ModeGermany.getMode(3)+
                 ",distance_" + ModeGermany.getMode(0)+
                 ",distance_" + ModeGermany.getMode(1)+
                 ",distance_" + ModeGermany.getMode(2)+
@@ -244,14 +252,10 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",originAirport" +
                 ",transferAirport" +
                 ",destinationAirport" +
-                ",accessTime2Airport" +
-                ",flightTime" +
-                ",egressTimeFromAirport" +
-                ",totalTime_sec" +
-                ",accessDistance2Airport" +
-                ",flightDistance" +
-                ",egressDistanceFromAirport" +
-                ",totalDistance_sec"
+                ",originAirportX" +
+                ",originAirportY" +
+                ",destinationAirportX" +
+                ",destinationAirportY"
                 //"utility_auto", "tt_auto", ""cost_auto" +,
                 //"utility_rail, "tt_rail", ""cost_rail" +,
                 //"utility_bus", "tt_bus", ""cost_bus" +,
@@ -305,6 +309,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("time_air")
                     + "," + tr.getAdditionalAttributes().get("time_rail")
                     + "," + tr.getAdditionalAttributes().get("time_bus")
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_auto")
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_air")
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_rail")
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_bus")
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_auto")
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_air")
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_rail")
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_bus")
                     + "," + tr.getAdditionalAttributes().get("distance_auto")
                     + "," + tr.getAdditionalAttributes().get("distance_air")
                     + "," + tr.getAdditionalAttributes().get("distance_rail")
@@ -312,14 +324,10 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("originAirport")
                     + "," + tr.getAdditionalAttributes().get("transferAirport")
                     + "," + tr.getAdditionalAttributes().get("destinationAirport")
-                    + "," + tr.getAdditionalAttributes().get("accessTime2Airport")
-                    + "," + tr.getAdditionalAttributes().get("flightTime")
-                    + "," + tr.getAdditionalAttributes().get("egressTimeFromAirport")
-                    + "," + tr.getAdditionalAttributes().get("totalTime_sec")
-                    + "," + tr.getAdditionalAttributes().get("accessDistance2Airport")
-                    + "," + tr.getAdditionalAttributes().get("flightDistance")
-                    + "," + tr.getAdditionalAttributes().get("egressDistanceFromAirport")
-                    + "," + tr.getAdditionalAttributes().get("totalDistance_m")
+                    + "," + tr.getAdditionalAttributes().get("originAirportX")
+                    + "," + tr.getAdditionalAttributes().get("originAirportY")
+                    + "," + tr.getAdditionalAttributes().get("destinationAirportX")
+                    + "," + tr.getAdditionalAttributes().get("destinationAirportY")
                     /*
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
