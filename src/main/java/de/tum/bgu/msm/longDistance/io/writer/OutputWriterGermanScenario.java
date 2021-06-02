@@ -9,8 +9,6 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.io.writer.charts.Histogram;
-import de.tum.bgu.msm.longDistance.io.writer.charts.PieChart;
 import de.tum.bgu.msm.longDistance.scaling.PotentialTravelersSelectionGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
@@ -180,16 +178,16 @@ public class OutputWriterGermanScenario implements OutputWriter {
             }
 
 
-            Histogram.createFrequencyHistogram(outputFolder + "tripTimeDistribution" + purpose, travelTimesArray, "Travel Time Distribution " + purpose, "Auto Travel Time (h)", "Frequency", 6, 0, 6);
-
-            Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistribution" + purpose, travelDistancesArray, "Travel Distance Distribution " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
-
-            Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionDaytrip" + purpose, travelDistancesDaytripArray, "Travel Distance Distribution for daytrips " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
-
-            Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionOvernighttrip" + purpose, travelDistancesOvernightArray, "Travel Distance Distribution for overnighttrips " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
-
-            Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionAwaytrip" + purpose, travelDistancesAwayArray, "Travel Distance Distribution for away " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
-        }
+//            Histogram.createFrequencyHistogram(outputFolder + "tripTimeDistribution" + purpose, travelTimesArray, "Travel Time Distribution " + purpose, "Auto Travel Time (h)", "Frequency", 6, 0, 6);
+//
+//            Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistribution" + purpose, travelDistancesArray, "Travel Distance Distribution " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
+//
+//            Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionDaytrip" + purpose, travelDistancesDaytripArray, "Travel Distance Distribution for daytrips " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
+//
+//            Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionOvernighttrip" + purpose, travelDistancesOvernightArray, "Travel Distance Distribution for overnighttrips " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
+//
+//            Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionAwaytrip" + purpose, travelDistancesAwayArray, "Travel Distance Distribution for away " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
+       }
 
     }
 
@@ -215,7 +213,7 @@ public class OutputWriterGermanScenario implements OutputWriter {
         for (Purpose purpose1 : PurposeGermany.values()) {
             purposes.add((Comparable) purpose1, tripsByPurpose.get(purpose1).size());
         }
-        PieChart.createPieChart(outputFolder + "tripGeneration", purposes, "Generated Trips By Purpose ");
+        //PieChart.createPieChart(outputFolder + "tripGeneration", purposes, "Generated Trips By Purpose ");
 
         Map<Type, List<LongDistanceTrip>> tripsByPurpose1 = (Map<Type, List<LongDistanceTrip>>) dataSet.getTripsofPotentialTravellers().stream()
                 .collect(Collectors.groupingBy(LongDistanceTrip::getTripState));
@@ -231,7 +229,7 @@ public class OutputWriterGermanScenario implements OutputWriter {
                                         purposesTree.add((Comparable) purpose1, (int) (((double) count / totalTrips) * 100.));
                                     }
                             );
-                    PieChart.createPieChart(outputFolder + "tripGeneration" + statePurpose, purposesTree, "Trip Generation " + statePurpose);
+                   // PieChart.createPieChart(outputFolder + "tripGeneration" + statePurpose, purposesTree, "Trip Generation " + statePurpose);
                 }
         );
     }
