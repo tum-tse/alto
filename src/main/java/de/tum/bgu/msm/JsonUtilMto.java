@@ -65,6 +65,26 @@ public class JsonUtilMto {
 
     }
 
+
+    public static String[] getStringArrayProp(JSONObject jsonProperties, String key) {
+
+        try {
+
+            Object[] propertyArray  = ((JSONArray) getProperty(jsonProperties, key)).toArray();
+            //logger.info(propertyArray[0].toString());
+            String [] propertyStringArray = new String[propertyArray.length];
+            for (int i=0; i< propertyArray.length; i++){
+                propertyStringArray[i] = propertyArray[i].toString();
+                //logger.info(propertyStringArray[i]);
+            }
+            return propertyStringArray;
+        } catch (Exception e) {
+            throw new RuntimeException("Property key not found or invalid: " + key);
+            //I guess this is impossible for json files
+        }
+
+    }
+
     public static float getFloatProp(JSONObject jsonProperties, String key) {
 
         try {

@@ -4,12 +4,13 @@ import de.tum.bgu.msm.longDistance.data.Id;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import org.apache.log4j.Logger;
 
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class Airport implements Id {
 
-    private static final Logger logger = Logger.getLogger(de.tum.bgu.msm.longDistance.data.airport.Airport.class);
+    private static final Logger logger = Logger.getLogger(Airport.class);
 
     private final int id;
     private final String name;
@@ -23,6 +24,9 @@ public class Airport implements Id {
     private int idOpenFlight;
     private int transferTime;
     private AirportDestinationType airportDestinationType;
+    private double airportCoordX;
+    private double airportCoordY;
+    //private Coord airportCoord;
 
 
     public Airport(int id, String name, ZoneGermany zone, AirportType airportType) {
@@ -104,4 +108,28 @@ public class Airport implements Id {
     public void setAirportDestinationType(AirportDestinationType airportDestinationType) {
         this.airportDestinationType = airportDestinationType;
     }
+
+    public double getAirportCoordX() {
+        return airportCoordX;
+    }
+
+    public void setAirportCoordX(double airportCoordX) {
+        this.airportCoordX = airportCoordX;
+    }
+
+    public double getAirportCoordY() {
+        return airportCoordY;
+    }
+
+    public void setAirportCoordY(double airportCoordY) {
+        this.airportCoordY = airportCoordY;
+    }
+
+    //public Coord getAirportCoord() {
+    //    return airportCoord;
+    //}
+
+    //public void setAirportCoord(Coord airportCoordY) {
+    //    this.airportCoord = airportCoord;
+    //}
 }

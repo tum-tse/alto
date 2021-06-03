@@ -130,6 +130,13 @@ public class Util {
                 for (int j = 0; j < dimensions[1]; j++)
                     mat.setValueAt(i + 1, j + 1, (float) dArray[i][j]);
             return mat;
+        } else if (type.equals(OmxHdf5Datatype.OmxJavaType.INT)) {
+            int[][] dArray = (int[][]) omxMatrix.getData();
+            Matrix mat = new Matrix(name, name, dimensions[0], dimensions[1]);
+            for (int i = 0; i < dimensions[0]; i++)
+                for (int j = 0; j < dimensions[1]; j++)
+                    mat.setValueAt(i + 1, j + 1, dArray[i][j]);
+            return mat;
         } else {
             logger.info("OMX Matrix type " + type.toString() + " not yet implemented. Program exits.");
             exit(1);

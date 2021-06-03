@@ -117,6 +117,11 @@ public class LongDistanceTripOntario implements LongDistanceTrip {
         return null;
     }
 
+    @Override
+    public Float getCO2emissions() {
+        return null;
+    }
+
 
     public ZoneTypeOntario getDestZoneType() {
         return destZoneType;

@@ -3,7 +3,6 @@ package de.tum.bgu.msm.longDistance.timeOfDay;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.LDModelGermany;
-import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import org.apache.log4j.Logger;
@@ -13,31 +12,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.pb.common.datafile.TableDataSet;
+
 public class TimeOfDayChoiceGermany implements TimeOfDayChoice {
 
     private static Logger logger = Logger.getLogger(TimeOfDayChoiceGermany.class);
-    private int[] departureTimesInHours; //float to use fractions of hour if needed
-    private double[] correctionFactorDayTripOutbound;
-    private double[] correctionFactorDayTripInbound;
-    private Map<String, double[]> probabilities;
+    private TableDataSet ToD_Germany;
+    private int[] departureTimesInMin;
 
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
-        departureTimesInHours = JsonUtilMto.getArrayIntProp(prop, "departure_time.intervals");
-        correctionFactorDayTripOutbound = JsonUtilMto.getArrayDoubleProp(prop, "departure_time.correction_daytrip");
-        correctionFactorDayTripInbound = getOneMinusArray(correctionFactorDayTripOutbound);
-        //overnight trips
-        probabilities = new HashMap<>();
-        probabilities.put("departure.air.all", JsonUtilMto.getArrayDoubleProp(prop, "departure_time.departure_air"));
-        probabilities.put("departure.auto.business", JsonUtilMto.getArrayDoubleProp(prop, "departure_time.departure_auto_business"));
-        probabilities.put("departure.auto.other", JsonUtilMto.getArrayDoubleProp(prop, "departure_time.departure_auto_other"));
-
-        probabilities.put("arrival.air.all", JsonUtilMto.getArrayDoubleProp(prop, "departure_time.arrival_air"));
-        probabilities.put("arrival.auto.business", JsonUtilMto.getArrayDoubleProp(prop, "departure_time.arrival_auto_business"));
-        probabilities.put("arrival.auto.other", JsonUtilMto.getArrayDoubleProp(prop, "departure_time.arrival_auto_other"));
-
+        ToD_Germany = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "timeOfDay_choice.domestic.germany.coef_file"));
+        departureTimesInMin = ToD_Germany.getColumnAsInt(1);
+        logger.info("Domestic Time of Day set up");
     }
 
     @Override
@@ -47,91 +36,68 @@ public class TimeOfDayChoiceGermany implements TimeOfDayChoice {
     @Override
     public void run(DataSet dataSet, int nThreads) {
 
-        ArrayList<LongDistanceTrip> trips = dataSet.getAllTrips();
+        ArrayList<LongDistanceTrip> trips = dataSet.getTripsofPotentialTravellers();
         logger.info("Running time-of-day choice for " + trips.size() + " trips");
 
-        trips.parallelStream().forEach(tripFromArray -> {
-            int departureTime;
-            LongDistanceTripGermany trip = (LongDistanceTripGermany) tripFromArray;
-            if (trip.getTripState().equals(TypeGermany.AWAY)){
+        trips.parallelStream().forEach(t -> {
+            if (t.getTripState().equals(TypeGermany.AWAY)) {
                 //away
             } else {
-                calculateDepartureTime(trip, convertMode(trip), convertPurpose(trip));
+                calculateDepartureTime(t);
             }
         });
         logger.info("Finished time-of-day choice");
     }
 
-    private void calculateDepartureTime(LongDistanceTrip tripToCast, String mode, String purpose) {
+    private void calculateDepartureTime(LongDistanceTrip tripToCast) {
 
         LongDistanceTripGermany trip = (LongDistanceTripGermany) tripToCast;
-        if( trip.getTripState().equals(TypeOntario.AWAY)){
-            //daytrip
-            trip.setDepartureTimeInHours(Util.selectGermany(multiply(probabilities.get("departure." + mode + "." + purpose),correctionFactorDayTripOutbound), departureTimesInHours));
-            trip.setDepartureTimeInHoursSecondSegment(Util.selectGermany(multiply(probabilities.get("departure." + mode + "." + purpose),correctionFactorDayTripInbound), departureTimesInHours));
+        if (trip.getTripState().equals(TypeGermany.DAYTRIP)) {
+            if (trip.getMode() != null) {
+                //daytrip
+                String coefficientColumn;
+                coefficientColumn = "depart." + trip.getMode() + "." + trip.getTripPurpose() + ".day.outbound";
+                trip.setDepartureTimesInMin(Util.selectGermany(ToD_Germany.getColumnAsDouble(coefficientColumn), departureTimesInMin));
 
-        } else {
-            //overnight trip inbound or outbound
-            if (LDModelGermany.rand.nextBoolean()) {
-                trip.setDepartureTimeInHours(Util.selectGermany(probabilities.get("departure." + mode + "." + purpose), departureTimesInHours));
-                trip.setReturnOvernightTrip(false);
-            } else {
-                int arrivalTime = Util.selectGermany(probabilities.get("arrival." + mode + "." + purpose), departureTimesInHours) - Math.round(trip.getTravelTime())/60;
-                trip.setDepartureTimeInHours(arrivalTime);
+                coefficientColumn = "depart." + trip.getMode() + "." + trip.getTripPurpose() + ".day.inbound";
+                trip.setDepartureTimeInHoursSecondSegment(Util.selectGermany(ToD_Germany.getColumnAsDouble(coefficientColumn), departureTimesInMin));
+
+            }
+        } else if (trip.getTripState().equals(TypeGermany.OVERNIGHT)) {
+            if (trip.getMode() != null) {
+                //overnight trip outbound
+                boolean outbound;
+                if (LDModelGermany.rand.nextFloat() < 0.5) {
+                    outbound = true;
+                    String coefficientColumn = "depart." + trip.getMode() + "." + trip.getTripPurpose() + ".OV.outbound";
+                    trip.setDepartureTimesInMin(Util.selectGermany(ToD_Germany.getColumnAsDouble(coefficientColumn), departureTimesInMin));
+                    trip.setReturnOvernightTrip(false);
+                } else {
+                    outbound = false;
+                    String coefficientColumn = "depart." + trip.getMode() + "." + trip.getTripPurpose() + ".OV.inbound";
+                    trip.setDepartureTimesInMin(Util.selectGermany(ToD_Germany.getColumnAsDouble(coefficientColumn), departureTimesInMin));
+                    trip.setReturnOvernightTrip(true);
+                }
+            } else { // AWAY
+                int arrivalTime = 0;
+                trip.setDepartureTimesInMin(arrivalTime);
                 trip.setReturnOvernightTrip(true);
             }
-
         }
     }
 
-    private String convertPurpose(LongDistanceTrip trip) {
-        String purpose = "all";
-    if (trip.getMode().equals(ModeOntario.AUTO) || trip.getMode().equals(ModeOntario.BUS)) {
-            switch ((PurposeOntario) trip.getTripPurpose()) {
-                case LEISURE:
-                case VISIT:
-                    purpose = "other";
-                    break;
-                case BUSINESS:
-                    purpose = "business";
-                    break;
-            }
-        }
-        return purpose;
-
-    }
-
-    private String convertMode(LongDistanceTrip trip) {
-        String mode = "";
-            switch ((ModeOntario) trip.getMode()) {
-                case AUTO:
-                case BUS:
-                    mode = "auto";
-                    break;
-                case AIR:
-                case RAIL:
-                    mode = "air";
-                    break;
-            }
-
-        return mode;
-
-    }
-
-
-
-    public double[] multiply(double[] array1, double[] array2){
+    public double[] multiply(double[] array1, double[] array2) {
         double[] array = new double[array1.length];
-        for (int i=0; i< array.length; i++){
-            array[i] = array1[i]*array2[i];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = array1[i] * array2[i];
         }
         return array;
     }
 
     private double[] getOneMinusArray(double[] correctionFactorDayTripOutbound) {
         double[] array = new double[correctionFactorDayTripOutbound.length];
-        for (int i = 0; i < correctionFactorDayTripOutbound.length; i++){
-            array[i]  = 1 - correctionFactorDayTripOutbound[i];
+        for (int i = 0; i < correctionFactorDayTripOutbound.length; i++) {
+            array[i] = 1 - correctionFactorDayTripOutbound[i];
         }
         return array;
     }

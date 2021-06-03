@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 
 public class AirLeg implements Id {
 
-    private static final Logger logger = Logger.getLogger(de.tum.bgu.msm.longDistance.data.airport.Airport.class);
+    private static final Logger logger = Logger.getLogger(AirLeg.class);
 
     private final int id;
     private final Airport origin;

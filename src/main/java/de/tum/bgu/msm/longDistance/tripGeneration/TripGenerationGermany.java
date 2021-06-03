@@ -1,6 +1,10 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
 import de.tum.bgu.msm.longDistance.data.DataSet;
+import de.tum.bgu.msm.longDistance.data.sp.Household;
+import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
+import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
+import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
 import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReader;
@@ -62,6 +66,26 @@ public class TripGenerationGermany implements TripGeneration {
 
     public void run(DataSet dataSet, int nThreads){
         generateTrips();
+        addOrigMicrolocation(dataSet.getAllTrips());
+    }
+
+    public void addOrigMicrolocation(ArrayList<LongDistanceTrip> trips){
+        logger.info("Adding Microlocation of Origin for " + trips.size() + " trips");
+
+        trips.parallelStream().forEach( t ->{
+
+            ((LongDistanceTripGermany)t).getTravellerId();
+
+            PersonGermany pers = ((LongDistanceTripGermany)t).getTraveller();
+            HouseholdGermany hh = pers.getHousehold();
+
+            double origX = hh.getHomeLocation().x;
+            ((LongDistanceTripGermany) t).setOrigX(origX);
+
+            double origY = hh.getHomeLocation().y;
+            ((LongDistanceTripGermany) t).setOrigY(origY);
+
+        });
     }
 
 
@@ -78,6 +102,8 @@ public class TripGenerationGermany implements TripGeneration {
         //generate domestic trips
         trips_dom_germany = domesticTripGeneration.run();
         dataSet.getAllTrips().addAll(trips_dom_germany);
+        dataSet.getTripsofPotentialTravellers().clear();
+        dataSet.getTripsofPotentialTravellers().addAll(trips_dom_germany);
         logger.info("  " + trips_dom_germany.size() + " domestic trips from Germany generated");
 
         //generate international trips (must be done after domestic)

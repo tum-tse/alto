@@ -28,15 +28,23 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
     private ZoneTypeGermany destZoneType;
     private Zone destZone;
     private Mode travelMode;
+    private AccessEgressMode accessMode;
+    private Mode egressMode;
     private float autoTravelDistance = -1;
+    private float autoTravelTime = -1;
     private float distanceByMode = -1;
     private float travelTime = -1;
+    private int departureTimesInMin = -999; // Alona
     private int departureTimeInHours = -999;
     private int departureTimeInHoursSecondSegment = -999; //this is the return trip of daytrips
     private boolean returnOvernightTrip = false;
     private Map<Pollutant, Float> emissions = new HashMap<>();
     private Map<String, Float> additionalAttributes = new HashMap<>();
-    private int scenario;
+
+    private double origX = -1;
+    private double origY = -1;
+    private double destX = -1;
+    private double destY = -1;
 
     public LongDistanceTripGermany(int tripId, PersonGermany traveller, boolean international, Purpose tripPurpose, Type tripState, ZoneGermany origZone ) {
         this.tripId = tripId;
@@ -57,6 +65,10 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
 
     public PersonGermany getTraveller() {
         return traveller;
+    }
+
+    public void setInternational(boolean international) {
+        this.international = international;
     }
 
     public boolean isInternational() {
@@ -97,6 +109,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         this.autoTravelDistance = autoTravelDistance;
     }
 
+    public float getAutoTravelTime() {
+        return autoTravelTime;
+    }
+
+    public void setAutoTravelTime(float autoTravelTime) {
+        this.autoTravelTime = autoTravelTime;
+    }
+
     public float getDistanceByMode() {
         return distanceByMode;
     }
@@ -111,6 +131,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
 
     public void setDepartureTimeInHours(int departureTimeInHours) {
         this.departureTimeInHours = departureTimeInHours;
+    }
+
+    public int getDepartureTimesInMin() {
+        return departureTimesInMin;
+    }
+
+    public void setDepartureTimesInMin(int departureTimesInMin) {
+        this.departureTimesInMin = departureTimesInMin;
     }
 
     public int getDepartureTimeInHoursSecondSegment() {
@@ -133,17 +161,66 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         return travelTime;
     }
 
-    public void setTravelTime(float travelTime) {
+    public void setTravelTimeByMode(float travelTime) {
         this.travelTime = travelTime;
+    }
+
+    public double getOrigX() {
+        return origX;
+    }
+
+    public void setOrigX(double origX) {
+        this.origX = origX;
+    }
+
+    public double getOrigY() {
+        return origY;
+    }
+
+    public void setOrigY(double origY) {
+        this.origY = origY;
+    }
+
+    public double getDestX() {
+        return destX;
+    }
+
+    public void setDestX(double destX) {
+        this.destX = destX;
+    }
+
+    public double getDestY() {
+        return destY;
+    }
+
+    public void setDestY(double destY) {
+        this.destY = destY;
+    }
+
+    public AccessEgressMode getAccessMode() {
+        return accessMode;
+    }
+
+    public void setAccessMode(AccessEgressMode accessMode) {
+        this.accessMode = accessMode;
+    }
+
+    public Mode getEgressMode() {
+        return egressMode;
+    }
+
+    public void setEgressMode(Mode egressMode) {
+        this.egressMode = egressMode;
     }
 
     public static String getHeader() {
         return "tripId,personId" +
                 ",international,tripPurpose,tripState,tripOriginZone,tripOriginType" +
-                ",tripDestZone,tripDestType,travelDistance_km" +
+                ",tripDestZone,tripDestType,travelDistanceByCar_km,travelTimeByCar_h,travelDistance_km" +
                 ",tripMode,travelTimeByMode_h"+
-                ",departureTime,departureTimeReturnDaytrip,ReturnOvernightTrip"+
-                ",CO2emissions_kg" /*+
+                ",departureTimeMin,departureTimeReturnDaytrip,ReturnOvernightTrip"+
+                ",CO2emissions_kg" +
+                ",origX,origY,destX,destY" +
                  ",utility_" + ModeGermany.getMode(0)+
                 ",utility_" + ModeGermany.getMode(1)+
                 ",utility_" + ModeGermany.getMode(2)+
@@ -160,10 +237,25 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",time_" + ModeGermany.getMode(1)+
                 ",time_" + ModeGermany.getMode(2)+
                 ",time_" + ModeGermany.getMode(3)+
+                ",timeAccess_" + ModeGermany.getMode(0)+
+                ",timeAccess_" + ModeGermany.getMode(1)+
+                ",timeAccess_" + ModeGermany.getMode(2)+
+                ",timeAccess_" + ModeGermany.getMode(3)+
+                ",timeEgress_" + ModeGermany.getMode(0)+
+                ",timeEgress_" + ModeGermany.getMode(1)+
+                ",timeEgress_" + ModeGermany.getMode(2)+
+                ",timeEgress_" + ModeGermany.getMode(3)+
                 ",distance_" + ModeGermany.getMode(0)+
                 ",distance_" + ModeGermany.getMode(1)+
                 ",distance_" + ModeGermany.getMode(2)+
-                ",distance_" + ModeGermany.getMode(3)*/
+                ",distance_" + ModeGermany.getMode(3)+
+                ",originAirport" +
+                ",transferAirport" +
+                ",destinationAirport" +
+                ",originAirportX" +
+                ",originAirportY" +
+                ",destinationAirportX" +
+                ",destinationAirportY"
                 //"utility_auto", "tt_auto", ""cost_auto" +,
                 //"utility_rail, "tt_rail", ""cost_rail" +,
                 //"utility_bus", "tt_bus", ""cost_bus" +,
@@ -188,13 +280,19 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getOrigZone().getZoneType()
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getDestZone().getZoneType()
+                    + "," + tr.getAutoTravelDistance() / 1000
+                    + "," + tr.getAutoTravelTime() / 3600
                     + "," + tr.getDistanceByMode() / 1000
                     + "," + tr.getMode()
                     + "," + tr.getTravelTime() / 3600
-                    + "," + tr.getDepartureTimeInHours()
+                    + "," + tr.getDepartureTimesInMin() // Alona
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()
-                    + "," + tr.getEmissions().get(Pollutant.CO2)/*
+                    + "," + tr.getEmissions().get(Pollutant.CO2)
+                    + "," + tr.getOrigX()
+                    + "," + tr.getOrigY()
+                    + "," + tr.getDestX()
+                    + "," + tr.getDestY()
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(2))
@@ -211,10 +309,26 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("time_air")
                     + "," + tr.getAdditionalAttributes().get("time_rail")
                     + "," + tr.getAdditionalAttributes().get("time_bus")
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_auto")
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_air")
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_rail")
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_bus")
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_auto")
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_air")
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_rail")
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_bus")
                     + "," + tr.getAdditionalAttributes().get("distance_auto")
                     + "," + tr.getAdditionalAttributes().get("distance_air")
                     + "," + tr.getAdditionalAttributes().get("distance_rail")
-                    + "," + tr.getAdditionalAttributes().get("distance_bus")*/
+                    + "," + tr.getAdditionalAttributes().get("distance_bus")
+                    + "," + tr.getAdditionalAttributes().get("originAirport")
+                    + "," + tr.getAdditionalAttributes().get("transferAirport")
+                    + "," + tr.getAdditionalAttributes().get("destinationAirport")
+                    + "," + tr.getAdditionalAttributes().get("originAirportX")
+                    + "," + tr.getAdditionalAttributes().get("originAirportY")
+                    + "," + tr.getAdditionalAttributes().get("destinationAirportX")
+                    + "," + tr.getAdditionalAttributes().get("destinationAirportY")
+                    /*
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
                     + "," + traveller.getEducation()
@@ -237,6 +351,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getDestZoneType()
                     + "," + tr.getDestZone().getId()
                     + "," + tr.getAutoTravelDistance()
+                    + "," + tr.getDepartureTimesInMin() // Alona
                     + "," + tr.getDepartureTimeInHours()
                     + "," + tr.getDepartureTimeInHoursSecondSegment()
                     + "," + tr.isReturnOvernightTrip()
@@ -268,6 +383,12 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         return emissions;
     }
 
+    @Override
+    public Float getCO2emissions() {
+
+        return emissions.get(Pollutant.CO2);
+    }
+
     public Map<String, Float> getAdditionalAttributes() {
         return additionalAttributes;
     }
@@ -280,11 +401,4 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         this.emissions = emissions;
     }
 
-    public int getScenario() {
-        return scenario;
-    }
-
-    public void setScenario(int scenario) {
-        this.scenario = scenario;
-    }
 }

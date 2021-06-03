@@ -1,29 +1,23 @@
 package de.tum.bgu.msm.longDistance;
 
-import com.pb.common.datafile.TableDataSet;
-import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.airportAnalysis.AirTripsGeneration;
+import de.tum.bgu.msm.longDistance.airportAnalysis.AirportAnalysis;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTrip;
 import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripGermany;
-import de.tum.bgu.msm.longDistance.data.trips.LongDistanceTripOntario;
-import de.tum.bgu.msm.longDistance.data.trips.TypeOntario;
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoice;
 import de.tum.bgu.msm.longDistance.emissions.Emissions;
-import de.tum.bgu.msm.longDistance.io.reader.EconomicStatusReader;
-import de.tum.bgu.msm.longDistance.io.reader.SkimsReader;
-import de.tum.bgu.msm.longDistance.io.reader.SyntheticPopulationReader;
-import de.tum.bgu.msm.longDistance.io.reader.ZoneReader;
+import de.tum.bgu.msm.longDistance.io.reader.*;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriter;
-import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermanScenario;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoice;
-import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermanyScenario;
+import de.tum.bgu.msm.longDistance.scaling.PotentialTravelersSelectionGermany;
+import de.tum.bgu.msm.longDistance.scenarioAnalysis.ScenarioAnalysis;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGeneration;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 /**
@@ -42,6 +36,7 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
 
     //modules
     private ZoneReader zoneReader;
+    private GridReader gridReader;
     private SkimsReader skimsReader;
     private SyntheticPopulationReader syntheticPopulationReader;
     private TripGeneration tripGenModel;
@@ -52,19 +47,25 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
     private EconomicStatusReader economicStatusReader;
     private Emissions emissions;
     private CalibrationGermany calibrationGermany;
+    private PotentialTravelersSelectionGermany potentialTravelersSelection;
+    private ScenarioAnalysis scenarioAnalysis;
+    private AirTripsGeneration airTripsGeneration;
 
-    private TableDataSet scenarioVariables;
-
-    public LDModelGermanyScenarios(ZoneReader zoneReader, SkimsReader skimsReader,
+    public LDModelGermanyScenarios(ZoneReader zoneReader, GridReader gridReader, SkimsReader skimsReader,
                                    SyntheticPopulationReader syntheticPopulationReader,
                                    EconomicStatusReader economicStatusReader,
                                    TripGeneration tripGenModel,
                                    DestinationChoice destinationChoice,
+                                   AirTripsGeneration airTripsGeneration,
                                    ModeChoice mcModel,
                                    TimeOfDayChoice timeOfDayChoice,
                                    Emissions emissions,
-                                   OutputWriter outputWriter, CalibrationGermany calibrationGermany) {
+                                   OutputWriter outputWriter,
+                                   CalibrationGermany calibrationGermany,
+                                   PotentialTravelersSelectionGermany potentialTravelersSelection,
+                                   ScenarioAnalysis scenarioAnalysis) {
         this.zoneReader = zoneReader;
+        this.gridReader = gridReader;
         this.skimsReader = skimsReader;
         this.syntheticPopulationReader = syntheticPopulationReader;
         this.economicStatusReader = economicStatusReader;
@@ -75,20 +76,26 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
         this.emissions = emissions;
         this.outputWriter = outputWriter;
         this.calibrationGermany = calibrationGermany;
+        this.potentialTravelersSelection = potentialTravelersSelection;
+        this.scenarioAnalysis = scenarioAnalysis;
+        this.airTripsGeneration = airTripsGeneration;
     }
 
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
         Util.initializeRandomNumber(prop);
 
-        scenarioVariables = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"scenarioPolicy.scenarios"));
         //options
         zoneReader.setup(prop, inputFolder, outputFolder);
+        gridReader.setup(prop, inputFolder, outputFolder);
         skimsReader.setup(prop, inputFolder, outputFolder);
         syntheticPopulationReader.setup(prop, inputFolder, outputFolder);
         economicStatusReader.setup(prop, inputFolder, outputFolder);
+        potentialTravelersSelection.setup(prop, inputFolder, outputFolder);
+        scenarioAnalysis.setup(prop, inputFolder, outputFolder);
         tripGenModel.setup(prop, inputFolder, outputFolder);
         destinationChoice.setup(prop, inputFolder, outputFolder);
+        airTripsGeneration.setup(prop, inputFolder, outputFolder);
         mcModel.setup(prop, inputFolder, outputFolder);
         timeOfDayChoice.setup(prop, inputFolder, outputFolder);
         emissions.setup(prop, inputFolder, outputFolder);
@@ -100,46 +107,46 @@ public class LDModelGermanyScenarios implements ModelComponent, LDModel {
     public void load(DataSet dataSet) {
 
         zoneReader.load(dataSet);
+        gridReader.load(dataSet);
         skimsReader.load(dataSet);
         syntheticPopulationReader.load(dataSet);
         economicStatusReader.load(dataSet);
+        potentialTravelersSelection.load(dataSet);
+        scenarioAnalysis.load(dataSet);
         mcModel.load(dataSet);
         destinationChoice.load(dataSet);
         tripGenModel.load(dataSet);
         calibrationGermany.load(dataSet);
+        timeOfDayChoice.load(dataSet);
         emissions.load(dataSet);
         outputWriter.load(dataSet);
+        airTripsGeneration.load(dataSet);
         logger.info("---------------------ALL MODULES LOADED---------------------");
 
     }
 
     public void run(DataSet dataSet, int nThreads) {
 
-        //property change to avoid parallelization
-        //System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "0");
-        tripGenModel.run(dataSet, -1);
-        destinationChoice.run(dataSet, -1);
-        for (int scenario = 1; scenario <= scenarioVariables.getRowCount(); scenario++) {
-            setScenarios(dataSet, scenario);
-            mcModel.run(dataSet, -1);
-            //timeOfDayChoice.run(dataSet, -1);
-            calibrationGermany.run(dataSet, -1);
-            emissions.run(dataSet, -1);
-            outputWriter.run(dataSet, -1);
-        }
-        //print outputs
-
-
+        //for (int populationSection = 1; populationSection <= dataSet.getNumberOfSubpopulations(); populationSection++) {
+            potentialTravelersSelection.run(dataSet, -1);
+            tripGenModel.run(dataSet, -1);
+            destinationChoice.run(dataSet, -1);
+            airTripsGeneration.run(dataSet, -1);
+            for (int policyScenario = 1; policyScenario <= dataSet.getNumberOfScenarios(); policyScenario++) {
+                dataSet.setScenario(policyScenario);
+                mcModel.run(dataSet, -1);
+                timeOfDayChoice.run(dataSet, -1);
+                calibrationGermany.run(dataSet, -1);
+                emissions.run(dataSet, -1);
+                outputWriter.run(dataSet, -1);
+                scenarioAnalysis.run(dataSet, -1);
+            }
+        //}
+        scenarioAnalysis.run(dataSet, -1);
 
     }
 
 
-    private void setScenarios(DataSet dataSet, int scenario){
-        for (LongDistanceTrip t : dataSet.getAllTrips()) {
-            LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
-            ((LongDistanceTripGermany) trip).setScenario(scenario);
-        }
-    }
 
 
 }

@@ -57,6 +57,16 @@ public class HouseholdOntario implements Household {
         return id;
     }
 
+    @Override
+    public int getZoneId() {
+        return taz;
+    }
+
+    @Override
+    public int getHouseholdSize() {
+        return hhSize;
+    }
+
     public int getHhSize() {
         return hhSize;
     }

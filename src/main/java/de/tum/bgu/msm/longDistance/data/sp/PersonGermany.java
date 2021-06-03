@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.data.sp;
 
 
+import com.vividsolutions.jts.geom.Coordinate;
 import de.tum.bgu.msm.longDistance.data.trips.Purpose;
 import de.tum.bgu.msm.longDistance.data.trips.Type;
 
@@ -50,6 +51,7 @@ public class PersonGermany implements Person {
     private boolean isBetween40and59;
     private boolean isOver60;
 
+    private Coordinate workplaceLocation;
 
     public PersonGermany(int id, int hhId, int age, Gender gender, OccupationStatus occupation, boolean driversLicense, HouseholdGermany hh) {
         this.id = id;
@@ -77,12 +79,15 @@ public class PersonGermany implements Person {
     @Override
     public int getPersonId() {return id;}
 
+
     public Gender getGender() {
         return gender;}
 
     public int getAge() {return age;}
 
     public int getIncome() {return hh.getHhInc();}
+
+
 
     public int getAdultsHh() {
         int adultsHh = 0;
@@ -180,8 +185,10 @@ public class PersonGermany implements Person {
         return occupation;
     }
 
+
     public static String getHeader() {
-        return "id,hhid,age,gender,occupation,driversLicense,income";
+        //return "id,hhid,age,gender,occupation,driversLicense,income,jobCoordX,jobCoordY";
+        return "id,hhid,age,gender,occupation,driversLicense,income,jobCoordX,jobCoordY"; //,jjid,jjzone,type,workplace,schoolid"; //Alona
     }
 
     public String toString() {
@@ -193,8 +200,23 @@ public class PersonGermany implements Person {
                 + "," + pp.getGender().codeOf()
                 + "," + pp.getOccupation().codeOf()
                 + "," + pp.isDriversLicense()
-                + "," + pp.getIncome()
-        );
+                + "," + pp.getIncome());
+        if (pp.getOccupation().equals(OccupationStatus.WORKER)) {
+            str = str + "," + pp.getWorkplaceLocation().x
+                      + "," + pp.getWorkplaceLocation().y;
+        } else {
+            str = str + "," + 0
+                    + "," + 0;
+        }
+
         return str;
+    }
+
+    public Coordinate getWorkplaceLocation() {
+        return workplaceLocation;
+    }
+
+    public void setWorkplaceLocation(Coordinate workplaceLocation) {
+        this.workplaceLocation = workplaceLocation;
     }
 }

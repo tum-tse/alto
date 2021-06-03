@@ -28,16 +28,25 @@ public class ZoneGermany implements Zone {
     private int area;
     private AreaTypeGermany areatype;
     private int hotels = 0;
+    private double touristsAtHotel = 0;
     private float timeToLongDistanceRail = 0;
 
+
+
+    private double zoneX =0;
+    private double zoneY =0;
+
+    private boolean emptyZone = false;
+
     public ZoneGermany(int id, int population, int employment, ZoneTypeGermany zoneType, int area,
-                       AreaTypeGermany areaType) {
+                       AreaTypeGermany areaType, boolean emptyZone) {
         this.id = id;
         this.population = population;
         this.employment = employment;
         this.zoneType = zoneType;
         this.area = area;
         this.areatype = areaType;
+        this.emptyZone = emptyZone;
     }
 
     @Override
@@ -134,12 +143,44 @@ public class ZoneGermany implements Zone {
         this.hotels = hotels;
     }
 
+    public double getTouristsAtHotel() {
+        return touristsAtHotel;
+    }
+
+    public void setTouristsAtHotel(double touristsAtHotel) {
+        this.touristsAtHotel = touristsAtHotel;
+    }
+
     public float getTimeToLongDistanceRail() {
         return timeToLongDistanceRail;
     }
 
     public void setTimeToLongDistanceRail(float timeToLongDistanceRail) {
         this.timeToLongDistanceRail = timeToLongDistanceRail;
+    }
+
+    public boolean getEmptyZone() {
+        return emptyZone;
+    }
+
+    public void setEmptyZone(boolean emptyZone) {
+        this.emptyZone = emptyZone;
+    }
+
+    public double getZoneX() {
+        return zoneX;
+    }
+
+    public void setZoneX(double zoneX) {
+        this.zoneX = zoneX;
+    }
+
+    public double getZoneY() {
+        return zoneY;
+    }
+
+    public void setZoneY(double zoneY) {
+        this.zoneY = zoneY;
     }
 }
 

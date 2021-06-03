@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class Flight implements Id {
 
-    private static final Logger logger = Logger.getLogger(de.tum.bgu.msm.longDistance.data.airport.Airport.class);
+    private static final Logger logger = Logger.getLogger(Flight.class);
 
     private final int id;
     private final Airport origin;

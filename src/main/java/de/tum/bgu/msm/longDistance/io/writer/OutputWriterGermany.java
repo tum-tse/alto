@@ -6,8 +6,6 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
-import de.tum.bgu.msm.longDistance.io.writer.charts.Histogram;
-import de.tum.bgu.msm.longDistance.io.writer.charts.PieChart;
 import org.json.simple.JSONObject;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
@@ -48,10 +46,10 @@ public class OutputWriterGermany implements OutputWriter {
         outputFolder = outputFolderInput;
         outputFile = outputFolder + JsonUtilMto.getStringProp(prop, "output.trip_file");
         outputFileScenarioSettings = outputFolder + "scenarioSettings.csv";
-        increaseCostScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_increaseCost");
-        increaseAirCost = JsonUtilMto.getIntProp(prop,"scenarioPolicy.costIncreasePercentage");
-        limitAirDistanceScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_limitDistance");
-        airDistanceThreshold = JsonUtilMto.getIntProp(prop,"scenarioPolicy.distanceThreshold");
+        //increaseCostScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_increaseCost");
+        //increaseAirCost = JsonUtilMto.getIntProp(prop,"scenarioPolicy.costIncreasePercentage");
+        //limitAirDistanceScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_limitDistance");
+        //airDistanceThreshold = JsonUtilMto.getIntProp(prop,"scenarioPolicy.distanceThreshold");
     }
 
     @Override
@@ -101,8 +99,8 @@ public class OutputWriterGermany implements OutputWriter {
             final int tripOrigin = trip.getOrigZone().getId();
             if (trip.getTripPurpose() == purpose && trip.getDestZone() != null) {
                 final int tripDestination = trip.getDestZone().getId();
-                travelTimes.add((double) dataSet.getAutoTravelTime(tripOrigin, tripDestination));
-                double travelDistance = dataSet.getAutoTravelDistance(tripOrigin, tripDestination);
+                travelTimes.add((double) dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(tripOrigin, tripDestination));
+                double travelDistance = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(tripOrigin, tripDestination);
                 travelDistances.add(travelDistance);
                 if (trip.getTripState().equals(TypeGermany.DAYTRIP)){
                     travelDistancesDaytrip.add(travelDistance);
@@ -141,15 +139,15 @@ public class OutputWriterGermany implements OutputWriter {
             travelDistancesAwayArray[i] = value / 1000; //convert meters to km
             i++;
         }
-        Histogram.createFrequencyHistogram(outputFolder + "tripTimeDistribution"+ purpose, travelTimesArray, "Travel Time Distribution " + purpose, "Auto Travel Time (h)", "Frequency", 6, 0, 6);
+        //Histogram.createFrequencyHistogram(outputFolder + "tripTimeDistribution"+ purpose, travelTimesArray, "Travel Time Distribution " + purpose, "Auto Travel Time (h)", "Frequency", 6, 0, 6);
 
-        Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistribution"+ purpose, travelDistancesArray, "Travel Distance Distribution " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
+       // Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistribution"+ purpose, travelDistancesArray, "Travel Distance Distribution " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
 
-        Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionDaytrip"+ purpose, travelDistancesDaytripArray, "Travel Distance Distribution for daytrips " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
+        //.createFrequencyHistogram(outputFolder + "tripDistanceDistributionDaytrip"+ purpose, travelDistancesDaytripArray, "Travel Distance Distribution for daytrips " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
 
-        Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionOvernighttrip"+ purpose, travelDistancesOvernightArray, "Travel Distance Distribution for overnighttrips " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
+        //Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionOvernighttrip"+ purpose, travelDistancesOvernightArray, "Travel Distance Distribution for overnighttrips " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
 
-        Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionAwaytrip"+ purpose, travelDistancesAwayArray, "Travel Distance Distribution for away " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
+        //Histogram.createFrequencyHistogram(outputFolder + "tripDistanceDistributionAwaytrip"+ purpose, travelDistancesAwayArray, "Travel Distance Distribution for away " + purpose, "Distance (km)", "Frequency", 100, 0, 1000);
 
     }
 
@@ -175,7 +173,7 @@ public class OutputWriterGermany implements OutputWriter {
                 for (Purpose purpose1 : PurposeGermany.values()){
                 purposes.add((Comparable) purpose1,tripsByPurpose.get(purpose1).size());
             }
-                PieChart.createPieChart(outputFolder + "tripGeneration", purposes, "Generated Trips By Purpose ");
+                //PieChart.createPieChart(outputFolder + "tripGeneration", purposes, "Generated Trips By Purpose ");
 
             Map<Type, List<LongDistanceTrip>> tripsByPurpose1 = (Map<Type, List<LongDistanceTrip>>) dataSet.getAllTrips().stream()
                     .collect(Collectors.groupingBy(LongDistanceTrip::getTripState));
@@ -191,7 +189,7 @@ public class OutputWriterGermany implements OutputWriter {
                                     purposesTree.add((Comparable) purpose1, (int) (((double) count / totalTrips) * 100.));
                                 }
                         );
-                PieChart.createPieChart(outputFolder  + "tripGeneration" + statePurpose, purposesTree, "Trip Generation " + statePurpose);
+                //PieChart.createPieChart(outputFolder  + "tripGeneration" + statePurpose, purposesTree, "Trip Generation " + statePurpose);
             }
         );
 
@@ -222,7 +220,7 @@ public class OutputWriterGermany implements OutputWriter {
                                         modes.add((Comparable) mode, (int) (((double) count / totalTrips) * 100.));
                                     }
                             );
-                    PieChart.createPieChart(outputFolder  + "modeChoice_" + purposeMode + "_" + purpose1, modes, "Mode Choice of " + purposeMode + " " + purpose1);
+                   // PieChart.createPieChart(outputFolder  + "modeChoice_" + purposeMode + "_" + purpose1, modes, "Mode Choice of " + purposeMode + " " + purpose1);
                 }
             );
         }
