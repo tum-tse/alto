@@ -143,9 +143,6 @@ public final class AirTripsGeneration implements ModelComponent {
                 airRoute = assignIntrazonalTrip();
 
             } else {
-                if (((LongDistanceTripGermany) trip).getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)){
-                    System.out.println("check");
-                }
                 //not in the catchment area of the same airport
                 originAirport = dataSet.getAirportFromId(originZone.getClosestAirportId());
                 destinationAirport = dataSet.getAirportFromId(destinationZone.getClosestAirportId());
