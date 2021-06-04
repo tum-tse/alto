@@ -160,7 +160,7 @@ public class EuropeModeChoiceGermany {
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
             distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
-            if(m.equals(ModeGermany.AUTO) || m.equals(ModeGermany.AUTO_consideringToll)){
+            if(m.equals(ModeGermany.AUTO) || m.equals(ModeGermany.AUTO_noToll)){
                 tollDistance = dataSet.getTollDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
             }
         }
