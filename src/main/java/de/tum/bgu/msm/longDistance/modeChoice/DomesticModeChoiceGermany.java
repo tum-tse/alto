@@ -36,6 +36,7 @@ public class DomesticModeChoiceGermany {
     private TableDataSet mcGermany;
     private TableDataSet costsPerKm;
     private float toll;
+    private float NESTED_INCREMENTAL_LOGIT_SCALE;
 
     private boolean calibration;
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
@@ -50,6 +51,7 @@ public class DomesticModeChoiceGermany {
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
         toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.toll_km");
+        NESTED_INCREMENTAL_LOGIT_SCALE = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.nested_incremental_logit_scale");
         logger.info("Domestic MC set up");
 
     }
@@ -265,7 +267,14 @@ public class DomesticModeChoiceGermany {
             utility = Double.NEGATIVE_INFINITY;
         }
 
-        return utility;
+        if (utility == Double.NEGATIVE_INFINITY){
+            return utility;
+        }else if (m.equals(ModeGermany.AUTO_noToll) || m.equals(ModeGermany.AUTO)){
+            return utility + NESTED_INCREMENTAL_LOGIT_SCALE * Math.log10(2);
+        }else {
+            return utility;
+        }
+
 
     }
 
