@@ -158,6 +158,13 @@ public class DomesticModeChoiceGermany {
                 attr.put("destinationAirportX", (float) destinationAirport.getAirportCoordX());
                 attr.put("destinationAirportY", (float) destinationAirport.getAirportCoordY());
             }
+        }
+        else if (m.equals(ModeGermany.RAIL)){
+                timeAccess = dataSet.getTravelTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
+                timeEgress = dataSet.getTravelTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
+                distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+                distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
             distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
@@ -183,6 +190,13 @@ public class DomesticModeChoiceGermany {
                     costEgress = distanceEgress * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
                             Math.pow(distanceEgress , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
                     costTotal = cost + costAccess + costEgress;
+                }
+                if (m.equals(ModeGermany.RAIL)) {
+                    //distanceAccess = dataSet.getDistanceMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+                        costAccess = distanceAccess * 0.12;
+                    //distanceEgress = dataSet.getDistanceMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+                        costEgress = distanceEgress * 0.12;
+                        costTotal = cost + costAccess + costEgress;
                 }
                 impedance = cost / (vot) + time;
                 attr.put("cost_"+ m.toString(), (float) cost);

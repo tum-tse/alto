@@ -44,6 +44,10 @@ public class DataSet {
     private Map<Mode, Matrix> transferMatrix;
     private Map<Mode, Matrix> distanceMatrix;
 
+    private Map<Mode, Matrix> railAccessDistMatrix; //A
+    private Map<Mode, Matrix> railEgressDistMatrix; //A
+
+
     private Matrix airAccessAirportZone;
     private Matrix airEgressAirportZone;
 
@@ -141,6 +145,13 @@ public class DataSet {
     public void setAutoTravelDistance(Matrix autoTravelDistance) {
         this.autoTravelDistance = autoTravelDistance;
     }
+
+    //Alona
+    public void setRailAccessDistMatrix(Map<Mode, Matrix> railAccessDistMatrix) { this.railAccessDistMatrix = railAccessDistMatrix;}
+    public void setRailEgressDistMatrix(Map<Mode, Matrix> railEgressDistMatrix) { this.railEgressDistMatrix = railEgressDistMatrix;}
+
+    public Map<Mode, Matrix> getRailEgressDistMatrix() { return railEgressDistMatrix;}
+    public Map<Mode, Matrix> getRailAccessDistMatrix() { return railAccessDistMatrix;}
 
     public Map<Integer, Person> getPersons() {
         return persons;
