@@ -262,8 +262,9 @@ public class SkimsReaderGermany implements SkimsReader {
 
         modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
         modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
-        railAccessDistanceMatrixMap.put(m, modeMatrixMap.get("access_distance_m")); // A
-        railEgressDistanceMatrixMap.put(m, modeMatrixMap.get("egress_distance_m")); // A
+        //railAccessDistanceMatrixMap.put(m, modeMatrixMap.get("access_distance_m")); // A
+        railAccessDistanceMatrixMap.put(m, railAccessDistance);
+        railEgressDistanceMatrixMap.put(m, railEgressDistance); // A
 
         // added the access time of each zone to ld rail station
         readTimeToRail(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)), dataSet, 5, 10*60, 1);
@@ -271,8 +272,8 @@ public class SkimsReaderGermany implements SkimsReader {
 
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
         dataSet.setDistanceMatrix(modeDistanceMatrixMap);
-        dataSet.setRailAccessDistMatrix(modeDistanceMatrixMap);
-        dataSet.setRailEgressDistMatrix(modeDistanceMatrixMap);
+        dataSet.setRailAccessDistMatrix(railAccessDistanceMatrixMap);
+        dataSet.setRailEgressDistMatrix(railEgressDistanceMatrixMap);
 
     }
 

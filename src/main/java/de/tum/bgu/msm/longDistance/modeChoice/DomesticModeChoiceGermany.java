@@ -164,6 +164,7 @@ public class DomesticModeChoiceGermany {
                 timeEgress = dataSet.getTravelTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
                 distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
                 distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+                distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
 
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;

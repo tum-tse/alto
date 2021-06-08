@@ -233,14 +233,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",cost_" + ModeGermany.getMode(1)+
                 ",cost_" + ModeGermany.getMode(2)+
                 ",cost_" + ModeGermany.getMode(3)+
-                ",costAccess_" + ModeGermany.getMode(0)+
+                /*",costAccess_" + ModeGermany.getMode(0)+
                 ",costAccess_" + ModeGermany.getMode(1)+
                 ",costAccess_" + ModeGermany.getMode(2)+
                 ",costAccess_" + ModeGermany.getMode(3)+
                 ",costEgress_" + ModeGermany.getMode(0)+
                 ",costEgress_" + ModeGermany.getMode(1)+
                 ",costEgress_" + ModeGermany.getMode(2)+
-                ",costEgress_" + ModeGermany.getMode(3)+
+                ",costEgress_" + ModeGermany.getMode(3)+*/
                 ",time_" + ModeGermany.getMode(0)+
                 ",time_" + ModeGermany.getMode(1)+
                 ",time_" + ModeGermany.getMode(2)+
@@ -257,14 +257,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",distance_" + ModeGermany.getMode(1)+
                 ",distance_" + ModeGermany.getMode(2)+
                 ",distance_" + ModeGermany.getMode(3)+
-                ",distanceAccess_" + ModeGermany.getMode(0)+
+                /*",distanceAccess_" + ModeGermany.getMode(0)+
                 ",distanceAccess_" + ModeGermany.getMode(1)+
                 ",distanceAccess_" + ModeGermany.getMode(2)+
                 ",distanceAccess_" + ModeGermany.getMode(3)+
                 ",distanceEgress_" + ModeGermany.getMode(0)+
                 ",distanceEgress_" + ModeGermany.getMode(1)+
                 ",distanceEgress_" + ModeGermany.getMode(2)+
-                ",distanceEgress_" + ModeGermany.getMode(3)+
+                ",distanceEgress_" + ModeGermany.getMode(3)+*/
                 ",originAirport" +
                 ",transferAirport" +
                 ",destinationAirport" +
@@ -326,13 +326,13 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("cost_rail")
                     + "," + tr.getAdditionalAttributes().get("cost_bus")
                     + "," + tr.getAdditionalAttributes().get("cost_auto")
-                    + "," + tr.getAdditionalAttributes().get("costAccess_air")
+                    /*+ "," + tr.getAdditionalAttributes().get("costAccess_air")
                     + "," + tr.getAdditionalAttributes().get("costAccess_rail")
                     + "," + tr.getAdditionalAttributes().get("costAccess_bus")
                     + "," + tr.getAdditionalAttributes().get("costAccess_auto")
                     + "," + tr.getAdditionalAttributes().get("costEgress_air")
                     + "," + tr.getAdditionalAttributes().get("costEgress_rail")
-                    + "," + tr.getAdditionalAttributes().get("costEgress_bus")
+                    + "," + tr.getAdditionalAttributes().get("costEgress_bus")*/
                     + "," + tr.getAdditionalAttributes().get("timeAccess_auto")
                     + "," + tr.getAdditionalAttributes().get("timeAccess_air")
                     + "," + tr.getAdditionalAttributes().get("timeAccess_rail")
@@ -345,14 +345,14 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("distance_air")
                     + "," + tr.getAdditionalAttributes().get("distance_rail")
                     + "," + tr.getAdditionalAttributes().get("distance_bus")
-                    + "," + tr.getAdditionalAttributes().get("distanceAccess_auto")
+                    /*+ "," + tr.getAdditionalAttributes().get("distanceAccess_auto")
                     + "," + tr.getAdditionalAttributes().get("distanceAccess_air")
                     + "," + tr.getAdditionalAttributes().get("distanceAccess_rail")
                     + "," + tr.getAdditionalAttributes().get("distanceAccess_bus")
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_auto")
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_air")
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_rail")
-                    + "," + tr.getAdditionalAttributes().get("distanceEgress_bus")
+                    + "," + tr.getAdditionalAttributes().get("distanceEgress_bus")*/
                     + "," + tr.getAdditionalAttributes().get("originAirport")
                     + "," + tr.getAdditionalAttributes().get("transferAirport")
                     + "," + tr.getAdditionalAttributes().get("destinationAirport")
