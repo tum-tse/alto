@@ -160,11 +160,12 @@ public class DomesticModeChoiceGermany {
             }
         }
         else if (m.equals(ModeGermany.RAIL)){
-                timeAccess = dataSet.getTravelTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
-                timeEgress = dataSet.getTravelTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
+                timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
+                timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
                 distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
                 distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
                 distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
+                time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
 
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;

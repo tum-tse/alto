@@ -180,6 +180,8 @@ public class SkimsReaderGermany implements SkimsReader {
         Map<Mode, Matrix> modeDistanceMatrixMap = new HashMap<>();
         Map<Mode, Matrix> railAccessDistanceMatrixMap = new HashMap<>(); // A
         Map<Mode, Matrix> railEgressDistanceMatrixMap = new HashMap<>(); // A
+        Map<Mode, Matrix> railAccessTimeMatrixMap = new HashMap<>(); // A
+        Map<Mode, Matrix> railEgressTimeMatrixMap = new HashMap<>(); // A
 
         // read skim file
         ModeGermany m;
@@ -255,6 +257,11 @@ public class SkimsReaderGermany implements SkimsReader {
         time = logReading(time, "access_distance_m");
         Matrix railEgressDistance = omxToMatrix(egressDistanceFileNames.get(m), "egress_distance_m", lookUps.get(m));
         time = logReading(time, "egress_distance_m");
+        Matrix railAccessTime = omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m));
+        time = logReading(time, "access_time_s");
+        Matrix railEgressTime = omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m));
+        time = logReading(time, "egress_time_s");
+
         //
 
         modeMatrixMap = assignIntrazonalTravelTimes(totalTravelTimeRail, distanceRail, m,5,10*60,0.33F);
@@ -265,6 +272,8 @@ public class SkimsReaderGermany implements SkimsReader {
         //railAccessDistanceMatrixMap.put(m, modeMatrixMap.get("access_distance_m")); // A
         railAccessDistanceMatrixMap.put(m, railAccessDistance);
         railEgressDistanceMatrixMap.put(m, railEgressDistance); // A
+        railAccessTimeMatrixMap.put(m, railAccessTime);
+        railEgressTimeMatrixMap.put(m, railEgressTime); // A
 
         // added the access time of each zone to ld rail station
         readTimeToRail(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)), dataSet, 5, 10*60, 1);
@@ -274,6 +283,8 @@ public class SkimsReaderGermany implements SkimsReader {
         dataSet.setDistanceMatrix(modeDistanceMatrixMap);
         dataSet.setRailAccessDistMatrix(railAccessDistanceMatrixMap);
         dataSet.setRailEgressDistMatrix(railEgressDistanceMatrixMap);
+        dataSet.setRailAccessTimeMatrix(railAccessTimeMatrixMap);
+        dataSet.setRailEgressTimeMatrix(railEgressTimeMatrixMap);
 
     }
 
