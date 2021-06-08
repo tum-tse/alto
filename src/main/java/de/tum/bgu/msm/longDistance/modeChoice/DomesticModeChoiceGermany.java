@@ -36,7 +36,7 @@ public class DomesticModeChoiceGermany {
     private TableDataSet mcGermany;
     private TableDataSet costsPerKm;
     private float toll;
-    private float NESTED_INCREMENTAL_LOGIT_SCALE;
+    private float NESTING_COEFFICIENT_AUTO_MODES;
 
     private boolean calibration;
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
@@ -51,7 +51,7 @@ public class DomesticModeChoiceGermany {
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
         toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.toll_km");
-        NESTED_INCREMENTAL_LOGIT_SCALE = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.nested_incremental_logit_scale");
+        NESTING_COEFFICIENT_AUTO_MODES = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.nested_incremental_logit_scale");
         logger.info("Domestic MC set up");
 
     }
@@ -75,6 +75,7 @@ public class DomesticModeChoiceGermany {
 
     public Mode selectModeDomestic(LongDistanceTrip t) {
         LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
+        double[] utilities = new double[ModeGermany.values().length];
         double[] expUtilities = new double[ModeGermany.values().length];
         Map<String, Float> attributes = new HashMap<>();
         Mode selectedMode = null;
@@ -83,11 +84,33 @@ public class DomesticModeChoiceGermany {
             expUtilities[1] = 0;
             expUtilities[2] = 0;
             expUtilities[3] = 0;
+            expUtilities[4] = 0;
         } else {
 
             //calculate exp(Ui) for each destination
-            expUtilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> Math.exp(calculateUtilityFromGermany(trip, m))).toArray();
+            utilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> calculateUtilityFromGermany(trip, m)).toArray();
+
+            double utilityNestAuto =
+                    Math.log(Math.exp(utilities[0]*NESTING_COEFFICIENT_AUTO_MODES) + Math.exp(utilities[4]*NESTING_COEFFICIENT_AUTO_MODES)) / NESTING_COEFFICIENT_AUTO_MODES;
+
+            double expSumNestAuto = Math.exp(utilities[0]) + Math.exp(utilities[4]);
+
+            double probLowerAuto = Math.exp(utilities[0])/expSumNestAuto;
+            double probLowerAutoNoToll = Math.exp(utilities[4])/expSumNestAuto;
+
+            expUtilities[0] = Math.exp(utilityNestAuto);
+            expUtilities[1] = Math.exp(utilities[1]);
+            expUtilities[2] = Math.exp(utilities[2]);
+            expUtilities[3] = Math.exp(utilities[3]);
+            expUtilities[4] = Math.exp(utilityNestAuto);
+
             double probability_denominator = Arrays.stream(expUtilities).sum();
+
+            expUtilities[0] = expUtilities[0]/probability_denominator * probLowerAuto;
+            expUtilities[1] = expUtilities[1]/probability_denominator;
+            expUtilities[2] = expUtilities[2]/probability_denominator;
+            expUtilities[3] = expUtilities[3]/probability_denominator;
+            expUtilities[4] = expUtilities[4]/probability_denominator * probLowerAutoNoToll;
 
             attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
             //if there is no access by any mode for the selected OD pair, just go by car
@@ -100,6 +123,7 @@ public class DomesticModeChoiceGermany {
                 expUtilities[1] = 0;
                 expUtilities[2] = 0;
                 expUtilities[3] = 0;
+                expUtilities[4] = 0;
                 for (int mode = 0; mode < expUtilities.length; mode++) {
                     attributes.put("utility_" + ModeGermany.getMode(mode), (float) expUtilities[mode]);
                 }
@@ -114,7 +138,6 @@ public class DomesticModeChoiceGermany {
 
 
     public double calculateUtilityFromGermany(LongDistanceTripGermany trip, Mode m) {
-
 
         double utility;
         String tripPurpose = trip.getTripPurpose().toString().toLowerCase();
@@ -267,14 +290,7 @@ public class DomesticModeChoiceGermany {
             utility = Double.NEGATIVE_INFINITY;
         }
 
-        if (utility == Double.NEGATIVE_INFINITY){
-            return utility;
-        }else if (m.equals(ModeGermany.AUTO_noToll) || m.equals(ModeGermany.AUTO)){
-            return utility + NESTED_INCREMENTAL_LOGIT_SCALE * Math.log10(2);
-        }else {
-            return utility;
-        }
-
+        return utility;
 
     }
 
