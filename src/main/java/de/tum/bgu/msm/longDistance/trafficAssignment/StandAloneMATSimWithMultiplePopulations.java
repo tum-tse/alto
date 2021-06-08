@@ -5,15 +5,15 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.Scenario;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.Plan;
-import org.matsim.api.core.v01.population.Population;
+import org.matsim.api.core.v01.population.*;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.population.PopulationUtils;
 import org.matsim.core.scenario.MutableScenario;
 import org.matsim.core.scenario.ScenarioUtils;
+
+import java.util.Random;
 
 public class StandAloneMATSimWithMultiplePopulations {
 
@@ -25,22 +25,17 @@ public class StandAloneMATSimWithMultiplePopulations {
         logger.info("starting matsim");
         Config config = ConfigUtils.loadConfig(args[0]);
 
-        //JsonUtilMto jsonUtilMto = new JsonUtilMto(args[1]);
-        //JSONObject prop = jsonUtilMto.getJsonProperties();
+        String[] planFiles = new String[]{
+                "plans/1_percent/plans_sd.xml.gz",
+                "plans/1_percent/ld_trucks.xml.gz",
+                "plans/5_percent/plans_ld_5percent.xml.gz"};
+        String[] planSuffixes = new String[]{"_sd", "_t", "_ld"};
+        double[] reScalingFactors = new double[]{1.,1.,0.2};
 
-
-        ///String[] planFiles = JsonUtilMto.getStringArrayProp(prop, "assignment.population_files");
-        //String[] planSuffixes = JsonUtilMto.getStringArrayProp(prop, "assignment.population_suffixes");
-
-        String[] planFiles = new String[]{/*"externalDemand/trucks_1_percent/ld_trucks.xml.gz",*/
-                "externalDemand/sd_1_percent_20210504/sd_trips.xml.gz",
-                "externalDemand/ld_wei_1_percent/ld_trips.xml.gz"};
-        String[] planSuffixes = new String[]{/*"",*/ "sd_", "ld_"};
-
-        Population population = combinePopulations(PopulationUtils.createPopulation(config), planFiles, planSuffixes);
+        Population population = combinePopulations(PopulationUtils.createPopulation(config), planFiles, planSuffixes, reScalingFactors);
         MutableScenario scenario = ScenarioUtils.createMutableScenario(config);
         scenario.setPopulation(population);
-        PopulationUtils.writePopulation(population, "externalDemand/combinedPopulation_1_percent.xml.gz");
+        //PopulationUtils.writePopulation(population, "plans/combinedPopulation_1_percent.xml.gz");
         ScenarioUtils.loadScenario(scenario);
 
         Controler controler = new Controler(scenario);
@@ -48,22 +43,57 @@ public class StandAloneMATSimWithMultiplePopulations {
 
     }
 
-    private static Population combinePopulations(Population population, String[] planFiles, String[] planSuffixes) {
-        if (planFiles.length != planSuffixes.length){
+    private static Population combinePopulations(Population population, String[] planFiles, String[] planSuffixes, double[] reScalingFactors) {
+        if (planFiles.length != planSuffixes.length) {
             throw new RuntimeException("Inconsistent inputs");
         }
 
-        for (int i =0; i < planFiles.length; i++){
+        Random random = new Random();
+        for (int i = 0; i < planFiles.length; i++) {
 
             Population thisPopulation = PopulationUtils.readPopulation(planFiles[i]);
             String thisSuffix = planSuffixes[i];
 
-            for (Person person : thisPopulation.getPersons().values()){
-                Person newPerson = population.getFactory().createPerson(Id.createPersonId(person.getId().toString() + "_" + thisSuffix));
-                population.addPerson(newPerson);
-                for (Plan plan : person.getPlans()){
-                    newPerson.addPlan(plan);
+            for (Person person : thisPopulation.getPersons().values()) {
+                boolean add = true;
+                boolean hasActivity = false;
+                double scaleFactor = reScalingFactors[i];
+                if (random.nextDouble() < scaleFactor) {
+                    Person newPerson = population.getFactory().createPerson(Id.createPersonId(person.getId().toString() + "_" + thisSuffix));
+
+                    for (Plan plan : person.getPlans()) {
+                        newPerson.addPlan(plan);
+
+                        for (PlanElement planElement : plan.getPlanElements()) {
+                            if (planElement instanceof Activity){
+                                hasActivity = true;
+                                final Activity activity = (Activity) planElement;
+                                if (activity.getType().equals("Airport") ||
+                                        activity.getType().equals("Other")){
+                                    add = false;
+                                }
+                                if (activity.getEndTime().orElse(1) < 0){
+                                    add = false;
+                                }
+                            }
+                            if (planElement instanceof Leg){
+                                final Leg leg = (Leg) planElement;
+                                final String mode = leg.getMode();
+                                if (mode.equalsIgnoreCase("air")){
+                                    add = false;
+                                }
+                                if (mode.equalsIgnoreCase("auto")){
+                                    leg.setMode("car");
+                                }
+                            }
+                        }
+                    }
+                    if (add && hasActivity){
+                        population.addPerson(newPerson);
+                    }
+
                 }
+
             }
         }
         return population;
