@@ -221,34 +221,46 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",departureTimeMin,departureTimeReturnDaytrip,ReturnOvernightTrip"+
                 ",CO2emissions_kg" +
                 ",origX,origY,destX,destY" +
-                 ",utility_" + ModeGermany.getMode(0)+
+                ",utility_" + ModeGermany.getMode(0)+
                 ",utility_" + ModeGermany.getMode(1)+
                 ",utility_" + ModeGermany.getMode(2)+
                 ",utility_" + ModeGermany.getMode(3)+
+                ",utility_" + ModeGermany.getMode(4)+
                 ",impedance_" + ModeGermany.getMode(0)+
                 ",impedance_" + ModeGermany.getMode(1)+
                 ",impedance_" + ModeGermany.getMode(2)+
                 ",impedance_" + ModeGermany.getMode(3)+
+                ",impedance_" + ModeGermany.getMode(4)+
                 ",cost_" + ModeGermany.getMode(0)+
                 ",cost_" + ModeGermany.getMode(1)+
                 ",cost_" + ModeGermany.getMode(2)+
                 ",cost_" + ModeGermany.getMode(3)+
+                ",cost_" + ModeGermany.getMode(4)+
                 ",time_" + ModeGermany.getMode(0)+
                 ",time_" + ModeGermany.getMode(1)+
                 ",time_" + ModeGermany.getMode(2)+
                 ",time_" + ModeGermany.getMode(3)+
+                ",time_" + ModeGermany.getMode(4)+
                 ",timeAccess_" + ModeGermany.getMode(0)+
                 ",timeAccess_" + ModeGermany.getMode(1)+
                 ",timeAccess_" + ModeGermany.getMode(2)+
                 ",timeAccess_" + ModeGermany.getMode(3)+
+                ",timeAccess_" + ModeGermany.getMode(4)+
                 ",timeEgress_" + ModeGermany.getMode(0)+
                 ",timeEgress_" + ModeGermany.getMode(1)+
                 ",timeEgress_" + ModeGermany.getMode(2)+
                 ",timeEgress_" + ModeGermany.getMode(3)+
+                ",timeEgress_" + ModeGermany.getMode(4)+
                 ",distance_" + ModeGermany.getMode(0)+
                 ",distance_" + ModeGermany.getMode(1)+
                 ",distance_" + ModeGermany.getMode(2)+
                 ",distance_" + ModeGermany.getMode(3)+
+                ",distance_" + ModeGermany.getMode(4)+
+                ",tollDistance_" + ModeGermany.getMode(0)+
+                ",tollDistance_" + ModeGermany.getMode(1)+
+                ",tollDistance_" + ModeGermany.getMode(2)+
+                ",tollDistance_" + ModeGermany.getMode(3)+
+                ",tollDistance_" + ModeGermany.getMode(4)+
                 ",originAirport" +
                 ",transferAirport" +
                 ",destinationAirport" +
@@ -297,30 +309,42 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(3))
-                    + "," + tr.getAdditionalAttributes().get("impedance_auto")
-                    + "," + tr.getAdditionalAttributes().get("impedance_air")
-                    + "," + tr.getAdditionalAttributes().get("impedance_rail")
-                    + "," + tr.getAdditionalAttributes().get("impedance_bus")
-                    + "," + tr.getAdditionalAttributes().get("cost_auto")
-                    + "," + tr.getAdditionalAttributes().get("cost_air")
-                    + "," + tr.getAdditionalAttributes().get("cost_rail")
-                    + "," + tr.getAdditionalAttributes().get("cost_bus")
-                    + "," + tr.getAdditionalAttributes().get("time_auto")
-                    + "," + tr.getAdditionalAttributes().get("time_air")
-                    + "," + tr.getAdditionalAttributes().get("time_rail")
-                    + "," + tr.getAdditionalAttributes().get("time_bus")
-                    + "," + tr.getAdditionalAttributes().get("timeAccess_auto")
-                    + "," + tr.getAdditionalAttributes().get("timeAccess_air")
-                    + "," + tr.getAdditionalAttributes().get("timeAccess_rail")
-                    + "," + tr.getAdditionalAttributes().get("timeAccess_bus")
-                    + "," + tr.getAdditionalAttributes().get("timeEgress_auto")
-                    + "," + tr.getAdditionalAttributes().get("timeEgress_air")
-                    + "," + tr.getAdditionalAttributes().get("timeEgress_rail")
-                    + "," + tr.getAdditionalAttributes().get("timeEgress_bus")
-                    + "," + tr.getAdditionalAttributes().get("distance_auto")
-                    + "," + tr.getAdditionalAttributes().get("distance_air")
-                    + "," + tr.getAdditionalAttributes().get("distance_rail")
-                    + "," + tr.getAdditionalAttributes().get("distance_bus")
+                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("impedance_"+ ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("impedance_"+ ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("impedance_"+ ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("impedance_"+ ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("impedance_"+ ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("cost_"+ ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("cost_"+ ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("cost_"+ ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("cost_"+ ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("cost_"+ ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("time_"+ ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("time_"+ ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("time_"+ ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("time_"+ ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("time_"+ ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_"+ ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_"+ ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_"+ ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_"+ ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_"+ ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_"+ ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_"+ ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_"+ ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_"+ ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_"+ ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("distance_"+ ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("distance_"+ ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("distance_"+ ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("distance_"+ ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("distance_"+ ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("tollDistance_"+ ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("tollDistance_"+ ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("tollDistance_"+ ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("tollDistance_"+ ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("tollDistance_"+ ModeGermany.getMode(4))
                     + "," + tr.getAdditionalAttributes().get("originAirport")
                     + "," + tr.getAdditionalAttributes().get("transferAirport")
                     + "," + tr.getAdditionalAttributes().get("destinationAirport")
