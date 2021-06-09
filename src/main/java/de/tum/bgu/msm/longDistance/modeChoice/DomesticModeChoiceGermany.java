@@ -50,8 +50,8 @@ public class DomesticModeChoiceGermany {
         costsPerKm.buildStringIndex(2);
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
-        toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.toll_km");
-        NESTING_COEFFICIENT_AUTO_MODES = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.nested_incremental_logit_scale");
+        toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.scenario4.toll_km");
+        NESTING_COEFFICIENT_AUTO_MODES = 1 / JsonUtilMto.getFloatProp(prop, "scenarioPolicy.scenario4.nested_incremental_logit_scale");
         logger.info("Domestic MC set up");
 
     }
