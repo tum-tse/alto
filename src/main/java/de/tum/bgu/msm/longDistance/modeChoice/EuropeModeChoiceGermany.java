@@ -87,13 +87,12 @@ public class EuropeModeChoiceGermany {
             //calculate exp(Ui) for each destination
             utilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> calculateUtilityForEurope(trip, m)).toArray();
 
-            double utilityNestAuto =
-                    Math.log(Math.exp(utilities[0]*NESTING_COEFFICIENT_AUTO_MODES) + Math.exp(utilities[4]*NESTING_COEFFICIENT_AUTO_MODES)) / NESTING_COEFFICIENT_AUTO_MODES;
-
             double expSumNestAuto = Math.exp(utilities[0]) + Math.exp(utilities[4]);
-
             double probLowerAuto = Math.exp(utilities[0])/expSumNestAuto;
             double probLowerAutoNoToll = Math.exp(utilities[4])/expSumNestAuto;
+
+            double utilityNestAuto =
+                    Math.log(Math.exp(utilities[0]*NESTING_COEFFICIENT_AUTO_MODES) + Math.exp(utilities[4]*NESTING_COEFFICIENT_AUTO_MODES)) / NESTING_COEFFICIENT_AUTO_MODES;
 
             expUtilities[0] = Math.exp(utilityNestAuto);
             expUtilities[1] = Math.exp(utilities[1]);
