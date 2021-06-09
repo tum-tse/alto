@@ -112,13 +112,25 @@ public class EuropeModeChoiceGermany {
             attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
 
             //if there is no access by any mode for the selected OD pair, just go by car
-            if (probability_denominator != 0) {
-
+            if (trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
+                expUtilities[0] = 0;
+                expUtilities[1] = 1;
+                expUtilities[2] = 0;
+                expUtilities[3] = 0;
+                expUtilities[4] = 0;
+                for (int mode = 0; mode < expUtilities.length; mode++) {
+                    attributes.put("utility_" + ModeGermany.getMode(mode), (float) expUtilities[mode]);
+                }
+            } else if (probability_denominator != 0) {
                 for (int mode = 0; mode < expUtilities.length; mode++) {
                     attributes.put("utility_" + ModeGermany.getMode(mode), (float) (expUtilities[mode] / probability_denominator));
                 }
             }else{
                 expUtilities[0] = 1;
+                expUtilities[1] = 0;
+                expUtilities[2] = 0;
+                expUtilities[3] = 0;
+                expUtilities[4] = 0;
                 for (int mode = 0; mode < expUtilities.length; mode++) {
                     attributes.put("utility_" + ModeGermany.getMode(mode), (float) expUtilities[mode]);
                 }
