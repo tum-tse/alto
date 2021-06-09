@@ -36,10 +36,10 @@ public class ModeChoiceGermany implements ModeChoice {
 
     @Override
     public void run(DataSet dataSet, int nThreads) {
-        runModeChoice(dataSet.getTripsofPotentialTravellers());
+        runModeChoice(dataSet.getTripsofPotentialTravellers(), dataSet);
     }
 
-    public void runModeChoice(ArrayList<LongDistanceTrip> trips) {
+    public void runModeChoice(ArrayList<LongDistanceTrip> trips, DataSet dataSet) {
         logger.info("Running Mode Choice Model for " + trips.size() + " trips");
         trips.parallelStream().forEach(t -> {
             if (!((LongDistanceTripGermany)t).isInternational() ) {
@@ -83,6 +83,10 @@ public class ModeChoiceGermany implements ModeChoice {
                     //((LongDistanceTripGermany)t).setDistanceByMode(mcDomesticModel.getDomesticModalDistance(t));
                 }
 
+            }
+            if (t.getMode().equals(ModeGermany.AUTO_noToll)){
+                ((LongDistanceTripGermany) t).setAutoTravelDistance(dataSet.getDistanceMatrix().get(ModeGermany.AUTO_noToll).getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), ((LongDistanceTripGermany) t).getDestZone().getId()));
+                ((LongDistanceTripGermany) t).setAutoTravelTime(dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO_noToll).getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), ((LongDistanceTripGermany) t).getDestZone().getId()));
             }
 
         });
