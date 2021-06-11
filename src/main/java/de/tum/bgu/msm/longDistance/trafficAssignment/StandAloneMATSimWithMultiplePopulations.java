@@ -47,7 +47,7 @@ public class StandAloneMATSimWithMultiplePopulations {
 
     }
 
-    private static Population combinePopulations(Population population, String[] planFiles, String[] planSuffixes, double[] reScalingFactors) {
+    public static Population combinePopulations(Population population, String[] planFiles, String[] planSuffixes, double[] reScalingFactors) {
         if (planFiles.length != planSuffixes.length) {
             throw new RuntimeException("Inconsistent inputs");
         }
