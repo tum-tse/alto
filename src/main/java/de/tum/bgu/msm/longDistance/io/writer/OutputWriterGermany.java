@@ -46,10 +46,10 @@ public class OutputWriterGermany implements OutputWriter {
         outputFolder = outputFolderInput;
         outputFile = outputFolder + JsonUtilMto.getStringProp(prop, "output.trip_file");
         outputFileScenarioSettings = outputFolder + "scenarioSettings.csv";
-        increaseCostScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_increaseCost");
-        increaseAirCost = JsonUtilMto.getIntProp(prop,"scenarioPolicy.costIncreasePercentage");
-        limitAirDistanceScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_limitDistance");
-        airDistanceThreshold = JsonUtilMto.getIntProp(prop,"scenarioPolicy.distanceThreshold");
+        //increaseCostScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_increaseCost");
+        //increaseAirCost = JsonUtilMto.getIntProp(prop,"scenarioPolicy.costIncreasePercentage");
+        //limitAirDistanceScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_limitDistance");
+        //airDistanceThreshold = JsonUtilMto.getIntProp(prop,"scenarioPolicy.distanceThreshold");
     }
 
     @Override

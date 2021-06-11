@@ -44,8 +44,13 @@ public class DomesticTripGenerationGermany {
     public DomesticTripGenerationGermany(JSONObject prop, String inputFolder, String outputFolder) {
         this.rb = rb;
         this.prop = prop;
+        int holiday = JsonUtilMto.getBooleanProp(prop, "holiday" )? 1:0;
+        if(holiday==1){
+            tripGenerationCoefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"trip_generation.domestic.coef_file_holiday"));
+        }else{
+            tripGenerationCoefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"trip_generation.domestic.coef_file_weekday"));
+        }
 
-        tripGenerationCoefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop,"trip_generation.domestic.coef_file"));
         tripGenerationCoefficients.buildIndex(tripGenerationCoefficients.getColumnPosition("factor"));
         tripGenerationCoefficients.buildStringIndex(tripGenerationCoefficients.getColumnPosition("factorName"));
 
@@ -126,7 +131,7 @@ public class DomesticTripGenerationGermany {
                             pers.setInOutTrip(true);
                         }
 
-                        if (tripState != null) {
+                        if (tripState != null && hhold.getZoneId()!=6876) {
                             LongDistanceTripGermany trip = createLongDistanceTrip(pers, tripPurpose, tripState);
                             trips.add(trip);
                             //tripCount++;
@@ -238,7 +243,8 @@ public class DomesticTripGenerationGermany {
         if (calibrationTG) k_calibration = k_calibration + calibrationTgMatrix.get(tripPurpose).get(tripState);
         //System.out.println("k-factor: " + tripPurpose + "\t" + tripState + "\t" + k_calibration);
 
-        return intercept +
+        double utility =
+                intercept +
                 b_autos * hh.getHhAutos() +
                 b_econStMedium * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.MEDIUM), false) +
                 b_econStHigh * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.HIGH), false) +
@@ -254,6 +260,8 @@ public class DomesticTripGenerationGermany {
                 b_ruralOrTown * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.RURAL), false) +
                 b_ruralOrTown * Boolean.compare(hh.getZone().getAreatype().equals(AreaTypeGermany.TOWN), false)+
                 k_calibration;
+
+        return utility;
 
     }
 
