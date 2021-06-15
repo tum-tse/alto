@@ -243,7 +243,7 @@ public class SkimsReaderGermany implements SkimsReader {
 
         m = ModeGermany.RAIL;
         List<Matrix> matricesRail = new ArrayList<>();
-        matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "travel_time_s", lookUps.get(m))); // "travel_time_s" // includes inVeh, access, egress
+        matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "in_vehicle_time_s", lookUps.get(m))); // "travel_time_s" // includes inVeh, access, egress
         time = logReading(time, "rail time");
         //matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
         time = logReading(time, "rail access");
@@ -251,12 +251,15 @@ public class SkimsReaderGermany implements SkimsReader {
         time = logReading(time, "rail egress");
         Matrix totalTravelTimeRail = sumMatrices(matricesRail);
         Matrix distanceRail = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-        time = logReading(time, "rail distance");
+        //time = logReading(time, "rail distance");
+
         // ALona
+
+        // Scenario1
         Matrix railAccessDistance = omxToMatrix(accessDistanceFileNames.get(m), "access_distance_m", lookUps.get(m));
         time = logReading(time, "access_distance_m");
         Matrix railEgressDistance = omxToMatrix(egressDistanceFileNames.get(m), "egress_distance_m", lookUps.get(m));
-        time = logReading(time, "egress_distance_m");
+        time = logReading(time, "egress_distance_m"); // Scenario1
         Matrix railAccessTime = omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m));
         time = logReading(time, "access_time_s");
         Matrix railEgressTime = omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m));
@@ -269,9 +272,13 @@ public class SkimsReaderGermany implements SkimsReader {
 
         modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
         modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
-        //railAccessDistanceMatrixMap.put(m, modeMatrixMap.get("access_distance_m")); // A
+
+        // Scenario1
+        ///////////////////railAccessDistanceMatrixMap.put(m, modeMatrixMap.get("access_distance_m")); // A
         railAccessDistanceMatrixMap.put(m, railAccessDistance);
         railEgressDistanceMatrixMap.put(m, railEgressDistance); // A
+        // Scenario1
+
         railAccessTimeMatrixMap.put(m, railAccessTime);
         railEgressTimeMatrixMap.put(m, railEgressTime); // A
 
@@ -281,8 +288,10 @@ public class SkimsReaderGermany implements SkimsReader {
 
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
         dataSet.setDistanceMatrix(modeDistanceMatrixMap);
+        // Scenario1
         dataSet.setRailAccessDistMatrix(railAccessDistanceMatrixMap);
         dataSet.setRailEgressDistMatrix(railEgressDistanceMatrixMap);
+        // Scenario1
         dataSet.setRailAccessTimeMatrix(railAccessTimeMatrixMap);
         dataSet.setRailEgressTimeMatrix(railEgressTimeMatrixMap);
 

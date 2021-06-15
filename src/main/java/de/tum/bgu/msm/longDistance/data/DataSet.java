@@ -149,7 +149,7 @@ public class DataSet {
         this.autoTravelDistance = autoTravelDistance;
     }
 
-    //Alona
+    //Alona Scenario 1
     public void setRailAccessDistMatrix(Map<Mode, Matrix> railAccessDistMatrix) { this.railAccessDistMatrix = railAccessDistMatrix;}
     public void setRailEgressDistMatrix(Map<Mode, Matrix> railEgressDistMatrix) { this.railEgressDistMatrix = railEgressDistMatrix;}
 
@@ -161,6 +161,8 @@ public class DataSet {
 
     public Map<Mode, Matrix> getRailEgressTimeMatrix() { return railEgressTimeMatrix;}
     public Map<Mode, Matrix> getRailAccessTimeMatrix() { return railAccessTimeMatrix;}
+
+    ///
 
     public Map<Integer, Person> getPersons() {
         return persons;

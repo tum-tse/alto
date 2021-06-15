@@ -180,6 +180,26 @@ public class EuropeModeChoiceGermany {
                             Math.pow(distanceEgress , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
                     costTotal = cost + costAccess + costEgress;
                 }
+                if (m.equals(ModeGermany.RAIL)){
+                    timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
+                    timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
+                    // Scenario1
+                    distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+                    distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+                    // Scenario1
+                    distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
+                    if (distance != 0.0){
+                        distance = distance + 0;
+                    } else {
+                        distance = Double.NEGATIVE_INFINITY;}
+                    time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
+                    time = time + timeAccess + timeEgress;
+                    // Scenario1
+                    costAccess = distanceAccess * 0.00;
+                    costEgress = distanceEgress * 0.00;
+                    // Scenario1
+                    costTotal = cost + costAccess + costEgress;
+                }
                 impedance = cost / (vot) + time;
                 attr.put("cost_"+ m.toString(), (float) cost);
                 attr.put("costAccess_"+ m.toString(), (float) costAccess);
