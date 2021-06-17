@@ -39,6 +39,15 @@ public class DomesticModeChoiceGermany {
     private boolean calibration;
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
 
+    // Scenario
+    private boolean runScenario1;
+    private float shuttleBusCostPerKm;
+    private float shuttleBusCostBase;
+    private boolean runScenario2;
+    private float busCostFactor;
+    private boolean runScenario3;
+
+
     public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
         this.rb = rb;
 
@@ -48,6 +57,12 @@ public class DomesticModeChoiceGermany {
         costsPerKm.buildStringIndex(2);
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
+        runScenario1 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
+        shuttleBusCostPerKm = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costPerKm");
+        shuttleBusCostBase = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costBase");
+        runScenario2 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.BusSpeedImprovement.run");
+        busCostFactor = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.BusSpeedImprovement.busCostFactor");
+        runScenario3 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.run");
         logger.info("Domestic MC set up");
 
     }
@@ -127,6 +142,7 @@ public class DomesticModeChoiceGermany {
         double time = 1000000000 / 3600;
         double timeAccess = 0;
         double timeEgress = 0;
+        double timeTotal = 0; // A
         double distance = 1000000000 / 1000; //convert to km
         double distanceAccess = 0;
         double distanceEgress = 0;
@@ -150,6 +166,7 @@ public class DomesticModeChoiceGermany {
                 time = time / 3600;
                 timeAccess = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getZone().getId()) / 3600;
                 timeEgress = dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destination) / 3600;
+                timeTotal = time + timeAccess + timeEgress;
                 distance = distance / 1000;
                 distanceAccess = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(origin, originAirport.getZone().getId())/1000;
                 distanceEgress = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), destination)/1000;
@@ -162,18 +179,21 @@ public class DomesticModeChoiceGermany {
         else if (m.equals(ModeGermany.RAIL)){
                 timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
                 timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
+
             // Scenario1
+            if(runScenario1){
                 distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
                 distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
-            // Scenario1
+            }// Scenario1
+
                 distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
-            if (distance != 0.0){
+            /*if (distance != 0.0){
                 distance = distance + 0;
             } else {
-                distance = Double.NEGATIVE_INFINITY;}
+                distance = Double.NEGATIVE_INFINITY;}*/
 
                 time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
-                time = time + timeAccess + timeEgress;
+                timeTotal = time + timeAccess + timeEgress;
 
 
         } else {
@@ -190,9 +210,11 @@ public class DomesticModeChoiceGermany {
                     cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
                             Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()))
                             * distance;
+                    costTotal = cost;
                 } else {
                     //todo technically the distance and cost cannot be zero. However, this happens when there is no segment by main mode (only access + egress)
                     cost = 0;
+                    costTotal = cost;
                 }
 
                 if (m.equals(ModeGermany.AIR)) {
@@ -200,27 +222,32 @@ public class DomesticModeChoiceGermany {
                             Math.pow(distanceAccess , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
                     costEgress = distanceEgress * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
                             Math.pow(distanceEgress , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
-                    costTotal = cost + costAccess + costEgress;
+                    costTotal = cost + costAccess + costEgress; // A
                 }
 
 
                 // Fos Scenario 2 cost
-                /*if (m.equals(ModeGermany.BUS)) {
+                if(runScenario2){
+                    if (m.equals(ModeGermany.BUS)) {
                     cost = (costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
-                            Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString())))/ 2 * distance;
-                }*/
+                            Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString())))* busCostFactor * distance;
+                    costTotal = cost;
+                    }
+                }
 
 // Scenario1
-                if (m.equals(ModeGermany.RAIL)) {
-                    distanceAccess = dataSet.getDistanceMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
-                        costAccess = distanceAccess * 0.00;
-                    distanceEgress = dataSet.getDistanceMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
-                        costEgress = distanceEgress * 0.00;
+                if(runScenario1){
+                        if (m.equals(ModeGermany.RAIL)) {
+                        distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+                        costAccess = distanceAccess * shuttleBusCostPerKm + shuttleBusCostBase;
+                        distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+                        costEgress = distanceEgress * shuttleBusCostPerKm + shuttleBusCostBase;
                         costTotal = cost + costAccess + costEgress;
+                    }
                 }
 // Scenario1
 
-                impedance = cost / (vot) + time;
+                impedance = costTotal / (vot) + time; // was cost, was time
                 attr.put("cost_"+ m.toString(), (float) cost);
                 attr.put("costAccess_"+ m.toString(), (float) costAccess);
                 attr.put("costEgress_"+ m.toString(), (float) costEgress);
