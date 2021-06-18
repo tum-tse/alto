@@ -172,6 +172,7 @@ public class EuropeModeChoiceGermany {
             }
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
+            timeTotal = time;
             distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
         }
         if (time < 1000000000 / 3600){
@@ -197,42 +198,30 @@ public class EuropeModeChoiceGermany {
                     costTotal = cost + costAccess + costEgress;
                 }
 
-                // Fos Scenario 2 cost
                 if(runScenario2){
                 if (m.equals(ModeGermany.BUS)) {
                     cost = (costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
                             Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString())))* busCostFactor * distance;
                     }
                 }
-                // END For Scenario 2 cost
-
 
                 if (m.equals(ModeGermany.RAIL)){
                     timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
                     timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
                     timeTotal = time + timeAccess + timeEgress;
-
-                    // Scenario1
                     if(runScenario1){
                         distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
                         distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
                     }
-                    // Scenario1
 
                     distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
-                    /*if (distance != 0.0){
-                        distance = distance + 0;
-                    } else {
-                        distance = Double.NEGATIVE_INFINITY;}*/
-
                     time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
                     timeTotal = time + timeAccess + timeEgress;
-                    // Scenario1
+
                     if(runScenario1){
                     costAccess = distanceAccess * shuttleBusCostPerKm + shuttleBusCostBase;
                     costEgress = distanceEgress * shuttleBusCostPerKm + shuttleBusCostBase;
                     }
-                    // Scenario1
                     costTotal = cost + costAccess + costEgress;
                 }
                 impedance = costTotal / (vot) + time; // impedance = cost / (vot) + time;

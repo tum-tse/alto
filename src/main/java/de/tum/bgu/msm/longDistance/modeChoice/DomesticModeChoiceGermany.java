@@ -142,7 +142,7 @@ public class DomesticModeChoiceGermany {
         double time = 1000000000 / 3600;
         double timeAccess = 0;
         double timeEgress = 0;
-        double timeTotal = 0; // A
+        double timeTotal = 0;
         double distance = 1000000000 / 1000; //convert to km
         double distanceAccess = 0;
         double distanceEgress = 0;
@@ -180,17 +180,11 @@ public class DomesticModeChoiceGermany {
                 timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
                 timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
 
-            // Scenario1
             if(runScenario1){
                 distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
                 distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
-            }// Scenario1
-
+            }
                 distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
-            /*if (distance != 0.0){
-                distance = distance + 0;
-            } else {
-                distance = Double.NEGATIVE_INFINITY;}*/
 
                 time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
                 timeTotal = time + timeAccess + timeEgress;
@@ -198,6 +192,7 @@ public class DomesticModeChoiceGermany {
 
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
+            timeTotal = time;
             distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
         }
         if (time < 1000000000 / 3600){
@@ -222,11 +217,9 @@ public class DomesticModeChoiceGermany {
                             Math.pow(distanceAccess , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
                     costEgress = distanceEgress * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
                             Math.pow(distanceEgress , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
-                    costTotal = cost + costAccess + costEgress; // A
+                    costTotal = cost + costAccess + costEgress;
                 }
 
-
-                // Fos Scenario 2 cost
                 if(runScenario2){
                     if (m.equals(ModeGermany.BUS)) {
                     cost = (costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
@@ -235,7 +228,6 @@ public class DomesticModeChoiceGermany {
                     }
                 }
 
-// Scenario1
                 if(runScenario1){
                         if (m.equals(ModeGermany.RAIL)) {
                         distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
@@ -245,9 +237,8 @@ public class DomesticModeChoiceGermany {
                         costTotal = cost + costAccess + costEgress;
                     }
                 }
-// Scenario1
 
-                impedance = costTotal / (vot) + time; // was cost, was time
+                impedance = costTotal / (vot) + time;
                 attr.put("cost_"+ m.toString(), (float) cost);
                 attr.put("costAccess_"+ m.toString(), (float) costAccess);
                 attr.put("costEgress_"+ m.toString(), (float) costEgress);
