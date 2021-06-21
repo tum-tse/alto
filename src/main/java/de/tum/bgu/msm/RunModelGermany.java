@@ -10,6 +10,7 @@ import de.tum.bgu.msm.longDistance.emissions.Emissions;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermanScenario;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermany;
 import de.tum.bgu.msm.longDistance.io.reader.*;
+import de.tum.bgu.msm.longDistance.io.writer.TripsToPlans;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermany;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermanyScenario;
 import de.tum.bgu.msm.longDistance.scaling.PotentialTravelersSelectionGermany;
@@ -78,7 +79,7 @@ public class RunModelGermany {
                 new AirTripsGeneration(), new ModeChoiceGermany(),
                 new TimeOfDayChoiceGermany(), new Emissions(), new OutputWriterGermany(),
                 new CalibrationGermany(), new PotentialTravelersSelectionGermany(),
-                new ScenarioAnalysis());
+                new ScenarioAnalysis(), new TripsToPlans());
         ldModelGermany.setup(prop, inputFolder, outputFolder);
         ldModelGermany.load(dataSet);
         ldModelGermany.run(dataSet, -1);
