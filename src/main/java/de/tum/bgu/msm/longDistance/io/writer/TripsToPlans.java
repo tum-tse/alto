@@ -39,8 +39,8 @@ public class TripsToPlans {
         LEISURE_AUTO_OCCUPANCY = JsonUtilMto.getFloatProp(prop, "tripAssignment.tripParty_autoTrips.leisure");
         PRIVATE_AUTO_OCCUPANCY = JsonUtilMto.getFloatProp(prop, "tripAssignment.tripParty_autoTrips.private");
 
-        boardingTime_sec = JsonUtilMto.getFloatProp(prop, "airport.boardingTime_min") * 60;
-        postProcessingTime_sec = JsonUtilMto.getFloatProp(prop, "airport.postProcessTime_min") * 60;
+        boardingTime_sec = JsonUtilMto.getIntProp(prop, "airport.boardingTime_min") * 60;
+        postProcessingTime_sec = JsonUtilMto.getIntProp(prop, "airport.postProcessTime_min") * 60;
     }
 
     public void load(DataSet dataSet) {
@@ -80,23 +80,31 @@ public class TripsToPlans {
         double destY = ((ZoneGermany)trip.getDestZone()).getZoneY();
         Coord destination = new Coord(destX, destY);
 
-        double originAirportX = trip.getAdditionalAttributes().get("originAirportX");
-        double originAirportY = trip.getAdditionalAttributes().get("originAirportY");
-        Coord originAirport = new Coord(originAirportX, originAirportY);
-
-        double destinationAirportX = trip.getAdditionalAttributes().get("destinationAirportX");
-        double destinationAirportY = trip.getAdditionalAttributes().get("destinationAirportY");
-        Coord destinationAirport = new Coord(destinationAirportX, destinationAirportY);
-
         Mode mode = trip.getMode();
         Purpose purpose = trip.getTripPurpose();
 
         int departureTime_sec = trip.getDepartureTimesInMin() * 60;
         double departureTimeReturningDaytrip_sec = trip.getDepartureTimeInHoursSecondSegment() * 3600;
 
-        double time_air_sec = trip.getAdditionalAttributes().get("time_air") * 3600;
-        double timeAccess_air_sec = trip.getAdditionalAttributes().get("timeAccess_air") * 3600;
-        double timeEgress_air_sec = trip.getAdditionalAttributes().get("timeEgress_air") * 3600;
+        Coord originAirport = null;
+        Coord destinationAirport = null;
+        double time_air_sec = 0;
+        double timeAccess_air_sec = 0;
+        double timeEgress_air_sec = 0;
+
+        if (mode.equals(ModeGermany.AIR)) {
+            float originAirportX = trip.getAdditionalAttributes().get("originAirportX");
+            float originAirportY = trip.getAdditionalAttributes().get("originAirportY");
+            originAirport = new Coord(originAirportX, originAirportY);
+
+            float destinationAirportX = trip.getAdditionalAttributes().get("destinationAirportX");
+            float destinationAirportY = trip.getAdditionalAttributes().get("destinationAirportY");
+            destinationAirport = new Coord(destinationAirportX, destinationAirportY);
+
+            time_air_sec = trip.getAdditionalAttributes().get("time_air") * 3600;
+            timeAccess_air_sec = trip.getAdditionalAttributes().get("timeAccess_air") * 3600;
+            timeEgress_air_sec = trip.getAdditionalAttributes().get("timeEgress_air") * 3600;
+        }
 
         double selPosition;
 
