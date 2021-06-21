@@ -254,6 +254,9 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             int posOccupation = Util.findPositionInArray("occupation", header);
             int posIncome = Util.findPositionInArray("income", header);
             int posLicense = Util.findPositionInArray("driversLicense", header);
+            // ALONA
+            //int workplace = Util.findPositionInArray("workplace", header);
+            //int jobType = Util.findPositionInArray("jobType", header);
 
             // read line
             while ((recString = in.readLine()) != null) {
@@ -317,6 +320,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             int posLicense = Util.findPositionInArray("driversLicense", header);
             int posCoordX = Util.findPositionInArray("jobCoordX", header);
             int posCoordY = Util.findPositionInArray("jobCoordY", header);
+            //int posJobZone = Util.findPositionInArray("zone", header); // Job ZONE
 
             // read line
             while ((recString = in.readLine()) != null) {
@@ -390,7 +394,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
             // Remove quotation marks if they are available in the header columns (after splitting by commas)
             for (int i = 0; i < header.length; i++) header[i] = header[i].replace("\"", "");
 
-            int posTaz = Util.findPositionInArray("zone", header);
+            int posTaz = Util.findPositionInArray("zone", header); // Job ZONE
             int posWorker = Util.findPositionInArray("personId", header);
             int posCoordX = Util.findPositionInArray("coordX", header);
             int posCoordY = Util.findPositionInArray("coordY", header);
