@@ -18,6 +18,8 @@ import org.json.simple.JSONObject;
 
 import java.util.*;
 
+//import static de.tum.bgu.msm.longDistance.io.reader.SkimsAutoReaderGermany.omxToMatrix;
+
 /**
  * Germany Model
  * Class to read skims
@@ -45,6 +47,9 @@ public class SkimsReaderGermany implements SkimsReader {
     private Map<ModeGermany, String> inPtTimeFileNames = new HashMap<>();
     private Map<ModeGermany, String> accessTimeFileNames = new HashMap<>();
     private Map<ModeGermany, String> egressTimeFileNames = new HashMap<>();
+    private Map<ModeGermany, String> accessDistanceFileNames = new HashMap<>(); // Alona
+    private Map<ModeGermany, String> egressDistanceFileNames = new HashMap<>(); // Alona
+
 
     private Map<ModeGermany, String> lookUps = new HashMap<>();
 
@@ -53,11 +58,22 @@ public class SkimsReaderGermany implements SkimsReader {
     private String airAccessAirportFileName;
     private String airEgressAirportFileName;
 
+    private boolean runScenario1;
+    private boolean runScenario2;
+    private boolean runScenario3;
+    private boolean runScenario4;
+
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
         this.inputFolder = inputFolder;
         this.outputFolder = outputFolder;
         this.prop = prop;
+
+        // Scenario
+        runScenario1 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
+        runScenario2 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.BusSpeedImprovement.run");
+        runScenario3 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.run");
+        //runScenario4 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.scenario4.run");
 
         //AUTO:
         travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
@@ -70,10 +86,38 @@ public class SkimsReaderGermany implements SkimsReader {
         inPtTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
         accessTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
         egressTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
+        accessDistanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail")); // A
+        egressDistanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail")); // A
+        egressTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
         distanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
         distanceMatrixNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
         lookUps.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
         accessToTrainFileName = inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
+        if (runScenario1){
+            inPtTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail"));
+            accessTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail"));
+            egressTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail"));
+            accessDistanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail")); // A
+            egressDistanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail")); // A
+            egressTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail"));
+            distanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail"));
+            distanceMatrixNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
+            lookUps.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
+            accessToTrainFileName = inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
+        }
+
+        if (runScenario3){
+            inPtTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.all_rail"));
+            accessTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.all_rail"));
+            egressTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.all_rail"));
+            accessDistanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.all_rail")); // A
+            egressDistanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.all_rail")); // A
+            egressTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.all_rail"));
+            distanceFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.all_rail"));
+            distanceMatrixNames.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
+            lookUps.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
+            accessToTrainFileName = inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix");
+        }
         //BUS:
         inPtTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
         accessTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
@@ -81,6 +125,16 @@ public class SkimsReaderGermany implements SkimsReader {
         distanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_bus"));
         distanceMatrixNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
         lookUps.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
+        if (runScenario2){
+            inPtTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus"));
+            accessTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus"));
+            egressTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus"));
+            //accessDistanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus")); // A
+            //egressDistanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus")); // A
+            distanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus"));
+            distanceMatrixNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
+            lookUps.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
+        }
         //AIR:
         airAccessAirportFileName = JsonUtilMto.getStringProp(prop, "airport.access_airport_file");
         airEgressAirportFileName = JsonUtilMto.getStringProp(prop, "airport.egress_airport_file");
@@ -166,11 +220,16 @@ public class SkimsReaderGermany implements SkimsReader {
     }
 
 
+
     private void readSkimByMode(DataSet dataSet) {
 
         Map<String, Matrix> modeMatrixMap = new HashMap<>();
         Map<Mode, Matrix> modeTimeMatrixMap = new HashMap<>();
         Map<Mode, Matrix> modeDistanceMatrixMap = new HashMap<>();
+        Map<Mode, Matrix> railAccessDistanceMatrixMap = new HashMap<>();
+        Map<Mode, Matrix> railEgressDistanceMatrixMap = new HashMap<>();
+        Map<Mode, Matrix> railAccessTimeMatrixMap = new HashMap<>();
+        Map<Mode, Matrix> railEgressTimeMatrixMap = new HashMap<>();
 
         // read skim file
         ModeGermany m;
@@ -229,18 +288,33 @@ public class SkimsReaderGermany implements SkimsReader {
         modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
         modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
 
+
         m = ModeGermany.RAIL;
         List<Matrix> matricesRail = new ArrayList<>();
-        matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "travel_time_s", lookUps.get(m)));
+        matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "in_vehicle_time_s", lookUps.get(m))); // "travel_time_s" // includes inVeh, access, egress
         time = logReading(time, "rail time");
-        Matrix accessTimeRailMatrix = omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m));
-        //matricesRail.add(accessTimeRailMatrix);
+        //matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
         time = logReading(time, "rail access");
         //matricesRail.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
         time = logReading(time, "rail egress");
         Matrix totalTravelTimeRail = sumMatrices(matricesRail);
         Matrix distanceRail = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-        time = logReading(time, "rail distance");
+        //time = logReading(time, "rail distance");
+
+        if(runScenario1){
+            Matrix railAccessDistance = omxToMatrix(accessDistanceFileNames.get(m), "access_distance_m", lookUps.get(m));
+            time = logReading(time, "access_distance_m");
+            Matrix railEgressDistance = omxToMatrix(egressDistanceFileNames.get(m), "egress_distance_m", lookUps.get(m));
+            time = logReading(time, "egress_distance_m");
+            railAccessDistanceMatrixMap.put(m, railAccessDistance);
+            railEgressDistanceMatrixMap.put(m, railEgressDistance);
+            }
+
+
+        Matrix railAccessTime = omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m));
+        time = logReading(time, "access_time_s");
+        Matrix railEgressTime = omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m));
+        time = logReading(time, "egress_time_s");
 
         modeMatrixMap = assignIntrazonalTravelTimes(totalTravelTimeRail, distanceRail, m,5,10*60,0.33F);
         time = logReading(time, "rail intrazonals");
@@ -248,12 +322,21 @@ public class SkimsReaderGermany implements SkimsReader {
         modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
         modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
 
+        railAccessTimeMatrixMap.put(m, railAccessTime);
+        railEgressTimeMatrixMap.put(m, railEgressTime);
+
         // added the access time of each zone to ld rail station
-        readTimeToRail(accessTimeRailMatrix, dataSet, 5, 10*60, 1);
+        readTimeToRail(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)), dataSet, 5, 10*60, 1);
         time = logReading(time, "access to train");
 
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
         dataSet.setDistanceMatrix(modeDistanceMatrixMap);
+        // Scenario1
+        dataSet.setRailAccessDistMatrix(railAccessDistanceMatrixMap);
+        dataSet.setRailEgressDistMatrix(railEgressDistanceMatrixMap);
+        // Scenario1
+        dataSet.setRailAccessTimeMatrix(railAccessTimeMatrixMap);
+        dataSet.setRailEgressTimeMatrix(railEgressTimeMatrixMap);
 
     }
 
@@ -369,7 +452,7 @@ public class SkimsReaderGermany implements SkimsReader {
             double[] minDistValues = new double[numberOfNeighbours];
             for (int k = 0; k < numberOfNeighbours; k++) {
                 minTimeValues[k] = maximumSeconds;
-                minDistValues[k] = maximumSeconds * speed / 3.6; //maximum distance (in m)results from maximum time at speed in km/h
+                minDistValues[k] = maximumSeconds * speed / 3.6; //maximum distance results from maximum time at 50 km/h
             }
             //find the  n closest neighbors - the lower travel time values in the matrix column
             for (int j = 0; j < travelTimeMatrix.getRowCount(); j++) {

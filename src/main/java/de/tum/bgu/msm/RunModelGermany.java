@@ -10,6 +10,7 @@ import de.tum.bgu.msm.longDistance.emissions.Emissions;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermanScenario;
 import de.tum.bgu.msm.longDistance.io.writer.OutputWriterGermany;
 import de.tum.bgu.msm.longDistance.io.reader.*;
+import de.tum.bgu.msm.longDistance.io.writer.TripsToPlans;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermany;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoiceGermanyScenario;
 import de.tum.bgu.msm.longDistance.scaling.PotentialTravelersSelectionGermany;
@@ -18,6 +19,7 @@ import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoiceGermany;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGenerationGermany;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
+import org.apache.log4j.BasicConfigurator;// Alona
 
 import java.io.File;
 
@@ -44,6 +46,7 @@ public class RunModelGermany {
 
     public static void main(String[] args) {
         // main model run method
+        BasicConfigurator.configure(); // Alona
 
         logger.info("MITO Long distance model");
         long startTime = System.currentTimeMillis();
@@ -62,11 +65,13 @@ public class RunModelGermany {
 
     private void runLongDistModel(String[] args) {
         // main method to run long-distance model
+        BasicConfigurator.configure(); // Alona
         logger.info("Started runLongDistModel for the year " + JsonUtilMto.getIntProp(prop, "year"));
         DataSet dataSet = new DataSet();
         String inputFolder =  JsonUtilMto.getStringProp(prop, "work_folder");
         String outputFolder = inputFolder + "output/" +  JsonUtilMto.getStringProp(prop, "scenario") + "/";
         createDirectoryIfNotExistingYet(outputFolder);
+
 
         if (args.length > 2){
             dataSet.setPopulationSection(Integer.parseInt(args[2]));
@@ -78,7 +83,7 @@ public class RunModelGermany {
                 new AirTripsGeneration(), new ModeChoiceGermany(),
                 new TimeOfDayChoiceGermany(), new Emissions(), new OutputWriterGermany(),
                 new CalibrationGermany(), new PotentialTravelersSelectionGermany(),
-                new ScenarioAnalysis());
+                new ScenarioAnalysis(), new TripsToPlans());
         ldModelGermany.setup(prop, inputFolder, outputFolder);
         ldModelGermany.load(dataSet);
         ldModelGermany.run(dataSet, -1);

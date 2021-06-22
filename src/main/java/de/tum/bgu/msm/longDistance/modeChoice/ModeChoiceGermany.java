@@ -59,7 +59,7 @@ public class ModeChoiceGermany implements ModeChoice {
                 }
 
             }else{
-                if (((LongDistanceTripGermany)t).getDestZoneType().equals(ZoneTypeGermany.EXTEU)){
+                if (((LongDistanceTripGermany)t).getDestZoneType().equals(ZoneTypeGermany.EXTEU)||((LongDistanceTripGermany)t).getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)){
                     if (!((LongDistanceTripGermany)t).getTripState().equals(TypeGermany.AWAY)) {
                         //domestic mode choice for synthetic persons in Germany
                         Mode mode = mcEuropeModel.selectModeEurope(t);
@@ -76,11 +76,11 @@ public class ModeChoiceGermany implements ModeChoice {
                     }
 
                 }else{
-                    //for trips to overseas we do not assign air mode
-                    Mode mode = ModeGermany.AIR;
-                    ((LongDistanceTripGermany)t).setMode(mode);
-                    ((LongDistanceTripGermany)t).setTravelTimeByMode(mcDomesticModel.getDomesticModalTravelTime(t));
-                    ((LongDistanceTripGermany)t).setDistanceByMode(mcDomesticModel.getDomesticModalDistance(t));
+                    ////for trips to overseas we do not assign air mode
+                    //Mode mode = ModeGermany.AIR;
+                    //((LongDistanceTripGermany)t).setMode(mode);
+                    //((LongDistanceTripGermany)t).setTravelTimeByMode(mcDomesticModel.getDomesticModalTravelTime(t));
+                    //((LongDistanceTripGermany)t).setDistanceByMode(mcDomesticModel.getDomesticModalDistance(t));
                 }
 
             }

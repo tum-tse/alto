@@ -40,11 +40,13 @@ public class OutputWriterGermany implements OutputWriter {
     private boolean limitAirDistanceScenario;
     private int airDistanceThreshold;
     private String outputFileScenarioSettings;
+    private String outputFileName;
 
     @Override
     public void setup(JSONObject prop, String inputFolder, String outputFolderInput) {
         outputFolder = outputFolderInput;
-        outputFile = outputFolder + JsonUtilMto.getStringProp(prop, "output.trip_file");
+        //outputFile = outputFolder + dataSet.getPopulationSection() + JsonUtilMto.getStringProp(prop, "output.trip_file") ;
+        outputFileName = JsonUtilMto.getStringProp(prop, "output.trip_file") ;
         outputFileScenarioSettings = outputFolder + "scenarioSettings.csv";
         //increaseCostScenario = JsonUtilMto.getBooleanProp(prop,"scenarioPolicy.boolean_increaseCost");
         //increaseAirCost = JsonUtilMto.getIntProp(prop,"scenarioPolicy.costIncreasePercentage");
@@ -55,6 +57,7 @@ public class OutputWriterGermany implements OutputWriter {
     @Override
     public void load(DataSet dataSet) {
         this.dataSet = dataSet;
+        this.outputFile = outputFolder + dataSet.getPopulationSection() + "_" + outputFileName;
     }
 
     @Override

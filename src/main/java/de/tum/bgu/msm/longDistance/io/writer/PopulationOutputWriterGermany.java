@@ -86,7 +86,7 @@ public class PopulationOutputWriterGermany implements OutputWriter {
         }
         if (populationSplitting){
             writeMultipleFilesForHouseholdsAndPersons(dataSet);
-            writeTotalsByZone(dataSet);
+            //writeTotalsByZone(dataSet);
         }
     }
 
