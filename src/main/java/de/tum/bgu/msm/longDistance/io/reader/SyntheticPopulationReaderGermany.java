@@ -270,10 +270,9 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
                 HouseholdGermany hh = (HouseholdGermany) householdMap.get(hhId);
                 int income = Integer.parseInt(lineElements[posIncome]);
 
-                if (age<19){
-                    income = translateIncomeNoIncome(age);
-                }
-
+                //if (age<19){
+                //    income = translateIncomeNoIncome(age);
+                //}
                 hh.addIncome(income);
                 boolean license = Boolean.parseBoolean(lineElements[posLicense]);
                 if (hh != null) {
@@ -334,9 +333,6 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
                 OccupationStatus occupation = OccupationStatus.valueOf(Integer.parseInt(lineElements[posOccupation]));
                 HouseholdGermany hh = (HouseholdGermany) householdMap.get(hhId);
                 int income = Integer.parseInt(lineElements[posIncome]);
-                if (age<19){
-                    income = translateIncomeNoIncome(age);
-                }
                 hh.addIncome(income);
                 boolean license = Boolean.parseBoolean(lineElements[posLicense]);
                 if (hh != null) {

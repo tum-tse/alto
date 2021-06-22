@@ -191,10 +191,14 @@ public class EuropeModeChoiceGermany {
                 }
 
                 if (m.equals(ModeGermany.AIR)) {
-                    costAccess = distanceAccess * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
-                            Math.pow(distanceAccess , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
-                    costEgress = distanceEgress * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
-                            Math.pow(distanceEgress , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
+                    if (distanceAccess < Double.MAX_VALUE){
+                        costAccess = distanceAccess * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
+                                Math.pow(distanceAccess , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
+                    }
+                    if (distanceEgress < Double.MAX_VALUE){
+                        costEgress = distanceEgress * costsPerKm.getStringIndexedValueAt("alpha", ModeGermany.AUTO.name()) *
+                                Math.pow(distanceEgress , costsPerKm.getStringIndexedValueAt("beta", ModeGermany.AUTO.name()));
+                    }
                     costTotal = cost + costAccess + costEgress;
                 }
 
@@ -224,7 +228,7 @@ public class EuropeModeChoiceGermany {
                     }
                     costTotal = cost + costAccess + costEgress;
                 }
-                impedance = costTotal / (vot) + time; // impedance = cost / (vot) + time;
+                impedance = costTotal / (vot) + timeTotal; // impedance = cost / (vot) + time;
                 attr.put("cost_"+ m.toString(), (float) cost);
                 attr.put("costAccess_"+ m.toString(), (float) costAccess);
                 attr.put("costEgress_"+ m.toString(), (float) costEgress);
@@ -290,6 +294,11 @@ public class EuropeModeChoiceGermany {
                     b_impedance * Math.exp(alpha_impedance * impedance * 60) +
                     k_calibration
             ;
+
+
+            if (trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS) && !m.equals(ModeGermany.AIR)){
+                utility = Double.NEGATIVE_INFINITY;
+            }
 
         } else {
             utility = Double.NEGATIVE_INFINITY;

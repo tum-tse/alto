@@ -238,7 +238,7 @@ public class DomesticModeChoiceGermany {
                     }
                 }
 
-                impedance = costTotal / (vot) + time;
+                impedance = costTotal / (vot) + timeTotal;
                 attr.put("cost_"+ m.toString(), (float) cost);
                 attr.put("costAccess_"+ m.toString(), (float) costAccess);
                 attr.put("costEgress_"+ m.toString(), (float) costEgress);
