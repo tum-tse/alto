@@ -76,8 +76,8 @@ public class SkimsReaderGermany implements SkimsReader {
         //runScenario4 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.scenario4.run");
 
         //AUTO:
-        travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
-        distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
+        travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll"));
+        distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll"));
         travelTimeMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixTime_auto"));
         distanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixDistance_auto"));
         lookUps.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup"));
