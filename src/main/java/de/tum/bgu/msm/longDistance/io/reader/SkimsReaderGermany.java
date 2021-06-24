@@ -54,8 +54,8 @@ public class SkimsReaderGermany implements SkimsReader {
 
     private Map<ModeGermany, String> lookUps = new HashMap<>();
 
-    private String accessToTrainFileName;
     private boolean readSkimsByStage;
+    private String accessToTrainFileName;
     private String airAccessAirportFileName;
     private String airEgressAirportFileName;
 
@@ -74,7 +74,7 @@ public class SkimsReaderGermany implements SkimsReader {
         runScenario1 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
         runScenario2 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.BusSpeedImprovement.run");
         runScenario3 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.run");
-        runScenario4 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.scenario4.run");
+        runScenario4 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.run");
 
         //AUTO:
         //No Toll->
@@ -86,8 +86,8 @@ public class SkimsReaderGermany implements SkimsReader {
         lookUps.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup"));
         // With Toll->
         if (runScenario4){
-            travelTimeFileNames.put(ModeGermany.AUTO_noToll, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.scenario4.all_car_noToll"));
-            distanceFileNames.put(ModeGermany.AUTO_noToll, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.scenario4.all_car_noToll"));
+            travelTimeFileNames.put(ModeGermany.AUTO_noToll, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll"));
+            distanceFileNames.put(ModeGermany.AUTO_noToll, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll"));
             travelTimeMatrixNames.put(ModeGermany.AUTO_noToll, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixTime_auto"));
             distanceMatrixNames.put(ModeGermany.AUTO_noToll, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixDistance_auto"));
             tollDistanceMatrixNames.put(ModeGermany.AUTO_noToll, JsonUtilMto.getStringProp(prop, "mode_choice.skim.tolledDistance_auto"));
