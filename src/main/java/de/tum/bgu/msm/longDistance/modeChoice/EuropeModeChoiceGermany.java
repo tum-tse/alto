@@ -59,7 +59,7 @@ public class EuropeModeChoiceGermany {
         calibrationEuropeMc = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_europe");
         calibrationEuropeMcMatrix = new HashMap<>();
         toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.toll_km");
-        NESTING_COEFFICIENT_AUTO_MODES = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.nested_incremental_logit_scale");
+        NESTING_COEFFICIENT_AUTO_MODES = 1/JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.nested_incremental_logit_scale");
         runScenario1 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
         shuttleBusCostPerKm = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costPerKm");
         shuttleBusCostBase = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costBase");
@@ -106,7 +106,7 @@ public class EuropeModeChoiceGermany {
             double probLowerAutoNoToll = Math.exp(utilities[4])/expSumNestAuto;
 
             double utilityNestAuto =
-                    Math.log(Math.exp(utilities[0]*NESTING_COEFFICIENT_AUTO_MODES) + Math.exp(utilities[4]*NESTING_COEFFICIENT_AUTO_MODES)) * NESTING_COEFFICIENT_AUTO_MODES;
+                    Math.log(Math.exp(utilities[0]*NESTING_COEFFICIENT_AUTO_MODES) + Math.exp(utilities[4]*NESTING_COEFFICIENT_AUTO_MODES)) / NESTING_COEFFICIENT_AUTO_MODES;
 
             expUtilities[0] = Math.exp(utilityNestAuto);
             expUtilities[1] = Math.exp(utilities[1]);

@@ -60,7 +60,7 @@ public class DomesticModeChoiceGermany {
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
         toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.toll_km");
-        NESTING_COEFFICIENT_AUTO_MODES = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.nested_incremental_logit_scale");
+        NESTING_COEFFICIENT_AUTO_MODES = 1/JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.nested_incremental_logit_scale");
         runScenario1 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
         shuttleBusCostPerKm = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costPerKm");
         shuttleBusCostBase = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costBase");
