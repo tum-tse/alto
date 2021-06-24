@@ -59,8 +59,8 @@ public class DomesticModeChoiceGermany {
         costsPerKm.buildStringIndex(2);
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
-        toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.scenario4.toll_km");
-        NESTING_COEFFICIENT_AUTO_MODES = 1 / JsonUtilMto.getFloatProp(prop, "scenarioPolicy.scenario4.nested_incremental_logit_scale");
+        toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.toll_km");
+        NESTING_COEFFICIENT_AUTO_MODES = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.nested_incremental_logit_scale");
         runScenario1 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
         shuttleBusCostPerKm = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costPerKm");
         shuttleBusCostBase = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costBase");
@@ -246,7 +246,7 @@ public class DomesticModeChoiceGermany {
                 if(distance != 0){
                     cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
                             Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()))
-                            * distance + tollDistance * toll;* distance;
+                            * distance + tollDistance * toll; //* distance;
                     costTotal = cost;
 
                 } else {

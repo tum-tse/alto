@@ -58,8 +58,8 @@ public class EuropeModeChoiceGermany {
         costsPerKm.buildStringIndex(2);
         calibrationEuropeMc = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_europe");
         calibrationEuropeMcMatrix = new HashMap<>();
-        toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.scenario4.toll_km");
-        NESTING_COEFFICIENT_AUTO_MODES = 1 / JsonUtilMto.getFloatProp(prop, "scenarioPolicy.scenario4.nested_incremental_logit_scale");
+        toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.toll_km");
+        NESTING_COEFFICIENT_AUTO_MODES = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.nested_incremental_logit_scale");
         runScenario1 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
         shuttleBusCostPerKm = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costPerKm");
         shuttleBusCostBase = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costBase");
@@ -106,7 +106,7 @@ public class EuropeModeChoiceGermany {
             double probLowerAutoNoToll = Math.exp(utilities[4])/expSumNestAuto;
 
             double utilityNestAuto =
-                    Math.log(Math.exp(utilities[0]*NESTING_COEFFICIENT_AUTO_MODES) + Math.exp(utilities[4]*NESTING_COEFFICIENT_AUTO_MODES)) / NESTING_COEFFICIENT_AUTO_MODES;
+                    Math.log(Math.exp(utilities[0]*NESTING_COEFFICIENT_AUTO_MODES) + Math.exp(utilities[4]*NESTING_COEFFICIENT_AUTO_MODES)) * NESTING_COEFFICIENT_AUTO_MODES;
 
             expUtilities[0] = Math.exp(utilityNestAuto);
             expUtilities[1] = Math.exp(utilities[1]);
@@ -156,8 +156,11 @@ public class EuropeModeChoiceGermany {
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
     }
 
-    public double calculateUtilityForEurope(LongDistanceTripGermany trip, Mode m) {
 
+
+
+
+    public double calculateUtilityForEurope(LongDistanceTripGermany trip, Mode m) {
 
         double utility;
         String tripPurpose = trip.getTripPurpose().toString().toLowerCase();
@@ -179,6 +182,7 @@ public class EuropeModeChoiceGermany {
         double tollDistance = 0;
         double distanceAccess = 0;
         double distanceEgress = 0;
+
         if (m.equals(ModeGermany.AIR)){
             if (trip.getAdditionalAttributes().get("originAirport") != null) {
                 Airport originAirport = dataSet.getAirportFromId(Math.round(trip.getAdditionalAttributes().get("originAirport")));
