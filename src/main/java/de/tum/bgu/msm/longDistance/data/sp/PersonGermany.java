@@ -79,12 +79,15 @@ public class PersonGermany implements Person {
     @Override
     public int getPersonId() {return id;}
 
+
     public Gender getGender() {
         return gender;}
 
     public int getAge() {return age;}
 
     public int getIncome() {return hh.getHhInc();}
+
+
 
     public int getAdultsHh() {
         int adultsHh = 0;
@@ -182,8 +185,10 @@ public class PersonGermany implements Person {
         return occupation;
     }
 
+
     public static String getHeader() {
-        return "id,hhid,age,gender,occupation,driversLicense,income,jobCoordX,jobCoordY";
+        //return "id,hhid,age,gender,occupation,driversLicense,income,jobCoordX,jobCoordY";
+        return "id,hhid,age,gender,occupation,driversLicense,income,jobCoordX,jobCoordY"; //,jjid,jjzone,type,workplace,schoolid"; //Alona
     }
 
     public String toString() {

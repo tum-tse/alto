@@ -114,6 +114,9 @@ public class SkimsAutoReaderGermany implements SkimsReader {
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
         dataSet.setDistanceMatrix(modeDistanceMatrixMap);
 
+
+
+
     }
 
     private static Matrix omxToMatrix(String travelTimeFileName, String matrixName, String lookUpName) {
