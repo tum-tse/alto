@@ -240,7 +240,6 @@ public class TripsToPlans {
                         }
                     }
                 } else{
-                    System.out.println("Away trip is skipped.");
                 }
             }else if(mode.equals(ModeGermany.AIR)){
                 if (trip.getTripState().equals(TypeGermany.DAYTRIP)){
@@ -491,13 +490,10 @@ public class TripsToPlans {
                         }
                     }
                 }else{
-                    System.out.println("Away trip is skipped.");
                 }
             }else{
-                System.out.println("Bus or rail trip is skipped.");
             }
         } else {
-            System.out.println("Traveling with someone else.");
         }
     }
 }
