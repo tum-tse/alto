@@ -25,6 +25,7 @@ public class PersonGermany implements Person {
     private int id;
     private int age;
     private Gender gender;
+    private int ppInc;
 
     private HouseholdGermany hh;
 
@@ -185,6 +186,13 @@ public class PersonGermany implements Person {
         return occupation;
     }
 
+    public int getPpInc() {
+        return ppInc;
+    }
+
+    public void setPpInc(int ppInc) {
+        this.ppInc = ppInc;
+    }
 
     public static String getHeader() {
         //return "id,hhid,age,gender,occupation,driversLicense,income,jobCoordX,jobCoordY";
@@ -200,7 +208,8 @@ public class PersonGermany implements Person {
                 + "," + pp.getGender().codeOf()
                 + "," + pp.getOccupation().codeOf()
                 + "," + pp.isDriversLicense()
-                + "," + pp.getIncome());
+                //+ "," + pp.getIncome()
+                + "," + pp.getPpInc());
         if (pp.getOccupation().equals(OccupationStatus.WORKER)) {
             str = str + "," + pp.getWorkplaceLocation().x
                       + "," + pp.getWorkplaceLocation().y;
