@@ -813,20 +813,20 @@ public class CalibrationGermany implements ModelComponent {
 
                         double observedShare;
 
-                        if (mode.equals(ModeGermany.AUTO_noToll)){
-                            observedShare = 0.00;
-                        } else {
+                        //if (mode.equals(ModeGermany.AUTO_noToll)){
+                        //    observedShare = 0.00;
+                        //} else {
                             observedShare = surveyShares.get(name).get(purpose).get(tripState).get(mode);
-                        }
+                        //}
 
                         double simulatedShare = simulatedModalShares.get(name).get(purpose).get(tripState).get(mode);
                         double factor;
 
-                        if (mode.equals(ModeGermany.AUTO) || mode.equals(ModeGermany.AUTO_noToll)){
-                            factor = 0;
-                        }else{
+                        //if (mode.equals(ModeGermany.AUTO) || mode.equals(ModeGermany.AUTO_noToll)){
+                        //    factor = 0;
+                        //}else{
                             factor = stepFactor * (observedShare - simulatedShare);
-                        }
+                        //}
 
                         calibrationMatrix.get(name).get(purpose).get(tripState).putIfAbsent(mode, factor);
 

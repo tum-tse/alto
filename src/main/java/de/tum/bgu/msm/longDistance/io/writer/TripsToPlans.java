@@ -117,7 +117,7 @@ public class TripsToPlans {
         }
 
         if (prob <= selPosition){
-            if (mode.equals(ModeGermany.AUTO) || mode.equals(ModeGermany.AUTO_noToll)){
+            if (mode.equals(ModeGermany.AUTO)){  //|| mode.equals(ModeGermany.AUTO_noToll)
 
                 if (trip.getTripState().equals(TypeGermany.DAYTRIP)){
 
