@@ -254,14 +254,26 @@ public class EuropeModeChoiceGermany {
                     }
                 }
 
+                if (m.equals(ModeGermany.RAIL)){
+                    timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
+                    timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
+
+                    distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
+                    time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
+                    timeTotal = time + timeAccess + timeEgress;
+
+                    costTotal = cost;
+                }
+
+
                 if (m.equals(ModeGermany.RAIL_SHUTTLE)){
                     timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 3600;
                     timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 3600;
-                    timeTotal = time + timeAccess + timeEgress;
-                    if(runScenario1){
-                        distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination)/1000;
-                        distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination)/1000;
-                    }
+
+
+                    distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination)/1000;
+                    distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination)/1000;
+
 
                     distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
                     time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
