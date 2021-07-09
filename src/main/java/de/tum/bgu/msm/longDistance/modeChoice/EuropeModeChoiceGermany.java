@@ -48,6 +48,7 @@ public class EuropeModeChoiceGermany {
     private boolean runScenario2;
     private float busCostFactor;
     private boolean runScenario3;
+    private boolean runTollScenario;
 
     public EuropeModeChoiceGermany(JSONObject prop, String inputFolder) {
         this.rb = rb;
@@ -66,6 +67,7 @@ public class EuropeModeChoiceGermany {
         runScenario2 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.BusSpeedImprovement.run");
         busCostFactor = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.BusSpeedImprovement.busCostFactor");
         runScenario3 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.run");
+        runTollScenario = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.run");
         logger.info("Europe MC set up");
 
     }
@@ -315,7 +317,7 @@ public class EuropeModeChoiceGermany {
             double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
             double k_calibration = mcGermany.getStringIndexedValueAt("k_calibration", column);
             double k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
-
+            if (!runTollScenario) k_calibration_tollScenario = 0;
 
             double impedance_exp = Math.exp(alpha_impedance * impedance * 60);
             attr.put("impedance_" + m.toString(), (float) impedance_exp);
