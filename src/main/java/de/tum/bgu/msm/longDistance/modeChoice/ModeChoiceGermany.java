@@ -84,10 +84,10 @@ public class ModeChoiceGermany implements ModeChoice {
                 }
 
             }
-            if (t.getMode().equals(ModeGermany.AUTO_noToll)){
-                ((LongDistanceTripGermany) t).setAutoTravelDistance(dataSet.getDistanceMatrix().get(ModeGermany.AUTO_noToll).getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), ((LongDistanceTripGermany) t).getDestZone().getId()));
-                ((LongDistanceTripGermany) t).setAutoTravelTime(dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO_noToll).getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), ((LongDistanceTripGermany) t).getDestZone().getId()));
-            }
+//            if (t.getMode().equals(ModeGermany.AUTO_noToll)){
+//                ((LongDistanceTripGermany) t).setAutoTravelDistance(dataSet.getDistanceMatrix().get(ModeGermany.AUTO_noToll).getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), ((LongDistanceTripGermany) t).getDestZone().getId()));
+//                ((LongDistanceTripGermany) t).setAutoTravelTime(dataSet.getTravelTimeMatrix().get(ModeGermany.AUTO_noToll).getValueAt(((LongDistanceTripGermany) t).getOrigZone().getId(), ((LongDistanceTripGermany) t).getDestZone().getId()));
+//            }
 
         });
     }
