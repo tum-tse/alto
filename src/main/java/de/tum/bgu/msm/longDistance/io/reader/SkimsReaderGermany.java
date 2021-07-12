@@ -355,7 +355,7 @@ public class SkimsReaderGermany implements SkimsReader {
 
         m = ModeGermany.RAIL_SHUTTLE;
         List<Matrix> matricesRailShuttle = new ArrayList<>();
-        matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "in_vehicle_time_s", lookUps.get(m))); // "travel_time_s" // includes inVeh, access, egress
+        matricesRailShuttle.add(omxToMatrix(inPtTimeFileNames.get(m), "in_vehicle_time_s", lookUps.get(m))); // "travel_time_s" // includes inVeh, access, egress
         time = logReading(time, "rail time");
         //matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
         time = logReading(time, "rail access");
