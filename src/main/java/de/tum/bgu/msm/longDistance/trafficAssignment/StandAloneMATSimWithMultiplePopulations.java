@@ -31,8 +31,8 @@ public class StandAloneMATSimWithMultiplePopulations {
 
         String[] planFiles = new String[]{
                 "plans/1_percent/plans_sd.xml.gz",
-                "plans/1_percent/ld_trucks.xml.gz",
-                "plans/5_percent/plans_ld_5percent.xml.gz"};
+                "plans/1_percent/ld_trucks_corrected.xml.gz",
+                "plans/5_percent/ld_plans_congested_2.xml.gz"};
         String[] planSuffixes = new String[]{"_sd", "_t", "_ld"};
         double[] reScalingFactors = new double[]{1.,1.,0.2};
 

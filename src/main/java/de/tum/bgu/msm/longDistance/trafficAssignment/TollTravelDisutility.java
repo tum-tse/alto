@@ -8,16 +8,20 @@ import org.matsim.vehicles.Vehicle;
 
 public class TollTravelDisutility implements TravelDisutility {
 
+    public static final double minSpeed_ms = 1.;
+    public static final String avoidToll = "avoidTOLL";
 
     final TravelTime tt;
+    private final double FACTOR = 100.;
+
     public TollTravelDisutility(TravelTime tt) {
         this.tt = tt;
     }
 
     @Override
     public double getLinkTravelDisutility(Link link, double time, Person person, Vehicle vehicle) {
-        if ((boolean)(person.getAttributes().getAttribute("TOLL")) && hasToll(link)){
-            return Double.POSITIVE_INFINITY;
+        if ((boolean)(person.getAttributes().getAttribute(avoidToll)) && hasToll(link)){
+            return tt.getLinkTravelTime(link, time, person, vehicle) * FACTOR;
         } else {
             return tt.getLinkTravelTime(link, time, person, vehicle);
         }
