@@ -366,6 +366,10 @@ public class EuropeModeChoiceGermany {
                 utility = Double.NEGATIVE_INFINITY;
             }
 
+            if (m.equals(ModeGermany.RAIL_SHUTTLE) && distance == 0) {
+                utility = Double.NEGATIVE_INFINITY;
+            }
+
         } else {
             utility = Double.NEGATIVE_INFINITY;
         }

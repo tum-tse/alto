@@ -256,6 +256,16 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",distance_" + ModeGermany.getMode(2)+
                 ",distance_" + ModeGermany.getMode(3)+
                 ",distance_" + ModeGermany.getMode(4)+
+                ",distanceAccess_" + ModeGermany.getMode(0)+
+                ",distanceAccess_" + ModeGermany.getMode(1)+
+                ",distanceAccess_" + ModeGermany.getMode(2)+
+                ",distanceAccess_" + ModeGermany.getMode(3)+
+                ",distanceAccess_" + ModeGermany.getMode(4)+
+                ",distanceEgress_" + ModeGermany.getMode(0)+
+                ",distanceEgress_" + ModeGermany.getMode(1)+
+                ",distanceEgress_" + ModeGermany.getMode(2)+
+                ",distanceEgress_" + ModeGermany.getMode(3)+
+                ",distanceEgress_" + ModeGermany.getMode(4)+
                 ",tollDistance_" + ModeGermany.getMode(0)+
                 ",tollDistance_" + ModeGermany.getMode(1)+
                 ",tollDistance_" + ModeGermany.getMode(2)+
@@ -340,6 +350,16 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("distance_"+ ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("distance_"+ ModeGermany.getMode(3))
                     + "," + tr.getAdditionalAttributes().get("distance_"+ ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("distanceAccess_"+ ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("distanceAccess_"+ ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("distanceAccess_"+ ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("distanceAccess_"+ ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("distanceAccess_"+ ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("distanceEgress_"+ ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("distanceEgress_"+ ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("distanceEgress_"+ ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("distanceEgress_"+ ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("distanceEgress_"+ ModeGermany.getMode(4))
                     + "," + tr.getAdditionalAttributes().get("tollDistance_"+ ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("tollDistance_"+ ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("tollDistance_"+ ModeGermany.getMode(2))

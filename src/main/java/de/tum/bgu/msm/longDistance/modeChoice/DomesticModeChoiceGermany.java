@@ -294,6 +294,7 @@ public class DomesticModeChoiceGermany {
                         distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination)/1000;
                         costEgress = distanceEgress * shuttleBusCostPerKm + shuttleBusCostBase;
                         costTotal = cost + costAccess + costEgress;
+
                     }
                 }
 
@@ -365,6 +366,10 @@ public class DomesticModeChoiceGermany {
                     b_impedance * Math.exp(alpha_impedance * impedance * 60) +
                     k_calibration + k_calibration_tollScenario
             ;
+
+            if (m.equals(ModeGermany.RAIL_SHUTTLE) && distance == 0) {
+                utility = Double.NEGATIVE_INFINITY;
+            }
 
         } else {
             utility = Double.NEGATIVE_INFINITY;
