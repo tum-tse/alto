@@ -82,39 +82,58 @@ public class EuropeModeChoiceGermany {
 
     public Mode selectModeEurope(LongDistanceTrip t) {
         LongDistanceTripGermany trip = (LongDistanceTripGermany) t;
+        double[] utilities = new double[ModeGermany.values().length];
         double[] expUtilities = new double[ModeGermany.values().length];
+        double[] probabilities = new double[ModeGermany.values().length];
         Map<String, Float> attributes = new HashMap<>();
         Mode selectedMode = null;
+
         if (trip.getTripState().equals(TypeGermany.AWAY)) {
-            expUtilities[0] = 1;
-            expUtilities[1] = 0;
-            expUtilities[2] = 0;
-            expUtilities[3] = 0;
+            probabilities[0] = 1;
+            probabilities[1] = 0;
+            probabilities[2] = 0;
+            probabilities[3] = 0;
         } else {
 
             //calculate exp(Ui) for each destination
-            expUtilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> Math.exp(calculateUtilityForEurope(trip, m))).toArray();
+            utilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> calculateUtilityForEurope(trip, m)).toArray();
+
+            expUtilities[0] = Math.exp(utilities[0]);
+            expUtilities[1] = Math.exp(utilities[1]);
+            expUtilities[2] = Math.exp(utilities[1]);
+            expUtilities[3] = Math.exp(utilities[3]);
 
             double probability_denominator = Arrays.stream(expUtilities).sum();
 
+            probabilities[0] = 0;
+            probabilities[1] = 0;
+            probabilities[2] = 0;
+            probabilities[3] = 0;
+
+            if (utilities[0]!=Double.NEGATIVE_INFINITY) probabilities[0] = expUtilities[0]/probability_denominator;
+            if (utilities[1]!=Double.NEGATIVE_INFINITY) probabilities[1] = expUtilities[1]/probability_denominator;
+            if (utilities[2]!=Double.NEGATIVE_INFINITY) probabilities[2] = expUtilities[2]/probability_denominator;
+            if (utilities[3]!=Double.NEGATIVE_INFINITY) probabilities[3] = expUtilities[3]/probability_denominator;
+
             attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
-
             //if there is no access by any mode for the selected OD pair, just go by car
-            if (probability_denominator != 0) {
-
+            if (probability_denominator != 0 && !Double.isNaN(probability_denominator)) {
                 for (int mode = 0; mode < expUtilities.length; mode++) {
-                    attributes.put("utility_" + ModeGermany.getMode(mode), (float) (expUtilities[mode] / probability_denominator));
+                    attributes.put("utility_" + ModeGermany.getMode(mode), (float) (utilities[mode]));
                 }
-            }else{
-                expUtilities[0] = 1;
+            } else {
+                probabilities[0] = 1;
+                probabilities[1] = 0;
+                probabilities[2] = 0;
+                probabilities[3] = 0;
                 for (int mode = 0; mode < expUtilities.length; mode++) {
-                    attributes.put("utility_" + ModeGermany.getMode(mode), (float) expUtilities[mode]);
+                    attributes.put("utility_" + ModeGermany.getMode(mode), (float) utilities[mode]);
                 }
             }
             ((LongDistanceTripGermany) t).setAdditionalAttributes(attributes);
             //choose one destination, weighted at random by the probabilities
         }
-        selectedMode = (Mode) Util.selectGermany(expUtilities, ModeGermany.values());
+        selectedMode = (Mode) Util.selectGermany(probabilities, ModeGermany.values());
         return selectedMode;
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
     }
