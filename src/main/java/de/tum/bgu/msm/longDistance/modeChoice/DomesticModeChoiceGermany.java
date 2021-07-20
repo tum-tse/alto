@@ -10,10 +10,14 @@ import de.tum.bgu.msm.longDistance.data.sp.EconomicStatus;
 import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
 import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
 import de.tum.bgu.msm.longDistance.data.trips.*;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.AreaTypeGermany;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
+import org.matsim.contrib.zone.Zones;
 
 import java.util.*;
 
@@ -46,6 +50,8 @@ public class DomesticModeChoiceGermany {
     private boolean runScenario2;
     private float busCostFactor;
     private boolean runScenario3;
+    private long seed;
+    Random rand;
 
 
     public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
@@ -63,6 +69,8 @@ public class DomesticModeChoiceGermany {
         runScenario2 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.BusSpeedImprovement.run");
         busCostFactor = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.BusSpeedImprovement.busCostFactor");
         runScenario3 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.run");
+        seed = JsonUtilMto.getLongProp(prop, "seed");
+        rand = new Random(seed);
         logger.info("Domestic MC set up");
 
     }
@@ -137,7 +145,10 @@ public class DomesticModeChoiceGermany {
             ((LongDistanceTripGermany) t).setAdditionalAttributes(attributes);
             //choose one destination, weighted at random by the probabilities
         }
-        selectedMode = (Mode) Util.selectGermany(probabilities, ModeGermany.values());
+
+        double selPos = Arrays.stream(probabilities).sum() * rand.nextFloat();
+        attributes.put("selPos", (float) selPos);
+        selectedMode = (Mode) Util.selectGermany(probabilities, ModeGermany.values(), selPos);
         return selectedMode;
         //return new EnumeratedIntegerDistribution(modes, expUtilities).sample();
     }
@@ -150,10 +161,13 @@ public class DomesticModeChoiceGermany {
         String tripPurpose = trip.getTripPurpose().toString().toLowerCase();
         String tripState = trip.getTripState().toString().toLowerCase();
         String column = m.toString() + "." + tripPurpose+ "." + tripState;
+        Map<Integer, Zone> zoneMap = dataSet.getZones();
 
         //zone-related variables
         int origin = trip.getOrigZone().getId();
         int destination = trip.getDestZone().getId();
+        ZoneGermany originZone = (ZoneGermany) zoneMap.get(origin);
+        ZoneGermany destinationZone = (ZoneGermany) zoneMap.get(destination);
 
         Map<String, Float> attr = trip.getAdditionalAttributes();
         double impedance = 0;
