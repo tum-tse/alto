@@ -38,8 +38,6 @@ public class DomesticModeChoiceGermany {
 
     private TableDataSet mcGermany;
     private TableDataSet costsPerKm;
-    private float toll;
-    private float NESTING_COEFFICIENT_RAIL_MODES;
 
     private boolean calibration;
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
@@ -48,12 +46,19 @@ public class DomesticModeChoiceGermany {
     private boolean runScenario1;
     private float shuttleBusCostPerKm;
     private float shuttleBusCostBase;
+    private float NESTING_COEFFICIENT_RAIL_MODES;
+
     private boolean runScenario2;
     private float busCostFactor;
+
     private boolean runScenario3;
+
+    private boolean runTollScenario;
+    private float toll;
+    private float NESTING_COEFFICIENT_AUTO_MODES;
+
     private long seed;
     Random rand;
-
 
     public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
         this.rb = rb;
@@ -64,14 +69,21 @@ public class DomesticModeChoiceGermany {
         costsPerKm.buildStringIndex(2);
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
-        toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.toll_km");
-        NESTING_COEFFICIENT_RAIL_MODES = 1/JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.nested_incremental_rail_scale");
+
         runScenario1 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
         shuttleBusCostPerKm = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costPerKm");
         shuttleBusCostBase = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costBase");
+        NESTING_COEFFICIENT_RAIL_MODES = 1/JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.nested_incremental_rail_scale");
+
         runScenario2 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.BusSpeedImprovement.run");
         busCostFactor = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.BusSpeedImprovement.busCostFactor");
+
         runScenario3 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.run");
+
+        runTollScenario = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.run");
+        toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.toll_km");
+        NESTING_COEFFICIENT_AUTO_MODES = 1/JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.nested_incremental_logit_scale");
+
         seed = JsonUtilMto.getLongProp(prop, "seed");
         rand = new Random(seed);
         logger.info("Domestic MC set up");
@@ -126,6 +138,14 @@ public class DomesticModeChoiceGermany {
 
             double utilityNestRail =
                     Math.log(Math.exp(utilities[2]* NESTING_COEFFICIENT_RAIL_MODES) + Math.exp(utilities[4]* NESTING_COEFFICIENT_RAIL_MODES)) / NESTING_COEFFICIENT_RAIL_MODES;
+
+            double expSumNestAuto = Math.exp(utilities[0]) + Math.exp(utilities[4]);
+            double probLowerAuto = Math.exp(utilities[0])/expSumNestAuto;
+            double probLowerAutoNoToll = Math.exp(utilities[4])/expSumNestAuto;
+
+            double utilityNestAuto =
+                    Math.log(Math.exp(utilities[0]*NESTING_COEFFICIENT_AUTO_MODES) + Math.exp(utilities[4]*NESTING_COEFFICIENT_AUTO_MODES)) / NESTING_COEFFICIENT_AUTO_MODES;
+
 
             expUtilities[0] = Math.exp(utilities[0]);
             expUtilities[1] = Math.exp(utilities[1]);
@@ -354,7 +374,7 @@ public class DomesticModeChoiceGermany {
             double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
             double k_calibration = mcGermany.getStringIndexedValueAt("k_calibration", column);
             double k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
-
+            if (!runTollScenario) k_calibration_tollScenario = 0;
 
             double impedance_exp = Math.exp(alpha_impedance * impedance * 60);
             attr.put("impedance_" + m.toString(), (float) impedance_exp);
