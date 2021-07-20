@@ -16,16 +16,17 @@ package de.tum.bgu.msm.longDistance.data.trips;
 public enum ModeGermany implements Mode {
 
     //AUTO;
-    AUTO, AIR, RAIL, BUS;
-   private int[] modes = {0, 1, 2, 3};
-   private String[] modeNames = {"auto", "air", "rail", "bus"};
+    AUTO, AIR, RAIL, BUS, RAIL_SHUTTLE;
+   private int[] modes = {0, 1, 2, 3, 4};
+   private String[] modeNames = {"auto", "air", "rail", "bus", "auto_consideringToll"};
 
    public String toString() {
         ModeGermany m = this;
         if (m.equals(ModeGermany.AUTO)) return "auto";
         else if (m.equals(ModeGermany.RAIL)) return "rail";
         else if (m.equals(ModeGermany.AIR)) return "air";
-        else return "bus";
+        else if (m.equals(ModeGermany.BUS)) return "bus";
+        else return "rail_shuttle";
 
     }
 
@@ -33,7 +34,8 @@ public enum ModeGermany implements Mode {
         if (m == 0) return ModeGermany.AUTO;
         else if (m == 1) return ModeGermany.AIR;
         else if (m == 2) return ModeGermany.RAIL;
-        else return ModeGermany.BUS;
+        else if (m == 3) return ModeGermany.BUS;
+        else return ModeGermany.RAIL_SHUTTLE;
     }
 
 }

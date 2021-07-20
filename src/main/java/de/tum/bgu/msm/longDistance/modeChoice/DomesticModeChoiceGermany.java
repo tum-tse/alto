@@ -17,7 +17,6 @@ import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import de.tum.bgu.msm.longDistance.destinationChoice.DomesticDestinationChoice;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
-import org.matsim.contrib.zone.Zones;
 
 import java.util.*;
 
@@ -39,6 +38,8 @@ public class DomesticModeChoiceGermany {
 
     private TableDataSet mcGermany;
     private TableDataSet costsPerKm;
+    private float toll;
+    private float NESTING_COEFFICIENT_RAIL_MODES;
 
     private boolean calibration;
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
@@ -63,6 +64,8 @@ public class DomesticModeChoiceGermany {
         costsPerKm.buildStringIndex(2);
         calibration = JsonUtilMto.getBooleanProp(prop,"mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
+        toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.toll_km");
+        NESTING_COEFFICIENT_RAIL_MODES = 1/JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.nested_incremental_rail_scale");
         runScenario1 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
         shuttleBusCostPerKm = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costPerKm");
         shuttleBusCostBase = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costBase");
@@ -105,40 +108,62 @@ public class DomesticModeChoiceGermany {
             probabilities[1] = 0;
             probabilities[2] = 0;
             probabilities[3] = 0;
+            probabilities[4] = 0;
         } else {
-
-            //calculate exp(Ui) for each destination
-            utilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> calculateUtilityFromGermany(trip, m)).toArray();
-
-            expUtilities[0] = Math.exp(utilities[0]);
-            expUtilities[1] = Math.exp(utilities[1]);
-            expUtilities[2] = Math.exp(utilities[1]);
-            expUtilities[3] = Math.exp(utilities[3]);
-
-            double probability_denominator = Arrays.stream(expUtilities).sum();
 
             probabilities[0] = 0;
             probabilities[1] = 0;
             probabilities[2] = 0;
             probabilities[3] = 0;
+            probabilities[4] = 0;
+
+            //calculate exp(Ui) for each destination
+            utilities = Arrays.stream(ModeGermany.values()).mapToDouble(m -> calculateUtilityFromGermany(trip, m)).toArray();
+
+            double expSumNestRail = Math.exp(utilities[2]) + Math.exp(utilities[4]);
+            double probLowerRail = Math.exp(utilities[2])/expSumNestRail;
+            double probLowerRailShuttle = Math.exp(utilities[4])/expSumNestRail;
+
+            double utilityNestRail =
+                    Math.log(Math.exp(utilities[2]* NESTING_COEFFICIENT_RAIL_MODES) + Math.exp(utilities[4]* NESTING_COEFFICIENT_RAIL_MODES)) / NESTING_COEFFICIENT_RAIL_MODES;
+
+            expUtilities[0] = Math.exp(utilities[0]);
+            expUtilities[1] = Math.exp(utilities[1]);
+            expUtilities[2] = Math.exp(utilityNestRail);
+            expUtilities[3] = Math.exp(utilities[3]);
+            expUtilities[4] = Math.exp(utilityNestRail);
+
+            double probability_denominator = Arrays.stream(expUtilities).sum();
 
             if (utilities[0]!=Double.NEGATIVE_INFINITY) probabilities[0] = expUtilities[0]/probability_denominator;
             if (utilities[1]!=Double.NEGATIVE_INFINITY) probabilities[1] = expUtilities[1]/probability_denominator;
-            if (utilities[2]!=Double.NEGATIVE_INFINITY) probabilities[2] = expUtilities[2]/probability_denominator;
+            if (utilities[2]!=Double.NEGATIVE_INFINITY) probabilities[2] = expUtilities[2]/probability_denominator * probLowerRail;
             if (utilities[3]!=Double.NEGATIVE_INFINITY) probabilities[3] = expUtilities[3]/probability_denominator;
+            if (utilities[4]!=Double.NEGATIVE_INFINITY) probabilities[4] = expUtilities[4]/probability_denominator * probLowerRailShuttle;
 
             attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
+
             //if there is no access by any mode for the selected OD pair, just go by car
-            if (probability_denominator != 0 && !Double.isNaN(probability_denominator)) {
+            if (trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
+                expUtilities[0] = 0;
+                expUtilities[1] = 1;
+                expUtilities[2] = 0;
+                expUtilities[3] = 0;
+                expUtilities[4] = 0;
+                for (int mode = 0; mode < expUtilities.length; mode++) {
+                    attributes.put("utility_" + ModeGermany.getMode(mode), (float) utilities[mode]);
+                }
+            } else if (probability_denominator != 0) {
                 for (int mode = 0; mode < expUtilities.length; mode++) {
                     attributes.put("utility_" + ModeGermany.getMode(mode), (float) (utilities[mode]));
                 }
-            } else {
+            } else{
                 probabilities[0] = 1;
                 probabilities[1] = 0;
                 probabilities[2] = 0;
                 probabilities[3] = 0;
-                for (int mode = 0; mode < expUtilities.length; mode++) {
+                probabilities[4] = 0;
+                for (int mode = 0; mode < probabilities.length; mode++) {
                     attributes.put("utility_" + ModeGermany.getMode(mode), (float) utilities[mode]);
                 }
             }
@@ -155,7 +180,6 @@ public class DomesticModeChoiceGermany {
 
 
     public double calculateUtilityFromGermany(LongDistanceTripGermany trip, Mode m) {
-
 
         double utility;
         String tripPurpose = trip.getTripPurpose().toString().toLowerCase();
@@ -177,8 +201,10 @@ public class DomesticModeChoiceGermany {
         double timeEgress = 0;
         double timeTotal = 0;
         double distance = 1000000000 / 1000; //convert to km
+        double tollDistance = 0;
         double distanceAccess = 0;
         double distanceEgress = 0;
+
         if (m.equals(ModeGermany.AIR)){
             if (trip.getAdditionalAttributes().get("originAirport") != null) {
                 Airport originAirport = dataSet.getAirportFromId(Math.round(trip.getAdditionalAttributes().get("originAirport")));
@@ -213,21 +239,34 @@ public class DomesticModeChoiceGermany {
                 timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
                 timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
 
-            if(runScenario1){
-                distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
-                distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
-            }
                 distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
 
                 time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
                 timeTotal = time + timeAccess + timeEgress;
 
 
+        } else if (m.equals(ModeGermany.RAIL_SHUTTLE)){
+            timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 3600;
+            timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 3600;
+
+            distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination)/1000;
+            distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination)/1000;
+            distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
+
+            time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
+            timeTotal = time + timeAccess + timeEgress;
+
+
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
             timeTotal = time;
             distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000; //convert to km
+            if(m.equals(ModeGermany.AUTO)){ // || m.equals(ModeGermany.AUTO_noToll)
+                tollDistance = dataSet.getTollDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
+            }
         }
+
+
         if (time < 1000000000 / 3600){
             if (vot != 0) {
                 double cost =0 ;
@@ -237,8 +276,9 @@ public class DomesticModeChoiceGermany {
                 if(distance != 0){
                     cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
                             Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()))
-                            * distance;
+                            * distance + tollDistance * toll; //* distance;
                     costTotal = cost;
+
                 } else {
                     //todo technically the distance and cost cannot be zero. However, this happens when there is no segment by main mode (only access + egress)
                     cost = 0;
@@ -262,12 +302,13 @@ public class DomesticModeChoiceGermany {
                 }
 
                 if(runScenario1){
-                        if (m.equals(ModeGermany.RAIL)) {
-                        distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+                        if (m.equals(ModeGermany.RAIL_SHUTTLE)) {
+                        distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination)/1000;
                         costAccess = distanceAccess * shuttleBusCostPerKm + shuttleBusCostBase;
-                        distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination)/1000;
+                        distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination)/1000;
                         costEgress = distanceEgress * shuttleBusCostPerKm + shuttleBusCostBase;
                         costTotal = cost + costAccess + costEgress;
+
                     }
                 }
 
@@ -282,6 +323,7 @@ public class DomesticModeChoiceGermany {
                 attr.put("distance_" + m.toString(), (float) distance);
                 attr.put("distanceAccess_" + m.toString(), (float) distanceAccess);
                 attr.put("distanceEgress_" + m.toString(), (float) distanceEgress);
+                attr.put("tollDistance_" + m.toString(), (float) tollDistance);
 
             }
             trip.setAdditionalAttributes(attr);
@@ -311,6 +353,7 @@ public class DomesticModeChoiceGermany {
             double b_impedance = mcGermany.getStringIndexedValueAt("impedance", column);
             double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
             double k_calibration = mcGermany.getStringIndexedValueAt("k_calibration", column);
+            double k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
 
 
             double impedance_exp = Math.exp(alpha_impedance * impedance * 60);
@@ -335,8 +378,12 @@ public class DomesticModeChoiceGermany {
                     b_highStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.HIGH), false) +
                     b_veryHighStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYHIGH), false) +
                     b_impedance * Math.exp(alpha_impedance * impedance * 60) +
-                    k_calibration
+                    k_calibration + k_calibration_tollScenario
             ;
+
+            if (m.equals(ModeGermany.RAIL_SHUTTLE) && distance == 0) {
+                utility = Double.NEGATIVE_INFINITY;
+            }
 
         } else {
             utility = Double.NEGATIVE_INFINITY;
