@@ -6,6 +6,7 @@ import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.Zone;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import org.json.simple.JSONObject;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
@@ -65,7 +66,12 @@ public class OutputWriterGermany implements OutputWriter {
         PrintWriter pw = Util.openFileForSequentialWriting(outputFile, false);
         pw.println(LongDistanceTripGermany.getHeader());
         for (LongDistanceTrip tr : dataSet.getAllTrips()) {
-            pw.println(tr.toString());
+            LongDistanceTripGermany trip = (LongDistanceTripGermany) tr;
+            if (!trip.getTripState().equals(TypeGermany.AWAY)){
+                if (!trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)){
+                    pw.println(trip.toString());
+                }
+            }
         }
         pw.close();
 /*        for (PurposeGermany purpose : PurposeGermany.values()){
