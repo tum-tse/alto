@@ -141,7 +141,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
             mcModel.run(dataSet, -1);
             timeOfDayChoice.run(dataSet, -1);
             calibrationGermany.run(dataSet, -1);
-            //emissions.run(dataSet, -1);
+            emissions.run(dataSet, -1);
             outputWriter.run(dataSet, -1);
             //scenarioAnalysis.run(dataSet, -1);
         //}
