@@ -18,7 +18,7 @@ public enum ModeGermany implements Mode {
     //AUTO;
     AUTO, AIR, RAIL, BUS, RAIL_SHUTTLE;
    private int[] modes = {0, 1, 2, 3, 4};
-   private String[] modeNames = {"auto", "air", "rail", "bus", "auto_consideringToll"};
+   private String[] modeNames = {"auto", "air", "rail", "bus", "rail_shuttle"};
 
    public String toString() {
         ModeGermany m = this;
