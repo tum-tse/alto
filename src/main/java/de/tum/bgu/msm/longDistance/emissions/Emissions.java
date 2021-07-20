@@ -45,7 +45,7 @@ public class Emissions implements ModelComponent {
             LongDistanceTripGermany trip = (LongDistanceTripGermany) tripFromArray;
             calculateEmissions(dataSet, trip);
             if ((ModeGermany) trip.getMode() != null) {
-                updateTripsByDistance(dataSet, trip);
+                //updateTripsByDistance(dataSet, trip);
             }
         });
         logger.info("Finished emission calculator");
