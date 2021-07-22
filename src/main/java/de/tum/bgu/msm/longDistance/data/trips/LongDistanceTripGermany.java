@@ -233,6 +233,12 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",utility_" + ModeGermany.getMode(3) +
                 ",utility_" + ModeGermany.getMode(4) +
                 ",utility_" + ModeGermany.getMode(5) +
+                ",impedance_" + ModeGermany.getMode(0) +
+                ",impedance_" + ModeGermany.getMode(1) +
+                ",impedance_" + ModeGermany.getMode(2) +
+                ",impedance_" + ModeGermany.getMode(3) +
+                ",impedance_" + ModeGermany.getMode(4) +
+                ",impedance_" + ModeGermany.getMode(5) +
                 ",costTotal_" + ModeGermany.getMode(0) +
                 ",costTotal_" + ModeGermany.getMode(1) +
                 ",costTotal_" + ModeGermany.getMode(2) +
@@ -334,6 +340,12 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(3))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(4))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(5))
+                    + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(2))
