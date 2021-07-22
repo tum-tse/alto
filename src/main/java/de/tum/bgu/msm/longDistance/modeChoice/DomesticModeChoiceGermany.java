@@ -442,7 +442,7 @@ public class DomesticModeChoiceGermany {
             if (!runTollScenario) k_calibration_tollScenario = 0;
 
             double impedance_exp = Math.exp(alpha_impedance * impedance * 60);
-            attr.put("impedance_" + m.toString(), (float) impedance_exp);
+            attr.put("impedance_" + m.toString(), (float) impedance);
 
             if (calibration)
                 k_calibration = k_calibration + calibrationDomesticMcMatrix.get(trip.getTripPurpose()).get(trip.getTripState()).get(m);

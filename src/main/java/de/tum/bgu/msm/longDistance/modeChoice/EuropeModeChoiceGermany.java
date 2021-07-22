@@ -460,7 +460,7 @@ public class EuropeModeChoiceGermany {
             if (!runTollScenario) k_calibration_tollScenario = 0;
 
             double impedance_exp = Math.exp(alpha_impedance * impedance * 60);
-            attr.put("impedance_" + m.toString(), (float) impedance_exp);
+            attr.put("impedance_" + m.toString(), (float) impedance);
 
             if (calibrationEuropeMc)
                 k_calibration = k_calibration + calibrationEuropeMcMatrix.get(trip.getTripPurpose()).get(trip.getTripState()).get(m);
