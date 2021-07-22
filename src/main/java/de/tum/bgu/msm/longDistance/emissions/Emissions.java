@@ -64,14 +64,7 @@ public class Emissions implements ModelComponent {
                 } else {
                     String columnModePollutant = mode.toString() + "." + pollutant.toString();
 
-                    if (!t.getMode().equals(ModeGermany.AIR)) {
-
-                        float emissionFactorMainMode = (float) (coefficients.getStringIndexedValueAt("alpha", columnModePollutant) *
-                                Math.pow(distance, coefficients.getStringIndexedValueAt("beta", columnModePollutant)));
-                        emissionPerTrip = emissionFactorMainMode * distance;
-
-                    } else {
-
+                    if (t.getMode().equals(ModeGermany.AIR)){
                         Airport originAirport = dataSet.getAirportFromId(t.getAdditionalAttributes().get("originAirport").intValue());
                         Airport destinationAirport = dataSet.getAirportFromId(t.getAdditionalAttributes().get("destinationAirport").intValue());
                         int flightId = dataSet.getConnectedAirports().get(originAirport).get(destinationAirport).get("flightId");
@@ -82,14 +75,34 @@ public class Emissions implements ModelComponent {
                             emissionPerTrip = emissionPerTrip + emissionFactorMainMode * leg.getDistance()/1000;
                         }
                         String columnAutoPullant = ModeGermany.AUTO.toString() + "." + pollutant.toString();
-                        float distanceAccess = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(t.getOrigZone().getId(), originAirport.getId()) / 1000;
-                        float distanceEgress = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getId(), t.getDestZone().getId()) / 1000;
+                        float distanceAccess = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(t.getOrigZone().getId(), originAirport.getZone().getId()) / 1000;
+                        float distanceEgress = dataSet.getDistanceMatrix().get(ModeGermany.AUTO).getValueAt(destinationAirport.getZone().getId(), t.getDestZone().getId()) / 1000;
                         float emissionAutoAccess = (float)(coefficients.getStringIndexedValueAt("alpha", columnAutoPullant) *
                                 Math.pow(distanceAccess, coefficients.getStringIndexedValueAt("beta", columnAutoPullant)));
                         float emissionAutoEgress = (float)(coefficients.getStringIndexedValueAt("alpha", columnAutoPullant) *
                                 Math.pow(distanceEgress, coefficients.getStringIndexedValueAt("beta", columnAutoPullant)));
                         emissionPerTrip = emissionPerTrip + emissionAutoAccess * distanceAccess + emissionAutoEgress * distanceEgress;
+                    }else if(t.getMode().equals(ModeGermany.RAIL_SHUTTLE)){
+
+                        float distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(t.getOrigZone().getId(), t.getDestZone().getId()) / 1000;
+                        float distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(t.getOrigZone().getId(), t.getDestZone().getId()) / 1000;
+
+                        float emissionFactorMainMode = (float) (coefficients.getStringIndexedValueAt("alpha", columnModePollutant) *
+                                Math.pow(distance, coefficients.getStringIndexedValueAt("beta", columnModePollutant)));
+
+                        String columnAutoPullant = ModeGermany.AUTO.toString() + "." + pollutant.toString();
+                        float emissionAutoAccess = (float)(coefficients.getStringIndexedValueAt("alpha", columnAutoPullant) *
+                                Math.pow(distanceAccess, coefficients.getStringIndexedValueAt("beta", columnAutoPullant)));
+                        float emissionAutoEgress = (float)(coefficients.getStringIndexedValueAt("alpha", columnAutoPullant) *
+                                Math.pow(distanceEgress, coefficients.getStringIndexedValueAt("beta", columnAutoPullant)));
+                        emissionPerTrip = emissionAutoAccess * distanceAccess + emissionAutoEgress * distanceEgress + emissionFactorMainMode * distance;
+
+                    }else{
+                        float emissionFactorMainMode = (float) (coefficients.getStringIndexedValueAt("alpha", columnModePollutant) *
+                                Math.pow(distance, coefficients.getStringIndexedValueAt("beta", columnModePollutant)));
+                        emissionPerTrip = emissionFactorMainMode * distance;
                     }
+
                 }
                 if (t.getTripState().equals(TypeGermany.DAYTRIP)) {
                     emissionPerTrip = emissionPerTrip * 2; //also account for the emissions of the return trip

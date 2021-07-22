@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.data.trips;
 
 
+import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.*;
@@ -225,47 +226,72 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",departureTimeMin,departureTimeReturnDaytrip,ReturnOvernightTrip" +
                 ",CO2emissions_kg" +
                 ",origX,origY,destX,destY" +
-                ",selPos" + ModeGermany.getMode(0) +
+                ",selPos"+
                 ",utility_" + ModeGermany.getMode(0) +
                 ",utility_" + ModeGermany.getMode(1) +
                 ",utility_" + ModeGermany.getMode(2) +
                 ",utility_" + ModeGermany.getMode(3) +
-                ",cost_" + ModeGermany.getMode(0) +
-                ",cost_" + ModeGermany.getMode(1) +
-                ",cost_" + ModeGermany.getMode(2) +
-                ",cost_" + ModeGermany.getMode(3) +
+                ",utility_" + ModeGermany.getMode(4) +
+                ",utility_" + ModeGermany.getMode(5) +
+                ",costTotal_" + ModeGermany.getMode(0) +
+                ",costTotal_" + ModeGermany.getMode(1) +
+                ",costTotal_" + ModeGermany.getMode(2) +
+                ",costTotal_" + ModeGermany.getMode(3) +
+                ",costTotal_" + ModeGermany.getMode(4) +
+                ",costTotal_" + ModeGermany.getMode(5) +
                 ",costAccess_" + ModeGermany.getMode(0)+
                 ",costAccess_" + ModeGermany.getMode(1)+
                 ",costAccess_" + ModeGermany.getMode(2)+
                 ",costAccess_" + ModeGermany.getMode(3)+
+                ",costAccess_" + ModeGermany.getMode(4)+
+                ",costAccess_" + ModeGermany.getMode(5)+
                 ",costEgress_" + ModeGermany.getMode(0)+
                 ",costEgress_" + ModeGermany.getMode(1)+
                 ",costEgress_" + ModeGermany.getMode(2)+
                 ",costEgress_" + ModeGermany.getMode(3)+
-                ",time_" + ModeGermany.getMode(0) +
-                ",time_" + ModeGermany.getMode(1) +
-                ",time_" + ModeGermany.getMode(2) +
-                ",time_" + ModeGermany.getMode(3) +
+                ",costEgress_" + ModeGermany.getMode(4)+
+                ",costEgress_" + ModeGermany.getMode(5)+
+                ",timeTotal_" + ModeGermany.getMode(0) +
+                ",timeTotal_" + ModeGermany.getMode(1) +
+                ",timeTotal_" + ModeGermany.getMode(2) +
+                ",timeTotal_" + ModeGermany.getMode(3) +
+                ",timeTotal_" + ModeGermany.getMode(4) +
+                ",timeTotal_" + ModeGermany.getMode(5) +
                 ",timeAccess_" + ModeGermany.getMode(0) +
                 ",timeAccess_" + ModeGermany.getMode(1) +
                 ",timeAccess_" + ModeGermany.getMode(2) +
                 ",timeAccess_" + ModeGermany.getMode(3) +
+                ",timeAccess_" + ModeGermany.getMode(4) +
+                ",timeAccess_" + ModeGermany.getMode(5) +
                 ",timeEgress_" + ModeGermany.getMode(0) +
                 ",timeEgress_" + ModeGermany.getMode(1) +
                 ",timeEgress_" + ModeGermany.getMode(2) +
                 ",timeEgress_" + ModeGermany.getMode(3) +
+                ",timeEgress_" + ModeGermany.getMode(4) +
+                ",timeEgress_" + ModeGermany.getMode(5) +
                 ",distance_" + ModeGermany.getMode(0) +
                 ",distance_" + ModeGermany.getMode(1) +
                 ",distance_" + ModeGermany.getMode(2) +
                 ",distance_" + ModeGermany.getMode(3) +
+                ",distance_" + ModeGermany.getMode(4) +
+                ",distance_" + ModeGermany.getMode(5) +
                 ",distanceAccess_" + ModeGermany.getMode(0)+
                 ",distanceAccess_" + ModeGermany.getMode(1)+
                 ",distanceAccess_" + ModeGermany.getMode(2)+
                 ",distanceAccess_" + ModeGermany.getMode(3)+
+                ",distanceAccess_" + ModeGermany.getMode(4)+
+                ",distanceAccess_" + ModeGermany.getMode(5)+
                 ",distanceEgress_" + ModeGermany.getMode(0)+
                 ",distanceEgress_" + ModeGermany.getMode(1)+
                 ",distanceEgress_" + ModeGermany.getMode(2)+
-                ",distanceEgress_" + ModeGermany.getMode(3)
+                ",distanceEgress_" + ModeGermany.getMode(3)+
+                ",distanceEgress_" + ModeGermany.getMode(4)+
+                ",distanceEgress_" + ModeGermany.getMode(5)+
+                ",personalIncome"+
+                ",householdIncome"+
+                ",economicStatus"+
+                ",householdCarOwnership"+
+                ",householdAreaType"
 //                + ",personAge,personGender," +
                 //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
                 ;
@@ -276,7 +302,8 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         LongDistanceTripGermany tr = this;
         String str = null;
         if (tr.getOrigZone().getZoneType().equals(ZoneTypeGermany.GERMANY)) {
-            Person traveller = tr.getTraveller();
+            PersonGermany traveller = tr.getTraveller();
+            HouseholdGermany household = tr.getTraveller().getHousehold();
 
             str = (tr.getTripId()
                     + "," + tr.getTravellerId()
@@ -305,42 +332,67 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("costEgress_"+ ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("costEgress_"+ ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("costEgress_"+ ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(3))
-                    + "," + tr.getAdditionalAttributes().get("time_" + ModeGermany.getMode(0))
-                    + "," + tr.getAdditionalAttributes().get("time_" + ModeGermany.getMode(1))
-                    + "," + tr.getAdditionalAttributes().get("time_" + ModeGermany.getMode(2))
-                    + "," + tr.getAdditionalAttributes().get("time_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(5))
+                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(1))
+                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(2))
+                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("distance_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("distance_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("distance_" + ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("distance_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("distance_" + ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("distance_" + ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("distanceAccess_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("distanceAccess_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("distanceAccess_" + ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("distanceAccess_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("distanceAccess_" + ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("distanceAccess_" + ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_" + ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_" + ModeGermany.getMode(3))
+                    + "," + tr.getAdditionalAttributes().get("distanceEgress_" + ModeGermany.getMode(4))
+                    + "," + tr.getAdditionalAttributes().get("distanceEgress_" + ModeGermany.getMode(5))
+                    + "," + traveller.getPpInc()
+                    + "," + traveller.getIncome()
+                    + "," + household.getEconomicStatus().toString()
+                    + "," + household.getHhAutos()
+                    + "," + household.getZone().getAreatype().toString()
                     /*
                     /*+ "," + traveller.getAge()
                     + "," + Character.toString(traveller.getGender())
