@@ -68,9 +68,9 @@ public class OutputWriterGermany implements OutputWriter {
         for (LongDistanceTrip tr : dataSet.getAllTrips()) {
             LongDistanceTripGermany trip = (LongDistanceTripGermany) tr;
             if (!trip.getTripState().equals(TypeGermany.AWAY)){
-                if (!trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)){
+                //if (!trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)){
                     pw.println(trip.toString());
-                }
+                //}
             }
         }
         pw.close();
