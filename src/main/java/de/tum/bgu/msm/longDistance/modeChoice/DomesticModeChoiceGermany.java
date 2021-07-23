@@ -438,8 +438,12 @@ public class DomesticModeChoiceGermany {
             double b_impedance = mcGermany.getStringIndexedValueAt("impedance", column);
             double alpha_impedance = mcGermany.getStringIndexedValueAt("alpha", column);
             double k_calibration = mcGermany.getStringIndexedValueAt("k_calibration", column);
-            double k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
-            if (!runTollScenario) k_calibration_tollScenario = 0;
+            double k_calibration_tollScenario = 0;
+            double k_calibration_railShuttleScenario = 0;
+            double k_calibration_railShuttleScenarioAndToll = 0;
+            if (runTollScenario && !runScenario1) k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle", column);
+            if (!runTollScenario && runScenario1) k_calibration_railShuttleScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
+            if (runTollScenario && runScenario1) k_calibration_railShuttleScenarioAndToll = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll", column);
 
             double impedance_exp = Math.exp(alpha_impedance * impedance * 60);
             attr.put("impedance_" + m.toString(), (float) impedance);
@@ -464,7 +468,7 @@ public class DomesticModeChoiceGermany {
                     b_highStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.HIGH), false) +
                     b_veryHighStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYHIGH), false) +
                     b_impedance * Math.exp(alpha_impedance * impedance * 60) +
-                    k_calibration + k_calibration_tollScenario
+                    k_calibration + k_calibration_tollScenario + k_calibration_railShuttleScenario + k_calibration_railShuttleScenarioAndToll
             ;
 
             if (m.equals(ModeGermany.RAIL_SHUTTLE) && distance == 0) {
