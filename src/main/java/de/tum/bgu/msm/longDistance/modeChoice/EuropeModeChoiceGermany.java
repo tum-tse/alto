@@ -158,6 +158,9 @@ public class EuropeModeChoiceGermany {
             double probLowerAutoNoToll = 0;
             double utilityNestAuto;
 
+            attributes.put("utility_" + "NestRail", (float) Double.NEGATIVE_INFINITY);
+            attributes.put("utility_" + "NestAuto", (float) Double.NEGATIVE_INFINITY);
+
             if (runScenario1) {
                 expSumNestRail = Math.exp(utilities[2]) + Math.exp(utilities[4]);
                 probLowerRail = Math.exp(utilities[2]) / expSumNestRail;
@@ -166,6 +169,7 @@ public class EuropeModeChoiceGermany {
                         Math.log(Math.exp(utilities[2] * NESTING_COEFFICIENT_RAIL_MODES) + Math.exp(utilities[4] * NESTING_COEFFICIENT_RAIL_MODES)) / NESTING_COEFFICIENT_RAIL_MODES;
                 expUtilities[2] = Math.exp(utilityNestRail);
                 expUtilities[4] = Math.exp(utilityNestRail);
+                attributes.put("utility_" + "NestRail", (float) utilityNestRail);
             }
 
             if (runTollScenario) {
@@ -176,6 +180,7 @@ public class EuropeModeChoiceGermany {
                         Math.log(Math.exp(utilities[0] * NESTING_COEFFICIENT_AUTO_MODES) + Math.exp(utilities[5] * NESTING_COEFFICIENT_AUTO_MODES)) / NESTING_COEFFICIENT_AUTO_MODES;
                 expUtilities[0] = Math.exp(utilityNestAuto);
                 expUtilities[5] = Math.exp(utilityNestAuto);
+                attributes.put("utility_" + "NestAuto", (float) utilityNestAuto);
             }
 
             double probability_denominator = Arrays.stream(expUtilities).sum();
@@ -508,6 +513,20 @@ public class EuropeModeChoiceGermany {
 
         } else {
             utility = Double.NEGATIVE_INFINITY;
+
+            attr.put("cost_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("costAccess_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("costEgress_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("costTotal_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("time_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("timeAccess_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("timeEgress_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("timeTotal_" + m.toString(), (float) timeTotal);
+            attr.put("distance_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("distanceAccess_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("distanceEgress_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("tollDistance_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+
         }
 
         return utility;

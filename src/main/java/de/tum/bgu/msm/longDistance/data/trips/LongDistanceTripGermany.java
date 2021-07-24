@@ -233,6 +233,8 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",utility_" + ModeGermany.getMode(3) +
                 ",utility_" + ModeGermany.getMode(4) +
                 ",utility_" + ModeGermany.getMode(5) +
+                ",utility_NestRail" +
+                ",utility_NestAuto" +
                 ",impedance_" + ModeGermany.getMode(0) +
                 ",impedance_" + ModeGermany.getMode(1) +
                 ",impedance_" + ModeGermany.getMode(2) +
@@ -340,6 +342,8 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(3))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(4))
                     + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(5))
+                    + "," + tr.getAdditionalAttributes().get("utility_NestRail")
+                    + "," + tr.getAdditionalAttributes().get("utility_NestAuto")
                     + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(2))
