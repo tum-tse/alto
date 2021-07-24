@@ -858,7 +858,7 @@ public class CalibrationGermany implements ModelComponent {
                         double simulatedShare = simulatedModalShares.get(name).get(purpose).get(tripState).get(mode);
                         double factor;
 
-                        if (mode.equals(ModeGermany.AUTO) || mode.equals(ModeGermany.AUTO_noTOLL)){
+                        if (mode.equals(ModeGermany.AUTO)){
                             factor = 0;
                         }else{
                             factor = stepFactor * (observedShare - simulatedShare);
