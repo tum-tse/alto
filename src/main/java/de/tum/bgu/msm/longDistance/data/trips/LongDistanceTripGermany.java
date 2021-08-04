@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.data.trips;
 
 
+import de.tum.bgu.msm.longDistance.data.sp.HouseholdGermany;
 import de.tum.bgu.msm.longDistance.data.sp.Person;
 import de.tum.bgu.msm.longDistance.data.sp.PersonGermany;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.*;
@@ -277,13 +278,16 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",originAirportX" +
                 ",originAirportY" +
                 ",destinationAirportX" +
-                ",destinationAirportY"
+                ",destinationAirportY" +
                 //"utility_auto", "tt_auto", ""cost_auto" +,
                 //"utility_rail, "tt_rail", ""cost_rail" +,
                 //"utility_bus", "tt_bus", ""cost_bus" +,
                 //"utility_air", "tt_air", ""cost_air",
 //                + ",personAge,personGender," +
         //        "personEducation,personWorkStatus,personIncome,adultsInHh,kidsInHh"
+                ",householdIncome" +
+                ",economicStatus" +
+                "distanceToll"
                 ;
     }
     @Override
@@ -291,8 +295,9 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         LongDistanceTripGermany tr = this;
         String str = null;
         if (tr.getOrigZone().getZoneType().equals(ZoneTypeGermany.GERMANY)) {
-            Person traveller = tr.getTraveller();
-
+            //Person traveller = tr.getTraveller();
+            PersonGermany traveller = tr.getTraveller();
+            HouseholdGermany household = tr.getTraveller().getHousehold();
             str = (tr.getTripId()
                     + "," + tr.getTravellerId()
                     + "," + tr.isInternational()
@@ -380,6 +385,9 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + traveller.getIncome()
                     + "," + traveller.getAdultsHh()
                     + "," + traveller.getKidsHh()*/
+                    + "," + traveller.getIncome()
+                    + "," + household.getEconomicStatus().toString()
+                    + "," + tr.getAdditionalAttributes().get("tollDistance_" + ModeGermany.getMode(0))
             );
         } else {
             str =  (tr.getTripId()
