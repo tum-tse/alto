@@ -22,8 +22,8 @@ public enum Pollutant {
 
     public String toString() {
         Pollutant m = this;
-        if (m.equals(Pollutant.CO2)) return "co2";
-        else return "co2";
+        if (m.equals(Pollutant.CO2)) return "co2eq";
+        else return "co2eq";
 
     }
 
