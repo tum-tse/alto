@@ -158,6 +158,7 @@ public class EuropeModeChoiceGermany {
             double probLowerAutoNoToll = 0;
             double utilityNestAuto;
 
+            attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
             attributes.put("utility_" + "NestRail", (float) Double.NEGATIVE_INFINITY);
             attributes.put("utility_" + "NestAuto", (float) Double.NEGATIVE_INFINITY);
 
@@ -197,8 +198,6 @@ public class EuropeModeChoiceGermany {
                 probabilities[4] = expUtilities[4] / probability_denominator * probLowerRailShuttle;
             if (utilities[5] != Double.NEGATIVE_INFINITY)
                 probabilities[5] = expUtilities[5] / probability_denominator * probLowerAutoNoToll;
-
-            attributes = ((LongDistanceTripGermany) t).getAdditionalAttributes();
 
             //if there is no access by any mode for the selected OD pair, just go by car
             if (trip.getDestZoneType().equals(ZoneTypeGermany.EXTOVERSEAS)) {
