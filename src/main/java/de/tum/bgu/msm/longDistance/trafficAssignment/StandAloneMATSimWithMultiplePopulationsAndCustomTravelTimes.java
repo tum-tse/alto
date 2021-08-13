@@ -43,7 +43,7 @@ public class StandAloneMATSimWithMultiplePopulationsAndCustomTravelTimes {
         logger.info("starting matsim");
         Config config = ConfigUtils.loadConfig(args[0]);
 
-        config.controler().setOutputDirectory("F:/matsim_germany/output/base_210712");
+        config.controler().setOutputDirectory("F:/matsim_germany/output/base_seed_" + args[1]);
 //        config.controler().setLastIteration(1);
         //works only with MATSIm 13 or 14, better do it in the config
 //        config.hermes().setFlowCapacityFactor(1.0);
@@ -52,15 +52,16 @@ public class StandAloneMATSimWithMultiplePopulationsAndCustomTravelTimes {
 
         String[] planFiles = new String[]{
                 "plans/1_percent/plans_sd.xml.gz",
-                "plans/1_percent/ld_trucks.xml.gz", //consider to change this by ld_trucks_corrected.xml.gz
+                "plans/1_percent/ld_trucks_corrected.xml.gz", //consider to change this by ld_trucks_corrected.xml.gz
                 "plans/5_percent/ld_plans.xml.gz"};
         String[] planSuffixes = new String[]{"_sd", "_t", "_ld"};
-        double[] reScalingFactors = new double[]{1. * 0.699825, 1. * 1.224390, 0.2 * 0.699825};
+        double[] reScalingFactors = new double[]{1. * 0.699825, 1., 0.2 * 0.699825};
 
         Population population = StandAloneMATSimWithMultiplePopulations.combinePopulations(PopulationUtils.createPopulation(config),
                 planFiles,
                 planSuffixes,
-                reScalingFactors);
+                reScalingFactors,
+                Integer.parseInt(args[1]));
 
         //population = assignTollPreferencesForTesting(population);
         population = assignTollPreferences(population);

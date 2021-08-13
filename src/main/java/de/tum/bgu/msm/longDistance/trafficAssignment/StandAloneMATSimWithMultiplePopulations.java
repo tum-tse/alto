@@ -36,7 +36,7 @@ public class StandAloneMATSimWithMultiplePopulations {
         String[] planSuffixes = new String[]{"_sd", "_t", "_ld"};
         double[] reScalingFactors = new double[]{1.,1.,0.2};
 
-        Population population = combinePopulations(PopulationUtils.createPopulation(config), planFiles, planSuffixes, reScalingFactors);
+        Population population = combinePopulations(PopulationUtils.createPopulation(config), planFiles, planSuffixes, reScalingFactors, 0);
         MutableScenario scenario = ScenarioUtils.createMutableScenario(config);
         scenario.setPopulation(population);
         //PopulationUtils.writePopulation(population, "plans/combinedPopulation_1_percent.xml.gz");
@@ -47,12 +47,12 @@ public class StandAloneMATSimWithMultiplePopulations {
 
     }
 
-    public static Population combinePopulations(Population population, String[] planFiles, String[] planSuffixes, double[] reScalingFactors) {
+    public static Population combinePopulations(Population population, String[] planFiles, String[] planSuffixes, double[] reScalingFactors, int seed) {
         if (planFiles.length != planSuffixes.length) {
             throw new RuntimeException("Inconsistent inputs");
         }
 
-        Random random = new Random();
+        Random random = new Random(seed);
         for (int i = 0; i < planFiles.length; i++) {
 
             Population thisPopulation = PopulationUtils.readPopulation(planFiles[i]);

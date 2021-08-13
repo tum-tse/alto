@@ -12,7 +12,9 @@ import org.matsim.core.mobsim.jdeqsim.Vehicle;
 import org.matsim.core.network.NetworkUtils;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -21,12 +23,14 @@ public class CalculateTransportIndicators {
 
     private static Logger logger = Logger.getLogger(CalculateTransportIndicators.class);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
 
 
         String networkFile = args[0];
 
         String eventsFile = args[1];
+
+        String outputFile = args[2];
 
 
         EventsManager eventsManager = EventsUtils.createEventsManager();
@@ -36,14 +40,31 @@ public class CalculateTransportIndicators {
         new MatsimEventsReader(eventsManager).readFile(eventsFile);
         final Map<Id<Vehicle>, Double> vehicleDelayMap = eventHandler.getVehicleDelayMap();
 
+        PrintWriter printWriter = new PrintWriter(outputFile);
+        printWriter.println("indicator,vehicle_type,osm_type,value");
+
         double delay = 0;
         for (double thisDelay : vehicleDelayMap.values()) {
             delay += thisDelay;
         }
 
-        logger.info("The total delay is " + delay/3600 + " hours.");
-        logger.info("The number of vehicles is " + vehicleDelayMap.size() + ".");
-        logger.info("The average delay is " +  delay/60/vehicleDelayMap.size() + " minutes.");
+        printWriter.println("total_delay,all,all," + delay);
+        printWriter.println("total_vehicles,all,all," + vehicleDelayMap.size());
+
+
+        final Map<TransportIndicatorsEventHandler.CountVehicleType, Map<String, Map<Id<Vehicle>, Double>>> delayByVehicleAndRoadType = eventHandler.getDelayByVehicleAndRoadType();
+        delayByVehicleAndRoadType.keySet().forEach(vehicleType -> {
+            delayByVehicleAndRoadType.get(vehicleType).keySet().forEach(roadType -> {
+                final Map<Id<Vehicle>, Double> delayMap = delayByVehicleAndRoadType.get(vehicleType).get(roadType);
+
+                double delayThisType = 0;
+                for (double thisDelay : delayMap.values()) {
+                    delayThisType += thisDelay;
+                }
+                printWriter.println("delay," + vehicleType + "," + roadType + "," + delayThisType);
+                printWriter.println("vehicles," + vehicleType + "," + roadType + "," + delayMap.size());
+            });
+        });
 
 
         final Map<TransportIndicatorsEventHandler.CountVehicleType, Map<String, Double>> vktByVehicleAndRoadType = eventHandler.getVktByVehicleAndRoadType();
@@ -51,9 +72,13 @@ public class CalculateTransportIndicators {
         vktByVehicleAndRoadType.keySet().forEach(vehicleType -> {
             vktByVehicleAndRoadType.get(vehicleType).keySet().forEach(roadType -> {
                 double vkt = vktByVehicleAndRoadType.get(vehicleType).get(roadType);
-                logger.info("vehicle_type," + vehicleType + ",road_type," + roadType + ",vkt," + vkt);
+                printWriter.println("vkt," + vehicleType + "," + roadType + "," + vkt);
+
+
             });
         });
+
+        printWriter.close();
 
     }
 }
