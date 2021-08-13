@@ -63,6 +63,8 @@ public class DomesticModeChoiceGermany {
     private long seed;
     Random rand;
 
+    private boolean congestedTraffic;
+
     public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
         this.rb = rb;
 
@@ -99,6 +101,9 @@ public class DomesticModeChoiceGermany {
 
         seed = JsonUtilMto.getLongProp(prop, "seed");
         rand = new Random(seed);
+
+        congestedTraffic = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.congestedTraffic");
+
         logger.info("Domestic MC set up");
     }
 
@@ -445,9 +450,11 @@ public class DomesticModeChoiceGermany {
             double k_calibration_tollScenario = 0;
             double k_calibration_railShuttleScenario = 0;
             double k_calibration_railShuttleAndTollScenario = 0;
+            double k_calibration_congestedTraffic = 0;
             if (runScenario1 && !runTollScenario) k_calibration_railShuttleScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle", column);
             if (!runScenario1 && runTollScenario) k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
             if (runScenario1 && runTollScenario) k_calibration_railShuttleAndTollScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll", column);
+            if (congestedTraffic) k_calibration_congestedTraffic  = mcGermany.getStringIndexedValueAt("k_calibration_congested", column);
 
             double impedance_exp = Math.exp(alpha_impedance * impedance * 60);
             attr.put("impedance_" + m.toString(), (float) impedance);
@@ -472,7 +479,7 @@ public class DomesticModeChoiceGermany {
                     b_highStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.HIGH), false) +
                     b_veryHighStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYHIGH), false) +
                     b_impedance * Math.exp(alpha_impedance * impedance * 60) +
-                    k_calibration + k_calibration_tollScenario + k_calibration_railShuttleScenario + k_calibration_railShuttleAndTollScenario
+                    k_calibration + k_calibration_tollScenario + k_calibration_railShuttleScenario + k_calibration_railShuttleAndTollScenario + k_calibration_congestedTraffic
             ;
 
             if (m.equals(ModeGermany.RAIL_SHUTTLE) && distance == 0) {
