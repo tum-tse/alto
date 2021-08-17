@@ -55,6 +55,7 @@ public class DomesticModeChoiceGermany {
     private boolean runScenario3;
 
     private boolean runTollScenario;
+    private boolean tollOnBundesstrasse = false;
     private float toll;
     private float NESTING_COEFFICIENT_AUTO_MODES;
     private boolean runCityTollScenario;
@@ -90,6 +91,7 @@ public class DomesticModeChoiceGermany {
         toll = 0;
         if (runTollScenario) {
             toll = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.toll_km");
+            tollOnBundesstrasse = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.appliedInBundesstrasse");
         }
         NESTING_COEFFICIENT_AUTO_MODES = 1 / JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.nested_incremental_logit_scale");
 
@@ -451,10 +453,24 @@ public class DomesticModeChoiceGermany {
             double k_calibration_railShuttleScenario = 0;
             double k_calibration_railShuttleAndTollScenario = 0;
             double k_calibration_congestedTraffic = 0;
-            if (runScenario1 && !runTollScenario) k_calibration_railShuttleScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle", column);
-            if (!runScenario1 && runTollScenario) k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
-            if (runScenario1 && runTollScenario) k_calibration_railShuttleAndTollScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll", column);
-            if (congestedTraffic) k_calibration_congestedTraffic  = mcGermany.getStringIndexedValueAt("k_calibration_congested", column);
+            if (runScenario1 && !runTollScenario)
+                k_calibration_railShuttleScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle", column);
+            if (!runScenario1 && runTollScenario) {
+                if (tollOnBundesstrasse) {
+                    k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_ab", column);
+                } else {
+                    k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
+                }
+            }
+            if (runScenario1 && runTollScenario) {
+                if (tollOnBundesstrasse) {
+                    k_calibration_railShuttleAndTollScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll_ab", column);
+                } else {
+                    k_calibration_railShuttleAndTollScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll", column);
+                }
+            }
+            if (congestedTraffic)
+                k_calibration_congestedTraffic = mcGermany.getStringIndexedValueAt("k_calibration_congested", column);
 
             double impedance_exp = Math.exp(alpha_impedance * impedance * 60);
             attr.put("impedance_" + m.toString(), (float) impedance);
