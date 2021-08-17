@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.trafficAssignment.counts;
 
 import org.apache.log4j.Logger;
+
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.events.LinkEnterEvent;
 import org.matsim.api.core.v01.events.handler.LinkEnterEventHandler;
@@ -17,8 +18,9 @@ import java.util.Map;
 
 
 public class CountEventHandler implements LinkEnterEventHandler {
+
     private enum CountVehicleType {
-        car, truck;
+        car_sd,car_ld, truck;
     }
 
     private final int LAST_HOUR = 49;
@@ -105,8 +107,10 @@ public class CountEventHandler implements LinkEnterEventHandler {
         //todo review this
         if(vehicleId.contains("truck")){
             return CountVehicleType.truck;
+        } else if (vehicleId.contains("ld")) {
+            return CountVehicleType.car_ld;
         } else {
-            return CountVehicleType.car;
+            return CountVehicleType.car_sd;
         }
     }
 
