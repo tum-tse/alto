@@ -61,6 +61,7 @@ public class SkimsReaderGermany implements SkimsReader {
     private boolean runScenario2;
     private boolean runScenario3;
     private boolean runTollScenario;
+    private boolean tollOnBundesstrasse = false;
     private boolean congestedTraffic;
 
     @Override
@@ -74,16 +75,29 @@ public class SkimsReaderGermany implements SkimsReader {
         runScenario2 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.BusSpeedImprovement.run");
         runScenario3 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.run");
         runTollScenario = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.run");
+        if (runTollScenario) {
+            tollOnBundesstrasse = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.appliedInBundesstrasse");
+        }
         congestedTraffic = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.congestedTraffic");
 
         //AUTO:
         //Auto_Toll->
         if (!congestedTraffic) {
-            travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll"));
-            distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll"));
+            if (tollOnBundesstrasse) {
+                travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll_ab"));
+                distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll_ab"));
+            } else {
+                travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll"));
+                distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll"));
+            }
         } else {
-            travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll_congested"));
-            distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll_congested"));
+            if (tollOnBundesstrasse) {
+                travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll_ab_congested"));
+                distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll_ab_congested"));
+            } else {
+                travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll_congested"));
+                distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll_congested"));
+            }
         }
         travelTimeMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixTime_auto"));
         distanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixDistance_auto"));

@@ -295,6 +295,8 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",distanceEgress_" + ModeGermany.getMode(3)+
                 ",distanceEgress_" + ModeGermany.getMode(4)+
                 ",distanceEgress_" + ModeGermany.getMode(5)+
+                ",tollDistance_" + ModeGermany.getMode(0)+
+                ",tollDistance_" + ModeGermany.getMode(5)+
                 ",personalIncome"+
                 ",householdIncome"+
                 ",economicStatus"+
@@ -404,6 +406,8 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_" + ModeGermany.getMode(3))
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_" + ModeGermany.getMode(4))
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_" + ModeGermany.getMode(5))
+                    + "," + tr.getAdditionalAttributes().get("tollDistance_" + ModeGermany.getMode(0))
+                    + "," + tr.getAdditionalAttributes().get("tollDistance_" + ModeGermany.getMode(5))
                     + "," + traveller.getPpInc()
                     + "," + traveller.getIncome()
                     + "," + household.getEconomicStatus().toString()

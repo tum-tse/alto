@@ -108,7 +108,6 @@ public class Emissions implements ModelComponent {
                         float emissionFactorAccessMode = (float) (coefficients.getStringIndexedValueAt("alpha", columnAccessModePollutant) *
                                 Math.pow(distance, coefficients.getStringIndexedValueAt("beta", columnAccessModePollutant)));
 
-                        //ToDo ask for Alona's help to review the calculation
                         if (distance <= 500) {
                             emissionPerTrip = (float) (distance * (0.67 + 0.00067 * distance) * emissionFactorMainMode +
                                                        distance * (1 - (0.67 + 0.00067 * distance)) * emissionFactorAccessMode);
@@ -128,7 +127,6 @@ public class Emissions implements ModelComponent {
                         float emissionFactorAccessMode = (float) (coefficients.getStringIndexedValueAt("alpha", columnAccessModePollutant) *
                                 Math.pow(distance, coefficients.getStringIndexedValueAt("beta", columnAccessModePollutant)));
 
-                        //ToDo ask for Alona's help to review the calculation
                         if (distance <= 500) {
                             emissionPerTrip = (float) (distance * (-0.053 + 0.0019 * distance) * emissionFactorMainMode +
                                     distance * (1 - (-0.053 + 0.0019 * distance)) * emissionFactorAccessMode);

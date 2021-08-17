@@ -58,7 +58,7 @@ public class RunPopulationScaler {
         logger.info("Started run population scaler for the year " + JsonUtilMto.getIntProp(prop, "year"));
         DataSet dataSet = new DataSet();
         String inputFolder =  JsonUtilMto.getStringProp(prop, "work_folder");
-        String outputFolder = JsonUtilMto.getStringProp(prop, "work_folder") + "microData/scaling_210624";
+        String outputFolder = JsonUtilMto.getStringProp(prop, "work_folder") + "microData/scaling_210816";
 
         createDirectoryIfNotExistingYet(outputFolder);
         PopulationScaler ldModel = new PopulationScaler(new ZoneReaderGermany(), new SyntheticPopulationReaderGermany(), new PopulationOutputWriterGermany());
