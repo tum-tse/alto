@@ -337,6 +337,7 @@ public class SyntheticPopulationReaderGermany implements SyntheticPopulationRead
                 boolean license = Boolean.parseBoolean(lineElements[posLicense]);
                 if (hh != null) {
                     Person pp = new PersonGermany(id, hhId, age, gender, occupation, license, hh);  // this automatically puts it in id->household map in Household class
+                    ((PersonGermany)pp).setPpInc(income);
                     personMap.put(id, pp);
                     if (occupation.equals(OccupationStatus.WORKER)) {
                         Coordinate workLocation = new Coordinate(

@@ -251,6 +251,20 @@ public class Util {
         return id[probabilities.length - 1];
     }
 
+    public static Object selectGermany(double[] probabilities, Object[] id, double selPos) {
+        // select item based on probabilities (for zero-based float array)
+        //double selPos = Arrays.stream(probabilities).sum() * LDModelGermany.rand.nextFloat();
+        double sum = 0;
+        for (int i = 0; i < probabilities.length; i++) {
+            sum += probabilities[i];
+            if (sum > selPos) {
+                //return i;
+                return id[i];
+            }
+        }
+        return id[probabilities.length - 1];
+    }
+
     public static int selectGermany(double[] probabilities, int[] id) {
         // select item based on probabilities (for zero-based float array)
         double selPos = Arrays.stream(probabilities).sum() * LDModelGermany.rand.nextFloat();
