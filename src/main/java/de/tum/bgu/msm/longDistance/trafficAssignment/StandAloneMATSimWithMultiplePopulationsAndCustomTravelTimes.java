@@ -44,18 +44,18 @@ public class StandAloneMATSimWithMultiplePopulationsAndCustomTravelTimes {
         Config config = ConfigUtils.loadConfig(args[0]);
 
         //modify scenario name!!!
-        String runId = "base_2011";
+        String runId = args[1];
         config.controler().setRunId(runId);
 
         //modify the output folder!!!
-        config.controler().setOutputDirectory("C:/models/matsim_germany/" + runId + "/");
+        config.controler().setOutputDirectory("F:/matsim_germany/" + runId + "/");
 
         String[] planFiles = new String[]{
-                "plans/1_percent/2011/plans_sd.xml.gz", //modify plan file path!!!
+                "plans/5_percent/2030/plans_sd.xml.gz", //modify plan file path!!!
                 "plans/1_percent/ld_trucks_corrected.xml.gz",
-                "plans/5_percent/2011/plans_ld_base.xml.gz"}; //modify plan file path!!!
+                args[2]}; //modify plan file path!!!
         String[] planSuffixes = new String[]{"_sd", "_t", "_ld"};
-        double[] reScalingFactors = new double[]{1. * 0.52, 1., 0.2 * 1.};
+        double[] reScalingFactors = new double[]{0.2 * 0.52, 1., 0.2 * 1.};
 
         Population population = StandAloneMATSimWithMultiplePopulations.combinePopulations(PopulationUtils.createPopulation(config),
                 planFiles,
