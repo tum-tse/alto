@@ -105,8 +105,14 @@ public class SkimsReaderGermany implements SkimsReader {
         lookUps.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup"));
         //Auto_noToll ->
         //if (runTollScenario) {
-        travelTimeFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll"));
-        distanceFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll"));
+        if (tollOnBundesstrasse){
+            travelTimeFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll_ab"));
+            distanceFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll_ab"));
+        }else{
+            travelTimeFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll"));
+            distanceFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll"));
+        }
+
         travelTimeMatrixNames.put(ModeGermany.AUTO_noTOLL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixTime_auto"));
         distanceMatrixNames.put(ModeGermany.AUTO_noTOLL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixDistance_auto"));
         tollDistanceMatrixNames.put(ModeGermany.AUTO_noTOLL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.tolledDistance_auto"));
