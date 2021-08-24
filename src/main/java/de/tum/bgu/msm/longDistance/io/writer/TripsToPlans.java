@@ -24,16 +24,16 @@ public class TripsToPlans {
     private Scenario scenario;
     private Population pop;
 
-    private float  BUSINESS_AUTO_OCCUPANCY;
-    private float  LEISURE_AUTO_OCCUPANCY;
-    private float  PRIVATE_AUTO_OCCUPANCY;
+    private float BUSINESS_AUTO_OCCUPANCY;
+    private float LEISURE_AUTO_OCCUPANCY;
+    private float PRIVATE_AUTO_OCCUPANCY;
 
     double boardingTime_sec;
-    double postProcessingTime_sec = 15*60;
+    double postProcessingTime_sec = 15 * 60;
 
     public void setup(JSONObject prop, String inputFolder, String outputFolderInput) {
         outputFolder = outputFolderInput;
-        outputFileName = JsonUtilMto.getStringProp(prop, "output.plan_file") ;
+        outputFileName = JsonUtilMto.getStringProp(prop, "output.plan_file");
 
         BUSINESS_AUTO_OCCUPANCY = JsonUtilMto.getFloatProp(prop, "tripAssignment.tripParty_autoTrips.business");
         LEISURE_AUTO_OCCUPANCY = JsonUtilMto.getFloatProp(prop, "tripAssignment.tripParty_autoTrips.leisure");
@@ -64,7 +64,6 @@ public class TripsToPlans {
     }
 
 
-
     private void generatePlans(LongDistanceTrip tr, double prob) {
 
         LongDistanceTripGermany trip = (LongDistanceTripGermany) tr;
@@ -76,8 +75,8 @@ public class TripsToPlans {
         double origY = trip.getOrigZone().getZoneY();
         Coord origin = new Coord(origX, origY);
 
-        double destX = ((ZoneGermany)trip.getDestZone()).getZoneX();
-        double destY = ((ZoneGermany)trip.getDestZone()).getZoneY();
+        double destX = ((ZoneGermany) trip.getDestZone()).getZoneX();
+        double destY = ((ZoneGermany) trip.getDestZone()).getZoneY();
         Coord destination = new Coord(destX, destY);
 
         Mode mode = trip.getMode();
@@ -110,16 +109,16 @@ public class TripsToPlans {
 
         if (purpose.equals(PurposeGermany.BUSINESS)) {
             selPosition = 1 / BUSINESS_AUTO_OCCUPANCY;
-        } else if(purpose.equals(PurposeGermany.LEISURE)) {
+        } else if (purpose.equals(PurposeGermany.LEISURE)) {
             selPosition = 1 / LEISURE_AUTO_OCCUPANCY;
         } else {
             selPosition = 1 / PRIVATE_AUTO_OCCUPANCY;
         }
 
-        if (prob <= selPosition){
-            if (mode.equals(ModeGermany.AUTO)){  //|| mode.equals(ModeGermany.AUTO_noToll)
+        if (prob <= selPosition) {
+            if (mode.equals(ModeGermany.AUTO) || mode.equals(ModeGermany.AUTO_noTOLL)) {
 
-                if (trip.getTripState().equals(TypeGermany.DAYTRIP)){
+                if (trip.getTripState().equals(TypeGermany.DAYTRIP)) {
 
                     //1st trip leg
                     Id<Person> personId1 = Id.createPersonId(tId);
@@ -157,9 +156,9 @@ public class TripsToPlans {
                     person2.addPlan(plan2);
                     pop.addPerson(person2);
 
-                } else if(trip.getTripState().equals(TypeGermany.OVERNIGHT)){
+                } else if (trip.getTripState().equals(TypeGermany.OVERNIGHT)) {
 
-                    if(!trip.isReturnOvernightTrip()){
+                    if (!trip.isReturnOvernightTrip()) {
 
                         //1st trip leg
                         Id<Person> personId = Id.createPersonId(tId);
@@ -199,7 +198,7 @@ public class TripsToPlans {
                             visitor.addPlan(visitorPlan);
                             pop.addPerson(visitor);
                         }
-                    }else{
+                    } else {
                         //1st trip leg
                         Id<Person> personId = Id.createPersonId(tId);
                         Person person = scenario.getPopulation().getFactory().createPerson(personId);
@@ -239,11 +238,11 @@ public class TripsToPlans {
                             pop.addPerson(visitor);
                         }
                     }
-                } else{
+                } else {
                 }
-            }else if(mode.equals(ModeGermany.AIR)){
-                if (trip.getTripState().equals(TypeGermany.DAYTRIP)){
-                    if (!trip.isInternational()){
+            } else if (mode.equals(ModeGermany.AIR)) {
+                if (trip.getTripState().equals(TypeGermany.DAYTRIP)) {
+                    if (!trip.isInternational()) {
                         //1st trip leg
                         Id<Person> personId1 = Id.createPersonId(tId); //get initial person id to new
                         Person person1 = scenario.getPopulation().getFactory().createPerson(personId1);
@@ -315,7 +314,7 @@ public class TripsToPlans {
 
                         person4.addPlan(plan4);
                         pop.addPerson(person4);
-                    }else{
+                    } else {
                         //1st trip leg
                         Id<Person> personId1 = Id.createPersonId(tId); //get initial person id to new
                         Person person1 = scenario.getPopulation().getFactory().createPerson(personId1);
@@ -353,7 +352,7 @@ public class TripsToPlans {
                     }
 
 
-                }else if(trip.getTripState().equals(TypeGermany.OVERNIGHT)){
+                } else if (trip.getTripState().equals(TypeGermany.OVERNIGHT)) {
 
                     Id<Person> personId1 = Id.createPersonId(tId); //get initial person id to new
                     Person person1 = scenario.getPopulation().getFactory().createPerson(personId1);
@@ -363,8 +362,8 @@ public class TripsToPlans {
                     Person person2 = scenario.getPopulation().getFactory().createPerson(personId2);
                     Plan plan2 = scenario.getPopulation().getFactory().createPlan();
 
-                    if(!trip.isReturnOvernightTrip()){
-                        if (!trip.isInternational()){
+                    if (!trip.isReturnOvernightTrip()) {
+                        if (!trip.isInternational()) {
                             //1st trip leg
                             Activity activity1 = scenario.getPopulation().getFactory().createActivityFromCoord("home", origin);
                             activity1.setEndTime(departureTime_sec);
@@ -392,7 +391,7 @@ public class TripsToPlans {
 
                             person2.addPlan(plan2);
                             pop.addPerson(person2);
-                        }else{
+                        } else {
                             //1st trip leg
                             Activity activity1 = scenario.getPopulation().getFactory().createActivityFromCoord("home", origin);
                             activity1.setEndTime(departureTime_sec);
@@ -425,8 +424,8 @@ public class TripsToPlans {
                             visitor.addPlan(visitorPlan);
                             pop.addPerson(visitor);
                         }
-                    }else{
-                        if (!trip.isInternational()){
+                    } else {
+                        if (!trip.isInternational()) {
                             //1st trip leg
                             Activity activity1 = scenario.getPopulation().getFactory().createActivityFromCoord(purpose.toString(), destination);
                             activity1.setEndTime(departureTime_sec);
@@ -454,7 +453,7 @@ public class TripsToPlans {
 
                             person2.addPlan(plan2);
                             pop.addPerson(person2);
-                        }else{
+                        } else {
 
                             //1st trip leg
                             Activity airport1 = scenario.getPopulation().getFactory().createActivityFromCoord(purpose.toString(), originAirport);
@@ -489,9 +488,9 @@ public class TripsToPlans {
                             pop.addPerson(visitor);
                         }
                     }
-                }else{
+                } else {
                 }
-            }else{
+            } else {
             }
         } else {
         }
