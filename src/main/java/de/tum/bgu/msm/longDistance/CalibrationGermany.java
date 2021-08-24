@@ -848,23 +848,38 @@ public class CalibrationGermany implements ModelComponent {
                     for (Mode mode : ModeGermany.values()) {
 
                         double observedShare;
-
-                        //if (mode.equals(ModeGermany.AUTO_noToll)){
-                        //    observedShare = 0.00;
-                        //} else {
-                            observedShare = surveyShares.get(name).get(purpose).get(tripState).get(mode);
-                        //}
-
-                        double simulatedShare = simulatedModalShares.get(name).get(purpose).get(tripState).get(mode);
+                        double simulatedShare;
                         double factor;
 
-                        if (mode.equals(ModeGermany.AUTO)){
-                            factor = 0;
+                        if (mode.equals(ModeGermany.AUTO_noTOLL) || mode.equals(ModeGermany.RAIL_SHUTTLE)){
+                            break;
                         }else{
-                            factor = stepFactor * (observedShare - simulatedShare);
-                        }
+                            observedShare = surveyShares.get(name).get(purpose).get(tripState).get(mode);
+                            simulatedShare = simulatedModalShares.get(name).get(purpose).get(tripState).get(mode);
 
-                        calibrationMatrix.get(name).get(purpose).get(tripState).putIfAbsent(mode, factor);
+                            if (mode.equals(ModeGermany.AUTO)){
+                                observedShare = observedShare + surveyShares.get(name).get(purpose).get(tripState).get(ModeGermany.AUTO_noTOLL);
+                                simulatedShare = simulatedShare + simulatedModalShares.get(name).get(purpose).get(tripState).get(ModeGermany.AUTO_noTOLL);
+                            }
+
+                            if (mode.equals(ModeGermany.RAIL)){
+                                observedShare = observedShare + surveyShares.get(name).get(purpose).get(tripState).get(ModeGermany.RAIL_SHUTTLE);
+                                simulatedShare = simulatedShare + simulatedModalShares.get(name).get(purpose).get(tripState).get(ModeGermany.RAIL_SHUTTLE);
+                            }
+
+                            factor = stepFactor * (observedShare - simulatedShare);
+
+                            if (mode.equals(ModeGermany.AUTO)){
+                                factor = 0;
+                                calibrationMatrix.get(name).get(purpose).get(tripState).putIfAbsent(mode, factor);
+                                calibrationMatrix.get(name).get(purpose).get(tripState).putIfAbsent(ModeGermany.AUTO_noTOLL, factor);
+                            }else{
+                                calibrationMatrix.get(name).get(purpose).get(tripState).putIfAbsent(mode, factor);
+                                if (mode.equals(ModeGermany.RAIL)){
+                                    calibrationMatrix.get(name).get(purpose).get(tripState).putIfAbsent(ModeGermany.RAIL_SHUTTLE, factor);
+                                }
+                            }
+                        }
 
                         //logger.info(name + "\t" + purpose + " \t" + tripState + " \t" + mode + "\t" + factor);
                         logger.info(name + "\t" + purpose + " \t" + tripState + " \t" + mode + "\t" + (observedShare - simulatedShare));
