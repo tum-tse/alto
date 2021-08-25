@@ -25,12 +25,15 @@ public class CalculateTransportIndicators {
 
     public static void main(String[] args) throws FileNotFoundException {
 
+        final String scenario = args[0];
 
-        String networkFile = args[0];
+        final String workingFolder = args[1];
 
-        String eventsFile = args[1];
+        String networkFile = args[2];
 
-        String outputFile = args[2];
+        String eventsFile = workingFolder + scenario + "/" + scenario + ".output_events.xml.gz";
+
+        String outputFile = workingFolder + scenario + "/transport_indicators.csv";
 
 
         EventsManager eventsManager = EventsUtils.createEventsManager();
