@@ -1,9 +1,11 @@
 package de.tum.bgu.msm.longDistance.io.writer;
 
+import com.google.common.math.LongMath;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneGermany;
+import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneTypeGermany;
 import org.json.simple.JSONObject;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -13,6 +15,9 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class TripsToPlans {
@@ -31,6 +36,11 @@ public class TripsToPlans {
     double boardingTime_sec;
     double postProcessingTime_sec = 15 * 60;
 
+    boolean addShuttleTrips = true;
+    String shuttleAccessStationFile;
+    Map<Integer, Map<Integer, Coord>> accessStopCoordinates;
+    private PrintWriter shuttlePw;
+
     public void setup(JSONObject prop, String inputFolder, String outputFolderInput) {
         outputFolder = outputFolderInput;
         outputFileName = JsonUtilMto.getStringProp(prop, "output.plan_file");
@@ -41,6 +51,12 @@ public class TripsToPlans {
 
         boardingTime_sec = JsonUtilMto.getIntProp(prop, "airport.boardingTime_min") * 60;
         postProcessingTime_sec = JsonUtilMto.getIntProp(prop, "airport.postProcessTime_min") * 60;
+
+        if(addShuttleTrips){
+            shuttleAccessStationFile = JsonUtilMto.getStringProp(prop, "tripAssignment.accessStationsForShuttleMatrix");
+            accessStopCoordinates = new HashMap<>();
+        }
+
     }
 
     public void load(DataSet dataSet) {
@@ -49,6 +65,33 @@ public class TripsToPlans {
         Config config = ConfigUtils.createConfig();
         scenario = ScenarioUtils.loadScenario(config);
         pop = scenario.getPopulation();
+
+        if (addShuttleTrips){
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(shuttleAccessStationFile));
+                String line = br.readLine();
+                int counter = 0;
+                while((line = br.readLine()) != null){
+                    int origin = Integer.parseInt(line.split(",")[0]);
+                    int destination = Integer.parseInt(line.split(",")[1]);
+                    double x = Double.parseDouble(line.split(",")[2]);
+                    double y = Double.parseDouble(line.split(",")[3]);
+                    accessStopCoordinates.putIfAbsent(origin, new HashMap<>());
+                    accessStopCoordinates.get(origin).put(destination, new Coord(x,y));
+                    counter++;
+                    if (LongMath.isPowerOfTwo(counter)){
+                        System.out.println("Added " + counter + " station coordinates.");
+                    }
+
+                }
+                shuttlePw = new PrintWriter(outputFolder + "/shuttle_trips.csv");
+                shuttlePw.println("person,matsim_person,orig_act,dest_act,orig_x,orig_y,dest_x,dest_y");
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     public void run(DataSet dataSet, int nThreads) {
@@ -58,7 +101,12 @@ public class TripsToPlans {
             generatePlans(tr, rmd.nextDouble());
         }
 
-        PopulationWriter pw = new PopulationWriter(pop);
+        if (shuttlePw!= null){
+            shuttlePw.close();
+        }
+
+        PopulationWriter pw;
+        pw = new PopulationWriter(pop);
         pw.write(outputFile);
 
     }
@@ -490,9 +538,210 @@ public class TripsToPlans {
                     }
                 } else {
                 }
-            } else {
+            }else if (mode.equals(ModeGermany.RAIL_SHUTTLE) && addShuttleTrips){
+                if(trip.getTripState().equals(TypeGermany.OVERNIGHT)){
+                    int origId;
+                    int destId;
+                    Coord accessStationCoord;
+                    Coord egressStationCoord;
+                    double departureTimeOfTheShuttleLeg_sec = departureTime_sec;
+                    double expectedTripDuration_sec = trip.getAdditionalAttributes().get("time_" + mode.toString()) * 3600;
+                    if(trip.isReturnOvernightTrip()){
+                        //switch the origin and destination zones and the stations
+                        origId = trip.getDestZone().getId();
+                        destId = trip.getOrigZone().getId();
+                        accessStationCoord = accessStopCoordinates.get(destId).get(origId);
+                        egressStationCoord = accessStopCoordinates.get(origId).get(destId);
+                    } else {
+                        destId = trip.getDestZone().getId();
+                        origId = trip.getOrigZone().getId();
+                        accessStationCoord = accessStopCoordinates.get(origId).get(destId);
+                        egressStationCoord = accessStopCoordinates.get(destId).get(origId);
+                    }
+
+                    if(accessStationCoord != null && egressStationCoord != null){
+                        if (trip.getOrigZone().getZoneType().equals(ZoneTypeGermany.GERMANY)){
+                            Id<Person> personId  = Id.createPersonId("shuttle_access_" + tId);
+                            Person person = scenario.getPopulation().getFactory().createPerson(personId);
+                            scenario.getPopulation().addPerson(person);
+                            Plan plan = scenario.getPopulation().getFactory().createPlan();
+                            person.addPlan(plan);
+
+                            Coord origCoord = new Coord(trip.getOrigX(), trip.getOrigY());
+                            Activity previousAct = scenario.getPopulation().getFactory().createActivityFromCoord("home", origCoord);
+                            previousAct.setEndTime(departureTimeOfTheShuttleLeg_sec);
+                            plan.addActivity(previousAct);
+
+                            Leg leg = scenario.getPopulation().getFactory().createLeg(ModeGermany.AUTO.toString());
+                            plan.addLeg(leg);
+
+                            Activity activity2 = scenario.getPopulation().getFactory().createActivityFromCoord("station", accessStationCoord);
+                            plan.addActivity(activity2);
+                            shuttlePw.println(trip.getTripId() + "," +
+                                    personId + "," +
+                                    previousAct.getType() +"," +
+                                    activity2.getType() + "," +
+                                    previousAct.getCoord().getX() + "," +
+                                    previousAct.getCoord().getY() +"," +
+                                    activity2.getCoord().getX() + "," +
+                                    activity2.getCoord().getY());
+                        }
+
+                        if (trip.getDestZoneType().equals(ZoneTypeGermany.GERMANY)){
+                            Coord destCoord = new Coord( trip.getDestX(),trip.getDestY());
+                            Id<Person> personId  = Id.createPersonId("shuttle_egress_" + tId);
+                            Person person = scenario.getPopulation().getFactory().createPerson(personId);
+                            scenario.getPopulation().addPerson(person);
+                            Plan plan = scenario.getPopulation().getFactory().createPlan();
+                            person.addPlan(plan);
+
+                            Activity previousAct = scenario.getPopulation().getFactory().createActivityFromCoord("station", egressStationCoord);
+                            previousAct.setEndTime(departureTimeOfTheShuttleLeg_sec + expectedTripDuration_sec);
+                            plan.addActivity(previousAct);
+
+                            Leg leg = scenario.getPopulation().getFactory().createLeg(ModeGermany.AUTO.toString());
+                            plan.addLeg(leg);
+
+                            Activity activity2 = scenario.getPopulation().getFactory().createActivityFromCoord(purpose.toString(), destCoord);
+                            plan.addActivity(activity2);
+                            shuttlePw.println(trip.getTripId() + "," +
+                                    personId + "," +
+                                    previousAct.getType() +"," +
+                                    activity2.getType() + "," +
+                                    previousAct.getCoord().getX() + "," +
+                                    previousAct.getCoord().getY() +"," +
+                                    activity2.getCoord().getX() + "," +
+                                    activity2.getCoord().getY());
+                        }
+                    }
+                } else if (trip.getTripState().equals(TypeGermany.DAYTRIP)){
+                    int origId = trip.getOrigZone().getId();
+                    int destId = trip.getDestZone().getId();
+                    Coord accessStationCoord = accessStopCoordinates.get(origId).get(destId);
+                    Coord egressStationCoord = accessStopCoordinates.get(destId).get(origId);
+
+                    if(accessStationCoord != null && egressStationCoord != null){
+                        double expectedTripDuration_sec = trip.getAdditionalAttributes().get("time_" + mode.toString()) * 3600;
+
+                        if (trip.getOrigZone().getZoneType().equals(ZoneTypeGermany.GERMANY)){
+                            //access outbound
+                            Id<Person> personId  = Id.createPersonId("shuttle_access_outbound_" + tId);
+                            Person person = scenario.getPopulation().getFactory().createPerson(personId);
+                            scenario.getPopulation().addPerson(person);
+                            Plan plan = scenario.getPopulation().getFactory().createPlan();
+                            person.addPlan(plan);
+
+                            Coord origCoord = new Coord(trip.getOrigX(), trip.getOrigY());
+
+
+                            Activity previousAct = scenario.getPopulation().getFactory().createActivityFromCoord("home", origCoord);
+                            previousAct.setEndTime(departureTime_sec);
+                            plan.addActivity(previousAct);
+
+                            Leg leg = scenario.getPopulation().getFactory().createLeg(ModeGermany.AUTO.toString());
+                            plan.addLeg(leg);
+
+                            Activity activity2 = scenario.getPopulation().getFactory().createActivityFromCoord("station", accessStationCoord);
+                            plan.addActivity(activity2);
+                            shuttlePw.println(trip.getTripId() + "," +
+                                    personId + "," +
+                                    previousAct.getType() +"," +
+                                    activity2.getType() + "," +
+                                    previousAct.getCoord().getX() + "," +
+                                    previousAct.getCoord().getY() +"," +
+                                    activity2.getCoord().getX() + "," +
+                                    activity2.getCoord().getY());
+
+                            //egress_inbound
+                            personId  = Id.createPersonId("shuttle_egress_inbound_" + tId);
+                            person = scenario.getPopulation().getFactory().createPerson(personId);
+                            scenario.getPopulation().addPerson(person);
+                            plan = scenario.getPopulation().getFactory().createPlan();
+                            person.addPlan(plan);
+
+                            previousAct = scenario.getPopulation().getFactory().createActivityFromCoord("station", accessStationCoord);
+                            previousAct.setEndTime(departureTimeReturningDaytrip_sec + expectedTripDuration_sec);
+                            plan.addActivity(previousAct);
+
+                            leg = scenario.getPopulation().getFactory().createLeg(ModeGermany.AUTO.toString());
+                            plan.addLeg(leg);
+
+                            activity2 = scenario.getPopulation().getFactory().createActivityFromCoord("home", origCoord);
+                            plan.addActivity(activity2);
+                            shuttlePw.println(trip.getTripId() + "," +
+                                    personId + "," +
+                                    previousAct.getType() +"," +
+                                    activity2.getType() + "," +
+                                    previousAct.getCoord().getX() + "," +
+                                    previousAct.getCoord().getY() +"," +
+                                    activity2.getCoord().getX() + "," +
+                                    activity2.getCoord().getY());
+                        }
+
+                        if (trip.getDestZoneType().equals(ZoneTypeGermany.GERMANY)){
+                            //egress outbound
+                            Coord destCoord = new Coord(trip.getDestX(),trip.getDestY());
+
+
+                            Id<Person> personId  = Id.createPersonId("shuttle_egress_outbound_" + tId);
+                            Person person = scenario.getPopulation().getFactory().createPerson(personId);
+                            scenario.getPopulation().addPerson(person);
+                            Plan plan = scenario.getPopulation().getFactory().createPlan();
+                            person.addPlan(plan);
+
+                            Activity previousAct = scenario.getPopulation().getFactory().createActivityFromCoord("station", egressStationCoord);
+                            previousAct.setEndTime(departureTime_sec + expectedTripDuration_sec);
+                            plan.addActivity(previousAct);
+
+                            Leg leg = scenario.getPopulation().getFactory().createLeg(ModeGermany.AUTO.toString());
+                            plan.addLeg(leg);
+
+                            Activity activity2 = scenario.getPopulation().getFactory().createActivityFromCoord(purpose.toString(), destCoord);
+                            plan.addActivity(activity2);
+                            shuttlePw.println(trip.getTripId() + "," +
+                                    personId + "," +
+                                    previousAct.getType() +"," +
+                                    activity2.getType() + "," +
+                                    previousAct.getCoord().getX() + "," +
+                                    previousAct.getCoord().getY() +"," +
+                                    activity2.getCoord().getX() + "," +
+                                    activity2.getCoord().getY());
+
+                            //inbound access
+                            personId  = Id.createPersonId("shuttle_access_inbound_" + tId);
+                            person = scenario.getPopulation().getFactory().createPerson(personId);
+                            scenario.getPopulation().addPerson(person);
+                            plan = scenario.getPopulation().getFactory().createPlan();
+                            person.addPlan(plan);
+
+                            previousAct = scenario.getPopulation().getFactory().createActivityFromCoord(purpose.toString(), destCoord);
+                            previousAct.setEndTime(departureTimeReturningDaytrip_sec);
+                            plan.addActivity(previousAct);
+
+                            leg = scenario.getPopulation().getFactory().createLeg(ModeGermany.AUTO.toString());
+                            plan.addLeg(leg);
+
+                            activity2 = scenario.getPopulation().getFactory().createActivityFromCoord("station", egressStationCoord);
+                            plan.addActivity(activity2);
+                            shuttlePw.println(trip.getTripId() + "," +
+                                    personId + "," +
+                                    previousAct.getType() +"," +
+                                    activity2.getType() + "," +
+                                    previousAct.getCoord().getX() + "," +
+                                    previousAct.getCoord().getY() +"," +
+                                    activity2.getCoord().getX() + "," +
+                                    activity2.getCoord().getY());
+                        }
+
+                    }
+
+
+                }
+
+
             }
         } else {
         }
+
     }
 }
