@@ -36,7 +36,7 @@ public class TripsToPlans {
     double boardingTime_sec;
     double postProcessingTime_sec = 15 * 60;
 
-    boolean addShuttleTrips = true;
+    boolean addShuttleTrips = false;
     String shuttleAccessStationFile;
     Map<Integer, Map<Integer, Coord>> accessStopCoordinates;
     private PrintWriter shuttlePw;
@@ -49,11 +49,13 @@ public class TripsToPlans {
         LEISURE_AUTO_OCCUPANCY = JsonUtilMto.getFloatProp(prop, "tripAssignment.tripParty_autoTrips.leisure");
         PRIVATE_AUTO_OCCUPANCY = JsonUtilMto.getFloatProp(prop, "tripAssignment.tripParty_autoTrips.private");
 
+        addShuttleTrips = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
+
         boardingTime_sec = JsonUtilMto.getIntProp(prop, "airport.boardingTime_min") * 60;
         postProcessingTime_sec = JsonUtilMto.getIntProp(prop, "airport.postProcessTime_min") * 60;
 
         if(addShuttleTrips){
-            shuttleAccessStationFile = JsonUtilMto.getStringProp(prop, "tripAssignment.accessStationsForShuttleMatrix");
+            shuttleAccessStationFile = inputFolder + JsonUtilMto.getStringProp(prop, "tripAssignment.accessStationsForShuttleMatrix");
             accessStopCoordinates = new HashMap<>();
         }
 

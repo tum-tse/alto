@@ -461,12 +461,26 @@ public class DomesticModeChoiceGermany {
                 } else {
                     k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
                 }
+                if (congestedTraffic){
+                    if (tollOnBundesstrasse) {
+                        k_calibration_tollScenario = k_calibration_tollScenario + mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_ab_congested", column);
+                    } else {
+                        k_calibration_tollScenario = k_calibration_tollScenario + mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_congested", column);
+                    }
+                }
             }
             if (runScenario1 && runTollScenario) {
                 if (tollOnBundesstrasse) {
                     k_calibration_railShuttleAndTollScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll_ab", column);
                 } else {
                     k_calibration_railShuttleAndTollScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll", column);
+                }
+                if (congestedTraffic){
+                    if (tollOnBundesstrasse) {
+                        k_calibration_railShuttleAndTollScenario = k_calibration_railShuttleAndTollScenario + mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll_ab_congested", column);
+                    } else {
+                        k_calibration_railShuttleAndTollScenario = k_calibration_railShuttleAndTollScenario + mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll_congested", column);
+                    }
                 }
             }
             if (congestedTraffic)
