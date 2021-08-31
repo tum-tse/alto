@@ -63,7 +63,6 @@ public class DomesticModeChoiceGermany {
 
     private long seed;
     Random rand;
-    private int year;
     private boolean congestedTraffic;
 
     public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
@@ -103,7 +102,6 @@ public class DomesticModeChoiceGermany {
 
         seed = JsonUtilMto.getLongProp(prop, "seed");
         rand = new Random(seed);
-        year = JsonUtilMto.getIntProp(prop, "year");
         congestedTraffic = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.congestedTraffic");
 
         logger.info("Domestic MC set up");
@@ -468,13 +466,6 @@ public class DomesticModeChoiceGermany {
                         k_calibration_tollScenario = k_calibration_tollScenario + mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_congested", column);
                     }
                 }
-                if (year!=2011){
-                    if (tollOnBundesstrasse) {
-                        k_calibration_tollScenario = k_calibration_tollScenario + mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_ab_congested_2030", column);
-                    } else {
-                        k_calibration_tollScenario = k_calibration_tollScenario + mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_congested_2030", column);
-                    }
-                }
             }
             if (runScenario1 && runTollScenario) {
                 if (tollOnBundesstrasse) {
@@ -487,13 +478,6 @@ public class DomesticModeChoiceGermany {
                         k_calibration_railShuttleAndTollScenario = k_calibration_railShuttleAndTollScenario + mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll_ab_congested", column);
                     } else {
                         k_calibration_railShuttleAndTollScenario = k_calibration_railShuttleAndTollScenario + mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll_congested", column);
-                    }
-                }
-                if (year!=2011){
-                    if (tollOnBundesstrasse) {
-                        k_calibration_tollScenario = k_calibration_tollScenario + mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_ab_congested_2030", column);
-                    } else {
-                        k_calibration_tollScenario = k_calibration_tollScenario + mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_congested_2030", column);
                     }
                 }
             }
