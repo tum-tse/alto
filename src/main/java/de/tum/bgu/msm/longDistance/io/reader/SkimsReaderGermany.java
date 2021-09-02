@@ -61,6 +61,7 @@ public class SkimsReaderGermany implements SkimsReader {
     private boolean runScenario2;
     private boolean runScenario3;
     private boolean runTollScenario;
+    private boolean tollOnBundesstrasse = false;
     private boolean congestedTraffic;
 
     @Override
@@ -74,30 +75,69 @@ public class SkimsReaderGermany implements SkimsReader {
         runScenario2 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.BusSpeedImprovement.run");
         runScenario3 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.run");
         runTollScenario = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.run");
+        if (runTollScenario) {
+            tollOnBundesstrasse = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.appliedInBundesstrasse");
+        }
         congestedTraffic = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.congestedTraffic");
 
         //AUTO:
         //Auto_Toll->
-        if (!congestedTraffic) {
-            travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll"));
-            distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll"));
+        if (!runTollScenario) {
+            if (!congestedTraffic) {
+                travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
+                distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car"));
+            } else {
+                travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_congested"));
+                distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_congested"));
+            }
         } else {
-            travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll_congested"));
-            distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_car_toll_congested"));
+            if (!congestedTraffic) {
+                if (tollOnBundesstrasse) {
+                    travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_toll_ab"));
+                    distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_toll_ab"));
+                } else {
+                    travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_toll"));
+                    distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_toll"));
+                }
+            } else {
+                if (tollOnBundesstrasse) {
+                    travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_toll_ab_congested"));
+                    distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_toll_ab_congested"));
+                } else {
+                    travelTimeFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_toll_congested"));
+                    distanceFileNames.put(ModeGermany.AUTO, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_toll_congested"));
+                }
+            }
         }
+
         travelTimeMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixTime_auto"));
         distanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixDistance_auto"));
         tollDistanceMatrixNames.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.tolledDistance_auto"));
         lookUps.put(ModeGermany.AUTO, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup"));
+
         //Auto_noToll ->
         //if (runTollScenario) {
-        travelTimeFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll"));
-        distanceFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll"));
+        if (!congestedTraffic) {
+            if (tollOnBundesstrasse) {
+                travelTimeFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll_ab"));
+                distanceFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll_ab"));
+            } else {
+                travelTimeFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll"));
+                distanceFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll"));
+            }
+        } else {
+            if (tollOnBundesstrasse) {
+                travelTimeFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll_ab_congested"));
+                distanceFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll_ab_congested"));
+            } else {
+                travelTimeFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll_congested"));
+                distanceFileNames.put(ModeGermany.AUTO_noTOLL, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.tollScenario.all_car_noToll_congested"));
+            }
+        }
         travelTimeMatrixNames.put(ModeGermany.AUTO_noTOLL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixTime_auto"));
         distanceMatrixNames.put(ModeGermany.AUTO_noTOLL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixDistance_auto"));
         tollDistanceMatrixNames.put(ModeGermany.AUTO_noTOLL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.tolledDistance_auto"));
         lookUps.put(ModeGermany.AUTO_noTOLL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.auto_matrix_lookup"));
-        //}
 
         //RAIL:
         inPtTimeFileNames.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "mode_choice.skim.all_rail"));
@@ -146,8 +186,8 @@ public class SkimsReaderGermany implements SkimsReader {
             inPtTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus"));
             accessTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus"));
             egressTimeFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus"));
-            //accessDistanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus")); // A
-            //egressDistanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus")); // A
+            accessDistanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus")); // A
+            egressDistanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus")); // A
             distanceFileNames.put(ModeGermany.BUS, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.BusSpeedImprovement.all_bus"));
             distanceMatrixNames.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
             lookUps.put(ModeGermany.BUS, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
@@ -272,25 +312,26 @@ public class SkimsReaderGermany implements SkimsReader {
         dataSet.setAutoTravelTime(modeMatrixMap.get("travelTime"));
         dataSet.setAutoTravelDistance(modeMatrixMap.get("distance")); //for safety and compatibility
 
-        //if (runTollScenario) {
 
-        m = ModeGermany.AUTO_noTOLL;
-        Matrix autoTravelTimeToll = omxToMatrix(travelTimeFileNames.get(m), travelTimeMatrixNames.get(m), lookUps.get(m));
-        time = logReading(time, "car toll time");
+        if (runTollScenario) {
 
-        Matrix autoDistanceToll = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-        time = logReading(time, "car toll distance");
+            m = ModeGermany.AUTO_noTOLL;
+            Matrix autoTravelTimeToll = omxToMatrix(travelTimeFileNames.get(m), travelTimeMatrixNames.get(m), lookUps.get(m));
+            time = logReading(time, "car toll time");
 
-        Matrix autoTollDistanceToll = omxToMatrix(distanceFileNames.get(m), tollDistanceMatrixNames.get(m), lookUps.get(m));
+            Matrix autoDistanceToll = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
+            time = logReading(time, "car toll distance");
 
-        Map<String, Matrix> modeMatrixMapToll = assignIntrazonalTravelTimes(autoTravelTimeToll, autoDistanceToll, m, 5, 10 * 60, 0.33F);
-        time = logReading(time, "car toll intrazonals");
+            Matrix autoTollDistanceToll = omxToMatrix(distanceFileNames.get(m), tollDistanceMatrixNames.get(m), lookUps.get(m));
 
-        modeTimeMatrixMap.put(m, modeMatrixMapToll.get("travelTime"));
-        modeDistanceMatrixMap.put(m, modeMatrixMapToll.get("distance"));
-        modeTollDistanceMatrixMap.put(m, autoTollDistanceToll);
+            Map<String, Matrix> modeMatrixMapToll = assignIntrazonalTravelTimes(autoTravelTimeToll, autoDistanceToll, m, 5, 10 * 60, 0.33F);
+            time = logReading(time, "car toll intrazonals");
 
-        //}
+            modeTimeMatrixMap.put(m, modeMatrixMapToll.get("travelTime"));
+            modeDistanceMatrixMap.put(m, modeMatrixMapToll.get("distance"));
+            modeTollDistanceMatrixMap.put(m, autoTollDistanceToll);
+
+        }
 
         m = ModeGermany.AIR;
         //initialize empty matrices
@@ -328,77 +369,79 @@ public class SkimsReaderGermany implements SkimsReader {
         modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
 
 
-        m = ModeGermany.RAIL;
-        List<Matrix> matricesRail = new ArrayList<>();
-        matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "in_vehicle_time_s", lookUps.get(m))); // "travel_time_s" // includes inVeh, access, egress
-        time = logReading(time, "rail time");
-        //matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
-        time = logReading(time, "rail access");
-        //matricesRail.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
-        time = logReading(time, "rail egress");
-        Matrix totalTravelTimeRail = sumMatrices(matricesRail);
-        Matrix distanceRail = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-        //time = logReading(time, "rail distance");
+        if (!runScenario2){
+            m = ModeGermany.RAIL;
+            List<Matrix> matricesRail = new ArrayList<>();
+            matricesRail.add(omxToMatrix(inPtTimeFileNames.get(m), "in_vehicle_time_s", lookUps.get(m))); // "travel_time_s" // includes inVeh, access, egress
+            time = logReading(time, "rail time");
+            //matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
+            time = logReading(time, "rail access");
+            //matricesRail.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
+            time = logReading(time, "rail egress");
+            Matrix totalTravelTimeRail = sumMatrices(matricesRail);
+            Matrix distanceRail = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
+            //time = logReading(time, "rail distance");
 
-        Matrix railAccessTime = omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m));
-        time = logReading(time, "access_time_s");
-        Matrix railEgressTime = omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m));
-        time = logReading(time, "egress_time_s");
+            Matrix railAccessTime = omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m));
+            time = logReading(time, "access_time_s");
+            Matrix railEgressTime = omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m));
+            time = logReading(time, "egress_time_s");
 
-        modeMatrixMap = assignIntrazonalTravelTimes(totalTravelTimeRail, distanceRail, m, 5, 10 * 60, 0.33F);
-        time = logReading(time, "rail intrazonals");
+            modeMatrixMap = assignIntrazonalTravelTimes(totalTravelTimeRail, distanceRail, m, 5, 10 * 60, 0.33F);
+            time = logReading(time, "rail intrazonals");
 
-        modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
-        modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
+            modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
+            modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
 
-        railAccessTimeMatrixMap.put(m, railAccessTime);
-        railEgressTimeMatrixMap.put(m, railEgressTime);
+            railAccessTimeMatrixMap.put(m, railAccessTime);
+            railEgressTimeMatrixMap.put(m, railEgressTime);
 
-        // added the access time of each zone to ld rail station
-        readTimeToRail(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)), dataSet, 5, 10 * 60, 1);
-        time = logReading(time, "access to train");
+            // added the access time of each zone to ld rail station
+            readTimeToRail(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)), dataSet, 5, 10 * 60, 1);
+            time = logReading(time, "access to train");
+        }
 
-        //if (runScenario1) {
-        m = ModeGermany.RAIL_SHUTTLE;
-        List<Matrix> matricesRailShuttle = new ArrayList<>();
-        matricesRailShuttle.add(omxToMatrix(inPtTimeFileNames.get(m), "in_vehicle_time_s", lookUps.get(m))); // "travel_time_s" // includes inVeh, access, egress
-        time = logReading(time, "rail time");
-        //matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
-        time = logReading(time, "rail access");
-        //matricesRail.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
-        time = logReading(time, "rail egress");
-        Matrix totalTravelTimeRailShuttle = sumMatrices(matricesRailShuttle);
-        Matrix distanceRailShuttle = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
-        //time = logReading(time, "rail distance");
+        if (runScenario1) {
+            m = ModeGermany.RAIL_SHUTTLE;
+            List<Matrix> matricesRailShuttle = new ArrayList<>();
+            matricesRailShuttle.add(omxToMatrix(inPtTimeFileNames.get(m), "in_vehicle_time_s", lookUps.get(m))); // "travel_time_s" // includes inVeh, access, egress
+            time = logReading(time, "rail time");
+            //matricesRail.add(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)));
+            time = logReading(time, "rail access");
+            //matricesRail.add(omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m)));
+            time = logReading(time, "rail egress");
+            Matrix totalTravelTimeRailShuttle = sumMatrices(matricesRailShuttle);
+            Matrix distanceRailShuttle = omxToMatrix(distanceFileNames.get(m), distanceMatrixNames.get(m), lookUps.get(m));
+            //time = logReading(time, "rail distance");
 
-        Matrix railAccessTimeShuttle = omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m));
-        time = logReading(time, "access_time_s");
-        Matrix railEgressTimeShuttle = omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m));
-        time = logReading(time, "egress_time_s");
+            Matrix railAccessTimeShuttle = omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m));
+            time = logReading(time, "access_time_s");
+            Matrix railEgressTimeShuttle = omxToMatrix(egressTimeFileNames.get(m), "egress_time_s", lookUps.get(m));
+            time = logReading(time, "egress_time_s");
 
-        modeMatrixMap = assignIntrazonalTravelTimes(totalTravelTimeRailShuttle, distanceRailShuttle, m, 5, 10 * 60, 0.33F);
-        time = logReading(time, "rail intrazonals");
+            modeMatrixMap = assignIntrazonalTravelTimes(totalTravelTimeRailShuttle, distanceRailShuttle, m, 5, 10 * 60, 0.33F);
+            time = logReading(time, "rail intrazonals");
 
-        modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
-        modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
+            modeTimeMatrixMap.put(m, modeMatrixMap.get("travelTime"));
+            modeDistanceMatrixMap.put(m, modeMatrixMap.get("distance"));
 
-        railAccessTimeMatrixMap.put(m, railAccessTimeShuttle);
-        railEgressTimeMatrixMap.put(m, railEgressTimeShuttle);
-        //}
+            railAccessTimeMatrixMap.put(m, railAccessTimeShuttle);
+            railEgressTimeMatrixMap.put(m, railEgressTimeShuttle);
+            //}
 
 
         // added the access time of each zone to ld rail station
         //readTimeToRail(omxToMatrix(accessTimeFileNames.get(m), "access_time_s", lookUps.get(m)), dataSet, 5, 10*60, 1);
         //time = logReading(time, "access to train");
 
-        //if (runScenario1) {
-        Matrix railAccessDistanceShuttle = omxToMatrix(accessDistanceFileNames.get(m), "access_distance_m", lookUps.get(m));
-        time = logReading(time, "access_distance_m");
-        Matrix railEgressDistanceShuttle = omxToMatrix(egressDistanceFileNames.get(m), "egress_distance_m", lookUps.get(m));
-        time = logReading(time, "egress_distance_m");
-        railAccessDistanceMatrixMap.put(m, railAccessDistanceShuttle);
-        railEgressDistanceMatrixMap.put(m, railEgressDistanceShuttle);
-        //}
+            //if (runScenario1) {
+            Matrix railAccessDistanceShuttle = omxToMatrix(accessDistanceFileNames.get(m), "access_distance_m", lookUps.get(m));
+            time = logReading(time, "access_distance_m");
+            Matrix railEgressDistanceShuttle = omxToMatrix(egressDistanceFileNames.get(m), "egress_distance_m", lookUps.get(m));
+            time = logReading(time, "egress_distance_m");
+            railAccessDistanceMatrixMap.put(m, railAccessDistanceShuttle);
+            railEgressDistanceMatrixMap.put(m, railEgressDistanceShuttle);
+        }
 
         dataSet.setTravelTimeMatrix(modeTimeMatrixMap);
         dataSet.setDistanceMatrix(modeDistanceMatrixMap);

@@ -65,6 +65,9 @@ public class DataSet {
     private int boardingTime_sec;
     private int postprocessTime_sec;
 
+
+    private Map<Mode, Map<Zone, Map<String, Map<Integer, Double>>>> accessibilityByModeZone;
+
     public Map<Mode, Matrix> getTravelTimeMatrix() {
         return travelTimeMatrix;
     }
@@ -442,5 +445,13 @@ public class DataSet {
 
     public void setpostprocessTime_sec(int postprocessTime_sec) {
         this.postprocessTime_sec = postprocessTime_sec;
+    }
+
+    public Map<Mode, Map<Zone, Map<String, Map<Integer, Double>>>> getAccessibilityByModeZone() {
+        return accessibilityByModeZone;
+    }
+
+    public void setAccessibilityByModeZone(Map<Mode, Map<Zone, Map<String, Map<Integer, Double>>>> accessibilityByModeZone) {
+        this.accessibilityByModeZone = accessibilityByModeZone;
     }
 }
