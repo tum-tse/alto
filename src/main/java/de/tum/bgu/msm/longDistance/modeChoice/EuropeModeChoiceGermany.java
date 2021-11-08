@@ -367,8 +367,7 @@ public class EuropeModeChoiceGermany {
                     costTotal = cost + costAccess + costEgress;
                 }
 
-                // TODO
-                if (runBusSpeedImprovement) { /// Write runScenario 1 only for running the scenario 5. It should be runBusSpeedImprovement
+                if (runBusSpeedImprovement) {
                     if (m.equals(ModeGermany.BUS)) {
                         cost = cost * busCostFactor;
                         costTotal = cost;
