@@ -43,16 +43,17 @@ public class DomesticModeChoiceGermany {
     private Map<Purpose, Map<Type, Map<Mode, Double>>> calibrationDomesticMcMatrix;
 
     // Scenario
-    private boolean runScenario1;
+    private boolean runRailShuttleBus;
     private float shuttleBusCostPerKm;
     private float shuttleBusCostBase;
     private boolean subsidyForRural;
     private float NESTING_COEFFICIENT_RAIL_MODES;
 
-    private boolean runScenario2;
+
+    private boolean runBusSpeedImprovement;
     private float busCostFactor;
 
-    private boolean runScenario3;
+    private boolean runDeutschlandtakt;
 
     private boolean runTollScenario;
     private boolean tollOnBundesstrasse = false;
@@ -60,6 +61,8 @@ public class DomesticModeChoiceGermany {
     private float NESTING_COEFFICIENT_AUTO_MODES;
     private boolean runCityTollScenario;
     private float cityToll;
+
+    private boolean runRailShuttleBusAndDeutschlandTakt;
 
     private long seed;
     Random rand;
@@ -76,16 +79,16 @@ public class DomesticModeChoiceGermany {
         calibration = JsonUtilMto.getBooleanProp(prop, "mode_choice.calibration_domestic");
         calibrationDomesticMcMatrix = new HashMap<>();
 
-        runScenario1 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
+        runRailShuttleBus = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.run");
         shuttleBusCostPerKm = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costPerKm");
         shuttleBusCostBase = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.costBase");
         subsidyForRural = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.shuttleBusToRail.subsidyForRural");
         NESTING_COEFFICIENT_RAIL_MODES = 1 / JsonUtilMto.getFloatProp(prop, "scenarioPolicy.shuttleBusToRail.nested_incremental_rail_scale");
 
-        runScenario2 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.BusSpeedImprovement.run");
+        runBusSpeedImprovement = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.BusSpeedImprovement.run");
         busCostFactor = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.BusSpeedImprovement.busCostFactor");
 
-        runScenario3 = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.run");
+        runDeutschlandtakt = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_InVehTransferTimesReduction.run");
 
         runTollScenario = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.run");
         toll = 0;
@@ -94,6 +97,15 @@ public class DomesticModeChoiceGermany {
             tollOnBundesstrasse = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.appliedInBundesstrasse");
         }
         NESTING_COEFFICIENT_AUTO_MODES = 1 / JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.nested_incremental_logit_scale");
+
+        runRailShuttleBusAndDeutschlandTakt  = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.run");
+        if(runRailShuttleBusAndDeutschlandTakt){
+            shuttleBusCostPerKm = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.costPerKm");
+            shuttleBusCostBase = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.costBase");
+            subsidyForRural = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.subsidyForRural");
+            NESTING_COEFFICIENT_RAIL_MODES = 1 / JsonUtilMto.getFloatProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.nested_incremental_rail_scale");
+        }
+
 
         runCityTollScenario = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.cityTollScenario.run");
         cityToll = 0;
@@ -172,7 +184,7 @@ public class DomesticModeChoiceGermany {
             attributes.put("utility_" + "NestRail", (float) Double.NEGATIVE_INFINITY);
             attributes.put("utility_" + "NestAuto", (float) Double.NEGATIVE_INFINITY);
 
-            if (runScenario1) {
+            if (runRailShuttleBus || runRailShuttleBusAndDeutschlandTakt) {
                 expSumNestRail = Math.exp(utilities[2]) + Math.exp(utilities[4]);
                 probLowerRail = Math.exp(utilities[2]) / expSumNestRail;
                 probLowerRailShuttle = Math.exp(utilities[4]) / expSumNestRail;
@@ -360,18 +372,20 @@ public class DomesticModeChoiceGermany {
                     costTotal = cost + costAccess + costEgress;
                 }
 
-                if (runScenario2) {
-                    if (m.equals(ModeGermany.BUS)) {
-                        cost = (costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
-                                Math.pow(distance, costsPerKm.getStringIndexedValueAt("beta", m.toString()))) * busCostFactor * distance;
+                // TODO
+                if (runBusSpeedImprovement) { /// Write runScenario 1 only for running the scenario 5. It should be runBusSpeedImprovement
+                    if (m.equals(ModeGermany.BUS)) { /// Write runScenario 1 only for running the scenario 5. It should be runBusSpeedImprovement
+                        cost = cost * busCostFactor;
                         costTotal = cost;
                     }
                 }
 
-                if (runScenario1) {
+                if (runRailShuttleBus || runRailShuttleBusAndDeutschlandTakt) {
                     if (m.equals(ModeGermany.RAIL_SHUTTLE)) {
+                        // disable next line for scenario 5
                         distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 1000;
                         costAccess = distanceAccess * shuttleBusCostPerKm + shuttleBusCostBase;
+                        // disable next line for scenario 5
                         distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 1000;
                         costEgress = distanceEgress * shuttleBusCostPerKm + shuttleBusCostBase;
                         costTotal = cost + costAccess + costEgress;
@@ -453,20 +467,34 @@ public class DomesticModeChoiceGermany {
             double k_calibration_railShuttleScenario = 0;
             double k_calibration_railShuttleAndTollScenario = 0;
             double k_calibration_congestedTraffic = 0;
-            if (runScenario1 && !runTollScenario)
+            if (runRailShuttleBus && !runTollScenario)
                 k_calibration_railShuttleScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle", column);
-            if (!runScenario1 && runTollScenario) {
+            if (!runRailShuttleBus && runTollScenario) {
                 if (tollOnBundesstrasse) {
                     k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_ab", column);
                 } else {
                     k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
                 }
+                if (congestedTraffic){
+                    if (tollOnBundesstrasse) {
+                        k_calibration_tollScenario = k_calibration_tollScenario + mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_ab_congested", column);
+                    } else {
+                        k_calibration_tollScenario = k_calibration_tollScenario + mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_congested", column);
+                    }
+                }
             }
-            if (runScenario1 && runTollScenario) {
+            if (runRailShuttleBus && runTollScenario) {
                 if (tollOnBundesstrasse) {
                     k_calibration_railShuttleAndTollScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll_ab", column);
                 } else {
                     k_calibration_railShuttleAndTollScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll", column);
+                }
+                if (congestedTraffic){
+                    if (tollOnBundesstrasse) {
+                        k_calibration_railShuttleAndTollScenario = k_calibration_railShuttleAndTollScenario + mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll_ab_congested", column);
+                    } else {
+                        k_calibration_railShuttleAndTollScenario = k_calibration_railShuttleAndTollScenario + mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll_congested", column);
+                    }
                 }
             }
             if (congestedTraffic)
@@ -502,7 +530,7 @@ public class DomesticModeChoiceGermany {
                 utility = Double.NEGATIVE_INFINITY;
             }
 
-            if (!runScenario1 && m.equals(ModeGermany.RAIL_SHUTTLE)) {
+            if (!runRailShuttleBus && m.equals(ModeGermany.RAIL_SHUTTLE)) {
                 utility = Double.NEGATIVE_INFINITY;
             }
 
