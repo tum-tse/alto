@@ -66,7 +66,6 @@ public class DomesticModeChoiceGermany {
 
     private long seed;
     Random rand;
-
     private boolean congestedTraffic;
 
     public DomesticModeChoiceGermany(JSONObject prop, String inputFolder) {
@@ -115,7 +114,6 @@ public class DomesticModeChoiceGermany {
 
         seed = JsonUtilMto.getLongProp(prop, "seed");
         rand = new Random(seed);
-
         congestedTraffic = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.congestedTraffic");
 
         logger.info("Domestic MC set up");

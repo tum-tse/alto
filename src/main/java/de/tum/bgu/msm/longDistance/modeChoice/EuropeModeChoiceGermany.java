@@ -65,7 +65,6 @@ public class EuropeModeChoiceGermany {
 
     private long seed;
     Random rand;
-
     private boolean congestedTraffic;
 
     public EuropeModeChoiceGermany(JSONObject prop, String inputFolder) {
@@ -113,7 +112,6 @@ public class EuropeModeChoiceGermany {
 
         seed = JsonUtilMto.getLongProp(prop, "seed");
         rand = new Random(seed);
-
         congestedTraffic = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.congestedTraffic");
 
         logger.info("Europe MC set up");
