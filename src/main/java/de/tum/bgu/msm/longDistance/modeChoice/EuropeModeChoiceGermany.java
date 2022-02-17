@@ -298,24 +298,20 @@ public class EuropeModeChoiceGermany {
         } else if (m.equals(ModeGermany.RAIL)) {
             timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
             timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
-
-            distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
-
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
             timeTotal = time + timeAccess + timeEgress;
 
+            distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
 
         } else if (m.equals(ModeGermany.RAIL_SHUTTLE)) {
             timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 3600;
             timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 3600;
+            time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
+            timeTotal = time + timeAccess + timeEgress;
 
             distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 1000;
             distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 1000;
             distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
-
-            time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
-            timeTotal = time + timeAccess + timeEgress;
-
 
         } else {
             time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
@@ -328,8 +324,8 @@ public class EuropeModeChoiceGermany {
         if (time < 1000000000 / 3600) {
             if (vot != 0) {
                 double cost = 0;
-                double costAccess = 100000;
-                double costEgress = 100000;
+                double costAccess = 0;
+                double costEgress = 0;
                 double costTotal = 0;
                 if (distance != 0) {
                     cost = costsPerKm.getStringIndexedValueAt("alpha", m.toString()) *
@@ -362,53 +358,28 @@ public class EuropeModeChoiceGermany {
                     costTotal = cost;
                 }
 
-                if (m.equals(ModeGermany.RAIL)) {
-                    timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
-                    timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL).getValueAt(origin, destination) / 3600;
+                if (runScenario1) {
+                    if (m.equals(ModeGermany.RAIL_SHUTTLE)) {
+                        distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 1000;
+                        distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 1000;
+                        distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
 
-                    distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
-                    time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
-                    timeTotal = time + timeAccess + timeEgress;
-
-                    costTotal = cost;
-                }
-
-                if (m.equals(ModeGermany.RAIL_SHUTTLE)) {
-                    timeAccess = dataSet.getRailAccessTimeMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 3600;
-                    timeEgress = dataSet.getRailEgressTimeMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 3600;
-
-                    distanceAccess = dataSet.getRailAccessDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 1000;
-                    distanceEgress = dataSet.getRailEgressDistMatrix().get(ModeGermany.RAIL_SHUTTLE).getValueAt(origin, destination) / 1000;
-
-                    distance = dataSet.getDistanceMatrix().get(m).getValueAt(origin, destination) / 1000;
-                    time = dataSet.getTravelTimeMatrix().get(m).getValueAt(origin, destination) / 3600;
-                    timeTotal = time + timeAccess + timeEgress;
-
-                    if (runScenario1) {
-                        costAccess = distanceAccess * shuttleBusCostPerKm + shuttleBusCostBase;
-                        costEgress = distanceEgress * shuttleBusCostPerKm + shuttleBusCostBase;
-                    }
-                    costTotal = cost + costAccess + costEgress;
-
-                    if (subsidyForRural) {
-                        if (originZone.getAreatype().equals(AreaTypeGermany.RURAL) || originZone.getAreatype().equals(AreaTypeGermany.TOWN)) {
-
-                            if (destinationZone.getAreatype().equals(AreaTypeGermany.RURAL) || destinationZone.getAreatype().equals(AreaTypeGermany.TOWN)) {
-                                costTotal = cost;
-                            } else {
-                                costTotal = cost + costEgress;
+                        if (trip.getOrigZone().equals(ZoneTypeGermany.GERMANY)) {
+                            costAccess = distanceAccess * shuttleBusCostPerKm + shuttleBusCostBase;
+                        }
+                        if (trip.getDestZoneType().equals(ZoneTypeGermany.GERMANY)) {
+                            costEgress = distanceEgress * shuttleBusCostPerKm + shuttleBusCostBase;
+                        }
+                        if (subsidyForRural) {
+                            if (originZone.getAreatype().equals(AreaTypeGermany.RURAL) || originZone.getAreatype().equals(AreaTypeGermany.TOWN)) {
+                                costAccess = 0.00;
                             }
-
-                        } else {
-
                             if (destinationZone.getAreatype().equals(AreaTypeGermany.RURAL) || destinationZone.getAreatype().equals(AreaTypeGermany.TOWN)) {
-                                costTotal = cost + costAccess;
-                            } else {
-                                costTotal = cost + costAccess + costEgress;
+                                costEgress = 0.00;
                             }
                         }
+                        costTotal = cost + costAccess + costEgress;
                     }
-
                 }
 
                 if (runCityTollScenario) {
@@ -476,7 +447,7 @@ public class EuropeModeChoiceGermany {
                 } else {
                     k_calibration_tollScenario = mcGermany.getStringIndexedValueAt("k_calibration_tollScenario", column);
                 }
-                if (congestedTraffic){
+                if (congestedTraffic) {
                     if (tollOnBundesstrasse) {
                         k_calibration_tollScenario = k_calibration_tollScenario + mcGermany.getStringIndexedValueAt("k_calibration_tollScenario_ab_congested", column);
                     } else {
@@ -490,7 +461,7 @@ public class EuropeModeChoiceGermany {
                 } else {
                     k_calibration_railShuttleAndTollScenario = mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll", column);
                 }
-                if (congestedTraffic){
+                if (congestedTraffic) {
                     if (tollOnBundesstrasse) {
                         k_calibration_railShuttleAndTollScenario = k_calibration_railShuttleAndTollScenario + mcGermany.getStringIndexedValueAt("k_calibration_railShuttle_toll_ab_congested", column);
                     } else {

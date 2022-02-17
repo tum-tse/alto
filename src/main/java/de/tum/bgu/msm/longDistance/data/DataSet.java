@@ -367,12 +367,29 @@ public class DataSet {
         return airports.values().stream().filter(airport -> airport.getAirportType().equals(AirportType.HUB) && airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY) ).collect(Collectors.toList());
     }
 
+    public List<Airport> getGermanAndEuropeHubs() {
+        return airports.values().stream().filter(airport -> airport.getAirportType().equals(AirportType.HUB) && (airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY) || airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTEU)) ).collect(Collectors.toList());
+    }
+
     public List<Airport> getGermanAirports(){
-        return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY)).collect(Collectors.toList());
+        return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY) ||
+                                                    //airport.getName().equals("LNZ")||
+                                                    //airport.getName().equals("SZG")||
+                                                    airport.getName().equals("INN")||
+                                                    airport.getName().equals("ZRH")||
+                                                    airport.getName().equals("AMS")||
+                                                    airport.getName().equals("RTM")||
+                                                    airport.getName().equals("EIN")||
+                                                    airport.getName().equals("BRU")||
+                                                    airport.getName().equals("LUX")||
+                                                    airport.getName().equals("BSL")||
+                                                    airport.getName().equals("BLL")||
+                                                    airport.getName().equals("WRO")||
+                                                    airport.getName().equals("PRG")).collect(Collectors.toList());
     }
 
     public List<Airport> getEuropeAirports(){
-        return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY) && airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTEU)).collect(Collectors.toList());
+        return airports.values().stream().filter(airport -> airport.getZone().getZoneType().equals(ZoneTypeGermany.GERMANY) || airport.getZone().getZoneType().equals(ZoneTypeGermany.EXTEU)).collect(Collectors.toList());
     }
 
     public List<Airport> getOverseasAirports(){
