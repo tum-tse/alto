@@ -1,10 +1,13 @@
 package de.tum.bgu.msm.longDistance.airportAnalysis;
 
-import com.pb.common.datafile.CSVFileWriter;
-import com.pb.common.datafile.TableDataSet;
-import com.pb.common.matrix.Matrix;
+//import com.pb.common.datafile.CSVFileWriter;
+//import com.pb.common.datafile.TableDataSet;
+//import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.common.datafile.CSVFileWriter;
+import de.tum.bgu.msm.common.datafile.TableDataSet;
+import de.tum.bgu.msm.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.ModelComponent;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.airport.*;
@@ -950,7 +953,7 @@ public final class AirportAnalysis implements ModelComponent {
             int dimension = dataSet.getZones().size();
             //int dimension = 4;
             OmxMatrixWriter.createOmxFile(fileName, dimension);
-            OmxMatrixWriter.createOmxSkimMatrix(matrix,fileName, matrixName);
+            //OmxMatrixWriter.createOmxSkimMatrix(matrix,fileName, matrixName);
 
 
         } catch (ClassCastException e) {

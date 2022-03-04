@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.io.writer;
 
-import com.pb.common.matrix.Matrix;
+//import com.pb.common.matrix.Matrix;
+import de.tum.bgu.msm.common.matrix.Matrix;
 import omx.OmxFile;
 import omx.OmxLookup;
 import omx.OmxMatrix;
@@ -27,7 +28,7 @@ public class OmxMatrixWriter {
             float mat1NA = -1;
 
             float[][] array = matrix.getValues();
-            int[] indices = matrix.getExternalRowNumbersZeroBased();
+            int[] indices = matrix.getExternalRowNumbers();//getExternalRowNumbersZeroBased();
 
             OmxLookup lookup = new OmxLookup.OmxIntLookup("lookup1", indices, -1);
             OmxMatrix.OmxFloatMatrix mat1 = new OmxMatrix.OmxFloatMatrix(omxMatrixName, array, mat1NA);

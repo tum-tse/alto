@@ -2,6 +2,7 @@ package de.tum.bgu.msm.longDistance.timeOfDay;
 
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.LDModelGermany;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.*;
@@ -12,7 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.pb.common.datafile.TableDataSet;
+//import com.pb.common.datafile.TableDataSet;
 
 public class TimeOfDayChoiceGermany implements TimeOfDayChoice {
 

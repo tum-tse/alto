@@ -1,8 +1,9 @@
 package de.tum.bgu.msm.longDistance.tripGeneration;
 
 
-import com.pb.common.datafile.TableDataSet;
+//import com.pb.common.datafile.TableDataSet;
 import de.tum.bgu.msm.*;
+import de.tum.bgu.msm.common.datafile.TableDataSet;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.LDModelOntario;
 import de.tum.bgu.msm.longDistance.accessibilityAnalysis.AccessibilityAnalysis;

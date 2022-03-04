@@ -1,9 +1,10 @@
 package de.tum.bgu.msm.longDistance.io.reader;
 
-import com.pb.common.datafile.TableDataSet;
-import com.pb.common.matrix.Matrix;
+//import com.pb.common.datafile.TableDataSet;
+//import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.trips.Mode;
 import de.tum.bgu.msm.longDistance.data.trips.ModeGermany;

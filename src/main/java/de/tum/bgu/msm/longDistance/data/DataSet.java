@@ -1,7 +1,9 @@
 package de.tum.bgu.msm.longDistance.data;
 
-import com.pb.common.datafile.TableDataSet;
-import com.pb.common.matrix.Matrix;
+//import com.pb.common.datafile.TableDataSet;
+//import com.pb.common.matrix.Matrix;
+import de.tum.bgu.msm.common.datafile.TableDataSet;
+import de.tum.bgu.msm.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.data.airport.AirLeg;
 import de.tum.bgu.msm.longDistance.data.airport.Airport;
 import de.tum.bgu.msm.longDistance.data.airport.AirportType;

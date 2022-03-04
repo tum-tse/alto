@@ -1,7 +1,8 @@
 package de.tum.bgu.msm.longDistance.destinationChoice;
 
-import com.pb.common.matrix.Matrix;
+//import com.pb.common.matrix.Matrix;
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.grids.GridGermany;
 import de.tum.bgu.msm.longDistance.data.sp.Household;
