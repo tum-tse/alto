@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance;
 
 import de.tum.bgu.msm.Util;
+import de.tum.bgu.msm.longDistance.accessibilityAnalysis.Logsums;
 import de.tum.bgu.msm.longDistance.airportAnalysis.AirTripsGeneration;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.destinationChoice.DestinationChoice;
@@ -10,7 +11,7 @@ import de.tum.bgu.msm.longDistance.io.writer.OutputWriter;
 import de.tum.bgu.msm.longDistance.io.writer.TripsToPlans;
 import de.tum.bgu.msm.longDistance.modeChoice.ModeChoice;
 import de.tum.bgu.msm.longDistance.scaling.PotentialTravelersSelectionGermany;
-import de.tum.bgu.msm.longDistance.scenarioAnalysis.ScenarioAnalysis;
+import de.tum.bgu.msm.longDistance.scenarioAnalysis.ScenarioAnalysisLdEquity;
 import de.tum.bgu.msm.longDistance.timeOfDay.TimeOfDayChoice;
 import de.tum.bgu.msm.longDistance.tripGeneration.TripGeneration;
 import org.apache.log4j.Logger;
@@ -46,9 +47,10 @@ public class LDModelGermany implements ModelComponent, LDModel {
     private Emissions emissions;
     private CalibrationGermany calibrationGermany;
     private PotentialTravelersSelectionGermany potentialTravelersSelection;
-    private ScenarioAnalysis scenarioAnalysis;
+    private ScenarioAnalysisLdEquity scenarioAnalysisLdEquity;
     private AirTripsGeneration airTripsGeneration;
     private TripsToPlans trips2Plans;
+    private Logsums logsums;
 
     public LDModelGermany(ZoneReader zoneReader, GridReader gridReader, SkimsReader skimsReader,
                           SyntheticPopulationReader syntheticPopulationReader,
@@ -62,8 +64,9 @@ public class LDModelGermany implements ModelComponent, LDModel {
                           OutputWriter outputWriter,
                           CalibrationGermany calibrationGermany,
                           PotentialTravelersSelectionGermany potentialTravelersSelection,
-                          ScenarioAnalysis scenarioAnalysis,
-                          TripsToPlans trips2Plans) {
+                          ScenarioAnalysisLdEquity scenarioAnalysisLdEquity,
+                          TripsToPlans trips2Plans,
+                          Logsums logsums) {
         this.zoneReader = zoneReader;
         this.gridReader = gridReader;
         this.skimsReader = skimsReader;
@@ -77,15 +80,15 @@ public class LDModelGermany implements ModelComponent, LDModel {
         this.outputWriter = outputWriter;
         this.calibrationGermany = calibrationGermany;
         this.potentialTravelersSelection = potentialTravelersSelection;
-        this.scenarioAnalysis = scenarioAnalysis;
+        this.scenarioAnalysisLdEquity = scenarioAnalysisLdEquity;
         this.airTripsGeneration = airTripsGeneration;
         this.trips2Plans = trips2Plans;
+        this.logsums = logsums;
     }
 
     public void setup(JSONObject prop, String inputFolder, String outputFolder) {
 
         Util.initializeRandomNumber(prop);
-
 
         //options
         zoneReader.setup(prop, inputFolder, outputFolder);
@@ -94,7 +97,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
         syntheticPopulationReader.setup(prop, inputFolder, outputFolder);
         economicStatusReader.setup(prop, inputFolder, outputFolder);
         potentialTravelersSelection.setup(prop, inputFolder, outputFolder);
-        scenarioAnalysis.setup(prop, inputFolder, outputFolder);
+        scenarioAnalysisLdEquity.setup(prop, inputFolder, outputFolder);
         tripGenModel.setup(prop, inputFolder, outputFolder);
         destinationChoice.setup(prop, inputFolder, outputFolder);
         airTripsGeneration.setup(prop, inputFolder, outputFolder);
@@ -103,7 +106,8 @@ public class LDModelGermany implements ModelComponent, LDModel {
         emissions.setup(prop, inputFolder, outputFolder);
         outputWriter.setup(prop, inputFolder, outputFolder);
         calibrationGermany.setup(prop, inputFolder, outputFolder);
-        trips2Plans.setup(prop, inputFolder, outputFolder);
+        //trips2Plans.setup(prop, inputFolder, outputFolder);
+        logsums.setup(prop, inputFolder, outputFolder);
         logger.info("---------------------ALL MODULES SET UP---------------------");
     }
 
@@ -115,7 +119,7 @@ public class LDModelGermany implements ModelComponent, LDModel {
         syntheticPopulationReader.load(dataSet);
         economicStatusReader.load(dataSet);
         potentialTravelersSelection.load(dataSet);
-        scenarioAnalysis.load(dataSet);
+        scenarioAnalysisLdEquity.load(dataSet);
         mcModel.load(dataSet);
         destinationChoice.load(dataSet);
         tripGenModel.load(dataSet);
@@ -124,7 +128,8 @@ public class LDModelGermany implements ModelComponent, LDModel {
         emissions.load(dataSet);
         outputWriter.load(dataSet);
         airTripsGeneration.load(dataSet);
-        trips2Plans.load(dataSet);
+        //trips2Plans.load(dataSet);
+        logsums.load(dataSet);
         logger.info("---------------------ALL MODULES LOADED---------------------");
 
     }
@@ -142,12 +147,16 @@ public class LDModelGermany implements ModelComponent, LDModel {
             timeOfDayChoice.run(dataSet, -1);
             calibrationGermany.run(dataSet, -1);
             emissions.run(dataSet, -1);
+            //logsums.run(dataSet, -1);
+            if (dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(), "seed") == 6){
+                logsums.run(dataSet, -1);
+            }
             outputWriter.run(dataSet, -1);
             //scenarioAnalysis.run(dataSet, -1);
         //}
         }
-        scenarioAnalysis.run(dataSet, -1);
-        trips2Plans.run(dataSet,-1);
+        scenarioAnalysisLdEquity.run(dataSet, -1);
+        //trips2Plans.run(dataSet,-1);
 
 
 

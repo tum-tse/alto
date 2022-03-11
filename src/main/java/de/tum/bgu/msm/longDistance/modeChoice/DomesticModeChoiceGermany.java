@@ -1,9 +1,11 @@
 package de.tum.bgu.msm.longDistance.modeChoice;
 
 //import com.pb.common.datafile.TableDataSet;
+
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.common.datafile.TableDataSet;
+import de.tum.bgu.msm.common.matrix.Matrix;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.airport.AirLeg;
 import de.tum.bgu.msm.longDistance.data.airport.Airport;
@@ -193,7 +195,7 @@ public class DomesticModeChoiceGermany {
                 attributes.put("utility_" + "NestAuto", (float) utilityNestAuto);
             }
 
-            double probability_denominator = Arrays.stream(expUtilities).sum();
+            double probability_denominator = expUtilities[0] + expUtilities[1] + expUtilities[2] + expUtilities[3];
 
             if (utilities[0] != Double.NEGATIVE_INFINITY)
                 probabilities[0] = expUtilities[0] / probability_denominator * probLowerAuto;
@@ -234,6 +236,10 @@ public class DomesticModeChoiceGermany {
                     attributes.put("utility_" + ModeGermany.getMode(mode), (float) utilities[mode]);
                 }
             }
+
+            double logsum = Math.log(probability_denominator);
+            attributes.put("logsum", (float) logsum);
+            attributes.put("logsums_accessibility", (float) 0.00);
             ((LongDistanceTripGermany) t).setAdditionalAttributes(attributes);
             //choose one destination, weighted at random by the probabilities
         }
@@ -248,7 +254,22 @@ public class DomesticModeChoiceGermany {
 
     public double calculateUtilityFromGermany(LongDistanceTripGermany trip, Mode m) {
 
+        //This block overwrite some parameters of scenarios to allow automatic multiple runs; some settings might be duplicate
+        runCityTollScenario = true;
+        cityToll = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(), "cordonToll");
+        runTollScenario = true;
+        tollOnBundesstrasse = false;
+        toll = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(), "freewayToll");
+        runScenario1 = true;
+        shuttleBusCostBase = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(), "railShuttleBase");
+        shuttleBusCostPerKm = dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(), "railShuttleKm");
+        subsidyForRural = dataSet.getScenarioSettings().getBooleanValueAt(dataSet.getScenario(), "ruralFree");
+        //seed = (long) dataSet.getScenarioSettings().getValueAt(dataSet.getScenario(), "seed");
+        //rand = new Random(seed);
+
         double utility;
+        double utilityIndividual;
+        double utilityTrip;
         String tripPurpose = trip.getTripPurpose().toString().toLowerCase();
         String tripState = trip.getTripState().toString().toLowerCase();
         String column = m.toString() + "." + tripPurpose + "." + tripState;
@@ -328,8 +349,26 @@ public class DomesticModeChoiceGermany {
             }
         }
 
+        if (m.equals(ModeGermany.RAIL_SHUTTLE) && shuttleBusCostBase >= 100){
+            utility = Double.NEGATIVE_INFINITY;
 
-        if (time < 1000000000 / 3600) {
+            attr.put("cost_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("costAccess_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("costEgress_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("costTotal_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("time_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("timeAccess_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("timeEgress_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("timeTotal_" + m.toString(), (float) timeTotal);
+            attr.put("distance_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("distanceAccess_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("distanceEgress_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            attr.put("tollDistance_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            if (m.equals(ModeGermany.AUTO)) {
+                attr.put("utility_individual", (float) Double.NEGATIVE_INFINITY);
+            }
+            attr.put("utility_trip" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+        }else if (time < 1000000000 / 3600) {
             if (vot != 0) {
                 double cost = 0;
                 double costAccess = 0;
@@ -407,7 +446,6 @@ public class DomesticModeChoiceGermany {
                 attr.put("tollDistance_" + m.toString(), (float) tollDistance);
 
             }
-            trip.setAdditionalAttributes(attr);
 
 
             //person-related variables
@@ -477,7 +515,7 @@ public class DomesticModeChoiceGermany {
             if (calibration)
                 k_calibration = k_calibration + calibrationDomesticMcMatrix.get(trip.getTripPurpose()).get(trip.getTripState()).get(m);
 
-            utility = b_intercept +
+            utilityIndividual = b_intercept +
                     b_male * Boolean.compare(pers.isMale(), false) +
                     b_employed * Boolean.compare(pers.isEmployed(), false) +
                     b_student * Boolean.compare(pers.isStudent(), false) +
@@ -493,9 +531,15 @@ public class DomesticModeChoiceGermany {
                     b_lowEconomicStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.LOW), false) +
                     b_highStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.HIGH), false) +
                     b_veryHighStatus * Boolean.compare(hh.getEconomicStatus().equals(EconomicStatus.VERYHIGH), false) +
-                    b_impedance * Math.exp(alpha_impedance * impedance * 60) +
                     k_calibration + k_calibration_tollScenario + k_calibration_railShuttleScenario + k_calibration_railShuttleAndTollScenario + k_calibration_congestedTraffic
             ;
+
+            utilityTrip = b_impedance * Math.exp(alpha_impedance * impedance * 60);
+            utility = utilityIndividual + utilityTrip;
+            if (m.equals(ModeGermany.AUTO)) {
+                attr.put("utility_individual", (float) Double.NEGATIVE_INFINITY);
+            }
+            attr.put("utility_trip" + m.toString(), (float) utilityTrip);
 
             if (m.equals(ModeGermany.RAIL_SHUTTLE) && distance == 0) {
                 utility = Double.NEGATIVE_INFINITY;
@@ -524,8 +568,12 @@ public class DomesticModeChoiceGermany {
             attr.put("distanceAccess_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
             attr.put("distanceEgress_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
             attr.put("tollDistance_" + m.toString(), (float) Double.NEGATIVE_INFINITY);
+            if (m.equals(ModeGermany.AUTO)) {
+                attr.put("utility_individual", (float) Double.NEGATIVE_INFINITY);
+            }
+            attr.put("utility_trip" + m.toString(), (float) Double.NEGATIVE_INFINITY);
         }
-
+        trip.setAdditionalAttributes(attr);
         return utility;
 
     }

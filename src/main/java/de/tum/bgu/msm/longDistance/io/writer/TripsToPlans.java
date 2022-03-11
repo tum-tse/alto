@@ -92,6 +92,7 @@ public class TripsToPlans {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
         }
 
     }

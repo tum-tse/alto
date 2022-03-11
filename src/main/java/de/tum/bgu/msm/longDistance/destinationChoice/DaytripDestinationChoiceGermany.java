@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Germany wide travel demand model
@@ -38,6 +39,7 @@ public class DaytripDestinationChoiceGermany implements DestinationChoiceModule 
     private int[] destinations;
     private DataSet dataSet;
     private boolean calibrationDaytripDC;
+    private AtomicInteger atomicInteger = new AtomicInteger(0);
 
     public DaytripDestinationChoiceGermany(JSONObject prop, String inputFolder) {
         coefficients = Util.readCSVfile(inputFolder + JsonUtilMto.getStringProp(prop, "destination_choice.daytrip.coef_file"));

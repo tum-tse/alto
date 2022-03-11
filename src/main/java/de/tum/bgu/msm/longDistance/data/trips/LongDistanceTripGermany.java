@@ -226,57 +226,59 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",departureTimeMin,departureTimeReturnDaytrip,ReturnOvernightTrip" +
                 ",CO2emissions_kg" +
                 ",origX,origY,destX,destY" +
-                ",selPos"+
-                ",utility_" + ModeGermany.getMode(0) +
-                ",utility_" + ModeGermany.getMode(1) +
-                ",utility_" + ModeGermany.getMode(2) +
-                ",utility_" + ModeGermany.getMode(3) +
-                ",utility_" + ModeGermany.getMode(4) +
-                ",utility_" + ModeGermany.getMode(5) +
-                ",utility_NestRail" +
-                ",utility_NestAuto" +
+//                ",selPos"+
+//                ",utility_" + ModeGermany.getMode(0) +
+//                ",utility_" + ModeGermany.getMode(1) +
+//                ",utility_" + ModeGermany.getMode(2) +
+//                ",utility_" + ModeGermany.getMode(3) +
+//                ",utility_" + ModeGermany.getMode(4) +
+//                ",utility_" + ModeGermany.getMode(5) +
+//                ",utility_NestRail" +
+//                ",utility_NestAuto" +
+                ",utility_individual" +
+                ",logsums_accessibility"+
                 ",impedance_" + ModeGermany.getMode(0) +
                 ",impedance_" + ModeGermany.getMode(1) +
                 ",impedance_" + ModeGermany.getMode(2) +
                 ",impedance_" + ModeGermany.getMode(3) +
                 ",impedance_" + ModeGermany.getMode(4) +
                 ",impedance_" + ModeGermany.getMode(5) +
-                ",costTotal_" + ModeGermany.getMode(0) +
-                ",costTotal_" + ModeGermany.getMode(1) +
-                ",costTotal_" + ModeGermany.getMode(2) +
-                ",costTotal_" + ModeGermany.getMode(3) +
-                ",costTotal_" + ModeGermany.getMode(4) +
-                ",costTotal_" + ModeGermany.getMode(5) +
-                ",costAccess_" + ModeGermany.getMode(0)+
-                ",costAccess_" + ModeGermany.getMode(1)+
-                ",costAccess_" + ModeGermany.getMode(2)+
-                ",costAccess_" + ModeGermany.getMode(3)+
-                ",costAccess_" + ModeGermany.getMode(4)+
-                ",costAccess_" + ModeGermany.getMode(5)+
-                ",costEgress_" + ModeGermany.getMode(0)+
-                ",costEgress_" + ModeGermany.getMode(1)+
-                ",costEgress_" + ModeGermany.getMode(2)+
-                ",costEgress_" + ModeGermany.getMode(3)+
-                ",costEgress_" + ModeGermany.getMode(4)+
-                ",costEgress_" + ModeGermany.getMode(5)+
-                ",timeTotal_" + ModeGermany.getMode(0) +
-                ",timeTotal_" + ModeGermany.getMode(1) +
-                ",timeTotal_" + ModeGermany.getMode(2) +
-                ",timeTotal_" + ModeGermany.getMode(3) +
-                ",timeTotal_" + ModeGermany.getMode(4) +
-                ",timeTotal_" + ModeGermany.getMode(5) +
-                ",timeAccess_" + ModeGermany.getMode(0) +
-                ",timeAccess_" + ModeGermany.getMode(1) +
-                ",timeAccess_" + ModeGermany.getMode(2) +
-                ",timeAccess_" + ModeGermany.getMode(3) +
-                ",timeAccess_" + ModeGermany.getMode(4) +
-                ",timeAccess_" + ModeGermany.getMode(5) +
-                ",timeEgress_" + ModeGermany.getMode(0) +
-                ",timeEgress_" + ModeGermany.getMode(1) +
-                ",timeEgress_" + ModeGermany.getMode(2) +
-                ",timeEgress_" + ModeGermany.getMode(3) +
-                ",timeEgress_" + ModeGermany.getMode(4) +
-                ",timeEgress_" + ModeGermany.getMode(5) +
+//                ",costTotal_" + ModeGermany.getMode(0) +
+//                ",costTotal_" + ModeGermany.getMode(1) +
+//                ",costTotal_" + ModeGermany.getMode(2) +
+//                ",costTotal_" + ModeGermany.getMode(3) +
+//                ",costTotal_" + ModeGermany.getMode(4) +
+//                ",costTotal_" + ModeGermany.getMode(5) +
+//                ",costAccess_" + ModeGermany.getMode(0)+
+//                ",costAccess_" + ModeGermany.getMode(1)+
+//                ",costAccess_" + ModeGermany.getMode(2)+
+//                ",costAccess_" + ModeGermany.getMode(3)+
+//                ",costAccess_" + ModeGermany.getMode(4)+
+//                ",costAccess_" + ModeGermany.getMode(5)+
+//                ",costEgress_" + ModeGermany.getMode(0)+
+//                ",costEgress_" + ModeGermany.getMode(1)+
+//                ",costEgress_" + ModeGermany.getMode(2)+
+//                ",costEgress_" + ModeGermany.getMode(3)+
+//                ",costEgress_" + ModeGermany.getMode(4)+
+//                ",costEgress_" + ModeGermany.getMode(5)+
+//                ",timeTotal_" + ModeGermany.getMode(0) +
+//                ",timeTotal_" + ModeGermany.getMode(1) +
+//                ",timeTotal_" + ModeGermany.getMode(2) +
+//                ",timeTotal_" + ModeGermany.getMode(3) +
+//                ",timeTotal_" + ModeGermany.getMode(4) +
+//                ",timeTotal_" + ModeGermany.getMode(5) +
+//                ",timeAccess_" + ModeGermany.getMode(0) +
+//                ",timeAccess_" + ModeGermany.getMode(1) +
+//                ",timeAccess_" + ModeGermany.getMode(2) +
+//                ",timeAccess_" + ModeGermany.getMode(3) +
+//                ",timeAccess_" + ModeGermany.getMode(4) +
+//                ",timeAccess_" + ModeGermany.getMode(5) +
+//                ",timeEgress_" + ModeGermany.getMode(0) +
+//                ",timeEgress_" + ModeGermany.getMode(1) +
+//                ",timeEgress_" + ModeGermany.getMode(2) +
+//                ",timeEgress_" + ModeGermany.getMode(3) +
+//                ",timeEgress_" + ModeGermany.getMode(4) +
+//                ",timeEgress_" + ModeGermany.getMode(5) +
                 ",distance_" + ModeGermany.getMode(0) +
                 ",distance_" + ModeGermany.getMode(1) +
                 ",distance_" + ModeGermany.getMode(2) +
@@ -297,6 +299,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                 ",distanceEgress_" + ModeGermany.getMode(5)+
                 ",tollDistance_" + ModeGermany.getMode(0)+
                 ",tollDistance_" + ModeGermany.getMode(5)+
+                ",logsum" +
                 ",personalIncome"+
                 ",householdIncome"+
                 ",economicStatus"+
@@ -337,57 +340,59 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getOrigY()
                     + "," + tr.getDestX()
                     + "," + tr.getDestY()
-                    + "," + tr.getAdditionalAttributes().get("selPos")
-                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(0))
-                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(1))
-                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(2))
-                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(3))
-                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(4))
-                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(5))
-                    + "," + tr.getAdditionalAttributes().get("utility_NestRail")
-                    + "," + tr.getAdditionalAttributes().get("utility_NestAuto")
+//                    + "," + tr.getAdditionalAttributes().get("selPos")
+//                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(0))
+//                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(1))
+//                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(2))
+//                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(3))
+//                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(4))
+//                    + "," + tr.getAdditionalAttributes().get("utility_" + ModeGermany.getMode(5))
+//                    + "," + tr.getAdditionalAttributes().get("utility_NestRail")
+//                    + "," + tr.getAdditionalAttributes().get("utility_NestAuto")
+                    + "," + tr.getAdditionalAttributes().get("utility_individual")
+                    + "," + tr.getAdditionalAttributes().get("logsums_accessibility")
                     + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(2))
                     + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(3))
                     + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(4))
                     + "," + tr.getAdditionalAttributes().get("impedance_" + ModeGermany.getMode(5))
-                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(0))
-                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(1))
-                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(2))
-                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(3))
-                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(4))
-                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(5))
-                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(0))
-                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(1))
-                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(2))
-                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(3))
-                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(4))
-                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(5))
-                    + "," + tr.getAdditionalAttributes().get("costEgress_"+ ModeGermany.getMode(0))
-                    + "," + tr.getAdditionalAttributes().get("costEgress_"+ ModeGermany.getMode(1))
-                    + "," + tr.getAdditionalAttributes().get("costEgress_"+ ModeGermany.getMode(2))
-                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(3))
-                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(4))
-                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(5))
-                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(0))
-                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(1))
-                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(2))
-                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(3))
-                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(4))
-                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(5))
-                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(0))
-                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(1))
-                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(2))
-                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(3))
-                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(4))
-                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(5))
-                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(0))
-                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(1))
-                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(2))
-                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(3))
-                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(4))
-                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(5))
+//                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(0))
+//                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(1))
+//                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(2))
+//                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(3))
+//                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(4))
+//                    + "," + tr.getAdditionalAttributes().get("costTotal_" + ModeGermany.getMode(5))
+//                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(0))
+//                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(1))
+//                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(2))
+//                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(3))
+//                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(4))
+//                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(5))
+//                    + "," + tr.getAdditionalAttributes().get("costEgress_"+ ModeGermany.getMode(0))
+//                    + "," + tr.getAdditionalAttributes().get("costEgress_"+ ModeGermany.getMode(1))
+//                    + "," + tr.getAdditionalAttributes().get("costEgress_"+ ModeGermany.getMode(2))
+//                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(3))
+//                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(4))
+//                    + "," + tr.getAdditionalAttributes().get("costAccess_"+ ModeGermany.getMode(5))
+//                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(0))
+//                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(1))
+//                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(2))
+//                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(3))
+//                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(4))
+//                    + "," + tr.getAdditionalAttributes().get("timeTotal_" + ModeGermany.getMode(5))
+//                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(0))
+//                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(1))
+//                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(2))
+//                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(3))
+//                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(4))
+//                    + "," + tr.getAdditionalAttributes().get("timeAccess_" + ModeGermany.getMode(5))
+//                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(0))
+//                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(1))
+//                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(2))
+//                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(3))
+//                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(4))
+//                    + "," + tr.getAdditionalAttributes().get("timeEgress_" + ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("distance_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("distance_" + ModeGermany.getMode(1))
                     + "," + tr.getAdditionalAttributes().get("distance_" + ModeGermany.getMode(2))
@@ -408,6 +413,7 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
                     + "," + tr.getAdditionalAttributes().get("distanceEgress_" + ModeGermany.getMode(5))
                     + "," + tr.getAdditionalAttributes().get("tollDistance_" + ModeGermany.getMode(0))
                     + "," + tr.getAdditionalAttributes().get("tollDistance_" + ModeGermany.getMode(5))
+                    + "," + tr.getAdditionalAttributes().get("logsum")
                     + "," + traveller.getPpInc()
                     + "," + traveller.getIncome()
                     + "," + household.getEconomicStatus().toString()
@@ -425,22 +431,22 @@ public class LongDistanceTripGermany implements LongDistanceTrip {
         } else {
             str = (tr.getTripId()
                     + "," + tr.getTravellerId()
-                    + "," + tr.isInternational()
-                    + "," + tr.tripPurpose.toString()
-                    + "," + tr.tripState.toString()
-                    + "," + tr.getOrigZone().getId()
-                    + "," + tr.getOrigZone().getZoneType()
-                    + "," + tr.getMode()
-                    + "," + tr.getAdultsHhTravelPartySize()
-                    + "," + tr.getKidsHhTravelPartySize()
-                    + "," + tr.getDestZoneType()
-                    + "," + tr.getDestZone().getId()
-                    + "," + tr.getAutoTravelDistance()
-                    + "," + tr.getDepartureTimesInMin() // Alona
-                    + "," + tr.getDepartureTimeInHours()
-                    + "," + tr.getDepartureTimeInHoursSecondSegment()
-                    + "," + tr.isReturnOvernightTrip()
-                    + "," + tr.getTravelTime()
+//                    + "," + tr.isInternational()
+//                    + "," + tr.tripPurpose.toString()
+//                    + "," + tr.tripState.toString()
+//                    + "," + tr.getOrigZone().getId()
+//                    + "," + tr.getOrigZone().getZoneType()
+//                    + "," + tr.getMode()
+//                    + "," + tr.getAdultsHhTravelPartySize()
+//                    + "," + tr.getKidsHhTravelPartySize()
+//                    + "," + tr.getDestZoneType()
+//                    + "," + tr.getDestZone().getId()
+//                    + "," + tr.getAutoTravelDistance()
+//                    + "," + tr.getDepartureTimesInMin() // Alona
+//                    + "," + tr.getDepartureTimeInHours()
+//                    + "," + tr.getDepartureTimeInHoursSecondSegment()
+//                    + "," + tr.isReturnOvernightTrip()
+//                    + "," + tr.getTravelTime()
                     //+ ",-1,,-1,-1,-1,-1,-1"
             );
 
