@@ -1,6 +1,7 @@
 package de.tum.bgu.msm.longDistance.io.reader;
 
-import com.pb.common.matrix.Matrix;
+import de.tum.bgu.msm.common.datafile.TableDataSet;
+import de.tum.bgu.msm.common.matrix.Matrix;
 import de.tum.bgu.msm.JsonUtilMto;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
@@ -105,7 +106,7 @@ public class SkimsReaderOntario implements SkimsReader {
             int lookup1NA = -1;
             int[] lookup1Data;
 
-            lookup1Data = matrix.getExternalRowNumbersZeroBased();
+            lookup1Data = matrix.getExternalRowNumbers();
 
             OmxLookup.OmxIntLookup lookup1 = new OmxLookup.OmxIntLookup(fileMatrixLookupName[2], lookup1Data, lookup1NA);
 

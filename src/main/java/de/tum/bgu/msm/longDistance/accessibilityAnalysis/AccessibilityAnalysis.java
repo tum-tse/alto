@@ -1,6 +1,6 @@
 package de.tum.bgu.msm.longDistance.accessibilityAnalysis;
 
-import com.pb.common.util.ResourceUtil;
+import de.tum.bgu.msm.common.util.ResourceUtil;
 import de.tum.bgu.msm.Util;
 import de.tum.bgu.msm.longDistance.data.DataSet;
 import de.tum.bgu.msm.longDistance.data.zoneSystem.ZoneOntario;
