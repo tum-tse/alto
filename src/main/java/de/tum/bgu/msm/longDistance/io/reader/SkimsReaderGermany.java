@@ -87,7 +87,7 @@ public class SkimsReaderGermany implements SkimsReader {
         if (runTollScenario) {
             tollOnBundesstrasse = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.tollScenario.appliedInBundesstrasse");
         }
-        runRailShuttleBusAndDeutschlandTakt = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.run");
+        runRailShuttleBusAndDeutschlandTakt = false; //JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.run");
         congestedTraffic = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.congestedTraffic");
 
         //AUTO:
@@ -163,13 +163,13 @@ public class SkimsReaderGermany implements SkimsReader {
         lookUps.put(ModeGermany.RAIL, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
         accessToTrainFileName.put(ModeGermany.RAIL, inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix"));
 
-        inPtTimeFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail_shuttle"));
-        accessTimeFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail_shuttle"));
-        egressTimeFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail_shuttle"));
-        accessDistanceFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail_shuttle")); // A
-        egressDistanceFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail_shuttle")); // A
-        egressTimeFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail_shuttle"));
-        distanceFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder + JsonUtilMto.getStringProp(prop, "scenarioPolicy.shuttleBusToRail.all_rail_shuttle"));
+        inPtTimeFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder);
+        accessTimeFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder);
+        egressTimeFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder);
+        accessDistanceFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder); // A
+        egressDistanceFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder); // A
+        egressTimeFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder);
+        distanceFileNames.put(ModeGermany.RAIL_SHUTTLE, inputFolder);
         distanceMatrixNames.put(ModeGermany.RAIL_SHUTTLE, JsonUtilMto.getStringProp(prop, "mode_choice.skim.matrixName_distance"));
         lookUps.put(ModeGermany.RAIL_SHUTTLE, JsonUtilMto.getStringProp(prop, "mode_choice.skim.pt_matrix_lookup"));
         accessToTrainFileName.put(ModeGermany.RAIL_SHUTTLE, inputFolder + JsonUtilMto.getStringProp(prop, "zone_system.accessToRail_time_matrix"));

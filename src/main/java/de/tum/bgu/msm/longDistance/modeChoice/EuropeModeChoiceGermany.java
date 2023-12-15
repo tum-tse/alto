@@ -97,7 +97,7 @@ public class EuropeModeChoiceGermany {
         }
         NESTING_COEFFICIENT_AUTO_MODES = 1 / JsonUtilMto.getFloatProp(prop, "scenarioPolicy.tollScenario.nested_incremental_logit_scale");
 
-        runRailShuttleBusAndDeutschlandTakt  = JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.run");
+        runRailShuttleBusAndDeutschlandTakt  = false/*JsonUtilMto.getBooleanProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.run")*/;
         if(runRailShuttleBusAndDeutschlandTakt){
             shuttleBusCostPerKm = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.costPerKm");
             shuttleBusCostBase = JsonUtilMto.getFloatProp(prop, "scenarioPolicy.DeutschlandTakt_shuttleBusToRail.costBase");
